@@ -1,0 +1,194 @@
+/*
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+*/
+
+
+/* --------------------------------------------
+- 画面表示内容エリア(画面上部ヘッダ以外の領域を占有)
+----------------------------------------------- */
+#dispArea {
+  position: absolute;
+  /* topについては共通JavaScriptにより(直前のdiv要素の直下に)自動設定される。
+     だが画面ロード完了まで表示内容が変な位置に見えてしまう問題があるため
+     回避のため表示対象外となるようなデフォルト値を仮設定しておく */
+  top: -99999999px;
+  bottom: 0;
+}
+
+body>#dispArea,
+.container-fluid>#dispArea {
+  left: 0;
+  right: 0;
+}
+
+/* --------------------------------------------
+- thead/先頭列固定のテーブル
+----------------------------------------------- */
+/* thead固定のテーブル */
+table.fixTHead>thead {
+  position: sticky;
+  top: 0px;
+  /* tbodyのCarouselなどが前面に出てきてしまうのを防ぐ＆ヘッダの罫線を常時表示 */
+  z-index: 3;
+}
+
+/* 先頭列固定のテーブルのセル */
+table>*>tr>*.fixColumn {
+  position: sticky;
+  left: 0px;
+  /* tbodyのCarouselなどが前面に出てきてしまうのを防ぐ＆固定列の罫線を常時表示 */
+  z-index: 2;
+}
+
+table>thead>tr>*.fixColumn {
+  /* 先頭列固定の場合はヘッダ部の罫線が消えないようzIndexを再補正 */
+  z-index: 3;
+}
+
+/* ※thead固定/列固定のテーブルは罫線がおかしくなるのでbootstrap本来の罫線は非表示、自前で「::before」で引き直す */
+table.table-bordered>*>tr>*.fixColumn,
+table.table-bordered.fixTHead>*>tr,
+table.table-bordered.fixTHead>*>tr>* {
+  border-width: 0;
+  position: sticky;
+}
+
+table.table-bordered>*>tr>*.fixColumn::before,
+table.table-bordered.fixTHead>*>tr>*::before {
+  content: '';
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: calc(1px+100%);
+  height: calc(1px+100%);
+  /* ↓border-width以外は明示的にinheritを指定しないと罫線が引かれないので指定している */
+  border-width: 1px;
+  border-style: inherit;
+  border-color: inherit;
+  /* ↓マウスクリックできなくなる問題を回避するため設定 */
+  pointer-events: none;
+}
+
+table.table-bordered:not(.fixTHead)>*>tr>*::before {
+  /* thead固定なしの先頭列固定はセル罫線位置がずれないよう再調整 */
+  top: -1px;
+  height: calc(2px+100%);
+}
+
+table.table-bordered.fixTHead>*>tr {
+  /* thead固定テーブルは右端罫線を描画ありにすることで+1pxのレイアウトを確保 */
+  border-right-width: 1px;
+}
+
+/* --------------------------------------------
+ * flatpickr補正
+ * -------------------------------------------- */
+/* カレンダ土日表示色 */
+.flatpickr-calendar .flatpickr-innerContainer .flatpickr-weekdays .flatpickr-weekday:nth-child(7n + 1),
+.flatpickr-calendar .flatpickr-innerContainer .flatpickr-days .flatpickr-day:not(.selected):not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay):nth-child(7n + 1) {
+  color: red;
+}
+
+.flatpickr-calendar .flatpickr-innerContainer .flatpickr-weekdays .flatpickr-weekday:nth-child(7),
+.flatpickr-calendar .flatpickr-innerContainer .flatpickr-days .flatpickr-day:not(.selected):not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay):nth-child(7n) {
+  color: blue;
+}
+
+/* カレンダ祝日表示色 */
+.flatpickr-calendar .flatpickr-innerContainer .flatpickr-days .flatpickr-day.jp-holiday:not(.selected):not(.flatpickr-disabled):not(.prevMonthDay):not(.nextMonthDay) {
+  color: red;
+}
+
+
+/* カレンダの年月表示補正(「mm yyyy」ではなく「yyyy年 mm月」で表示させる) */
+.flatpickr-month .flatpickr-current-month {
+  display: flex;
+  justify-content: center;
+}
+
+.flatpickr-current-month>.numInputWrapper {
+  order: 1;
+  margin-right: 36px;
+}
+
+.flatpickr-current-month>.numInputWrapper:after {
+  position: absolute;
+  line-height: 30px;
+  /* 「年」 */
+  content: '\05E74';
+}
+
+.flatpickr-current-month>.numInputWrapper>input.cur-year {
+  /* 年textboxのテキスト入力欄が上にズレてしまう不具合を補正 */
+  height: 100%;
+}
+
+.flatpickr-current-month>.flatpickr-monthDropdown-months {
+  order: 2
+}
+
+/* flatpickrのインライン表示時に多少隙間を確保 */
+.flatpickr-calendar.inline {
+  margin-top: 0.5rem;
+}
+
+/* --------------------------------------------
+ * その他業務共通
+ * -------------------------------------------- */
+
+/* 日付入力欄のサイズを自動設定 */
+input[type="text"][accept="d"] {
+  width: 8rem;
+}
+
+input[type="text"][accept^="dt"] {
+  width: 11rem;
+}
+
+/* 表示のみの日付入力欄でマウスカーソルがポインタになるのを防ぐ */
+input[type="text"][accept^="d"][readonly] {
+  cursor: initial;
+}
+
+/* 数値入力欄を自動右寄せ */
+input[type="text"][accept^="1"],
+input[type="text"][accept^="2"],
+input[type="text"][accept^="3"],
+input[type="text"][accept^="4"],
+input[type="text"][accept^="5"],
+input[type="text"][accept^="6"],
+input[type="text"][accept^="7"],
+input[type="text"][accept^="8"],
+input[type="text"][accept^="9"],
+input[type="text"][accept^="-1"],
+input[type="text"][accept^="-2"],
+input[type="text"][accept^="-3"],
+input[type="text"][accept^="-4"],
+input[type="text"][accept^="-5"],
+input[type="text"][accept^="-6"],
+input[type="text"][accept^="-7"],
+input[type="text"][accept^="-8"],
+input[type="text"][accept^="-9"] {
+  text-align: right;
+}

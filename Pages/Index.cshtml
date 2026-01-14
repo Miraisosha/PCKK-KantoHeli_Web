@@ -1,0 +1,131 @@
+﻿@page
+@using Src.Services
+@using Src.Util
+@model IndexModel
+@inject LoginService login
+@inject ProviderService provider
+@{
+  ViewData["Title"] = "防災情報の検索";
+}
+@section LibScripts {
+  <link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" />
+  <script defer src="~/lib/flatpickr/flatpickr.min.js"></script>
+}
+@section Scripts {
+  <script defer src="~/js/index.js" asp-append-version="true"></script>
+  <style>
+    @*-- モーダル内入力欄の見た目制御 --*@
+    .condRow {
+      padding: 0.125rem 0;
+      background-color: white;
+      --bs-gutter-x: 0.5rem;
+      align-items: center;
+    }
+
+    .condRow label.col-form-label {
+      width: 9rem;
+    }
+  </style>
+}
+@section HeaderLeftArea {
+  <span class="navbar-nav">
+    <span class="nav-link active">防災情報の検索</span>
+  </span>
+}
+<div class="container-fluid">
+  <form id="condForm" class="mt-3">
+    <div class="row align-items-center my-2 gx-1">
+      <div class="col-auto">
+        <select asp-for="Year" class="form-select">
+          @for (var year = Model.年度Max; year >= Model.年度Min; year--)
+          {
+            <option value="@year">@year.To和暦年度Text()</option>
+          }
+        </select>
+      </div>
+      <div class="col-auto">
+        <select asp-for="Disaster" class="form-select">
+          <option value="">すべての災害</option>
+          @foreach (var rec in Model.災害区分Records.Where(r => r.表示順 is not null))
+          {
+            <option value="@rec.災害区分id">@rec.災害区分名</option>
+          }
+        </select>
+      </div>
+      <div class="col-auto ms-3">
+        全 @(Model.スレッドRecords.Count) 件 － @($"{provider.GetNow():yyyy/MM/dd HH:mm} 現在")
+      </div>
+      <div class="col-auto ms-1">
+        <button type="submit" class="btn btn-secondary"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      @if (login.Isログイン済)
+      {
+        <div class="col-auto ms-5">
+          <button type="button" name="btn新規" class="btn btn-primary">スレッドの追加</button>
+        </div>
+      }
+    </div>
+  </form>
+
+  <div id="dispArea" style="overflow-y:scroll">
+    <table id="listTable" class="table table-bordered table-hover fixTHead">
+      <thead>
+        <tr class="table-primary align-middle text-center">
+          <th style="width:4rem">-</th>
+          <th style="width:8rem">区分</th>
+          <th style="min-width:15rem">スレッド名</th>
+          <th style="width:9rem">作成日時</th>
+          <th style="width:9rem">最終更新日時</th>
+          <th style="width:9rem">調査依頼</th>
+          <th style="width:12rem">初動調査ルート</th>
+          <th style="width:20rem">備考</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var rec in Model.スレッドRecords)
+        {
+          //TODO 一覧表示を正式実装（災害発令中の行は赤字表記）
+          <tr class="align-middle">
+            <td class="text-center">
+              @if (login.Isログイン済)
+              {
+                <button type="button" name="btn編集" class="btn btn-sm btn-primary" value="@rec.スレッドid">編集</button>
+              }
+            </td>
+            <td>@Model.災害区分Records.FirstOrDefault(r => r.災害区分id == rec.災害区分id)?.災害区分名</td>
+            <td>@rec.スレッド名</td>
+            <td>@($"{rec.created_at:yyyy/MM/dd HH:mm}")</td>
+            <td>@($"{rec.updated_at:yyyy/MM/dd HH:mm}")</td>
+            <td class="text-center">
+              @if (rec.調査状況 is null)
+              { // 開発デモ用暫定:正式版では調査ルートが未作成ならボタンとして表示
+                @if (login.Isログイン済)
+                {
+                  <a asp-page="/Main/Index" asp-route-thread="@rec.スレッドid" target="@($"initial_{rec.スレッドid}")"
+                    class="btn btn-sm btn-primary">ルート作成</a>
+                }
+                else
+                {
+                  <span>未作成</span>
+                }
+              }
+              else
+              {
+                <a asp-page="/Main/Index" asp-route-thread="@rec.スレッドid" target="@($"initial_{rec.スレッドid}")"
+                  class="btn btn-link m-0 py-0">@rec.調査状況</a>
+              }
+            </td>
+            <td>@rec.調査ルート名</td>
+            <td class="">@rec.備考</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@*-- 編集ダイアログ --*@
+<form method="post" asp-page="/Index_EditModal" id="editModal" class="modal" tabindex="-1" data-bs-backdrop="static"
+  data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg"></div>
+</form>

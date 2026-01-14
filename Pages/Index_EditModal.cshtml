@@ -1,0 +1,124 @@
+﻿@page
+@using Src.Services
+@using Src.Util
+@model Index_EditModalModel
+@inject LoginService login
+@{
+  Layout = null; // Partial相当のレスポンスを返す
+}
+<div class="modal-content">
+  <div class="modal-header">
+    <h5 class="modal-title">スレッドの@(Model.Is新規 ? "追加" : "修正")</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+  <div class="modal-body">
+    <div class="row condRow">
+      <label asp-for="Input.災害発生日時" class="col-auto col-form-label"></label>
+      <div class="col">
+        <input type="text" asp-for="Input.災害発生日時" class="form-control">
+      </div>
+    </div>
+    <div class="row condRow">
+      <label asp-for="Input.災害区分id" class="col-auto col-form-label"></label>
+      <div class="col-auto">
+        <select asp-for="Input.災害区分id" class="form-select">
+          <option value="" disabled selected>（選択）</option>
+          @foreach (var rec in Model.災害区分Records)
+          {
+            <option value="@rec.災害区分id">@rec.災害区分名</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="row condRow">
+      <label asp-for="Input.スレッド名" class="col-auto col-form-label"></label>
+      <div class="col">
+        <input type="text" asp-for="Input.スレッド名" class="form-control">
+      </div>
+    </div>
+
+    <div id="row特定初動調査" class="row condRow">
+      <label asp-for="Input.特定初動調査区分id" class="col-auto col-form-label"></label>
+      <div class="col">
+        @foreach (var rec in Model.災害区分Records)
+        {
+          var t特定初動調査Records = Model.特定初動調査区分Records.Where(r => r.災害区分id == rec.災害区分id).ToArray();
+          if (t特定初動調査Records.Length > 0)
+          {
+            <select asp-for="Input.特定初動調査区分id" data-disasterid="@rec.災害区分id" class="form-select w-auto">
+              <option value="">（なし）</option>
+              @foreach (var t特定初動調査Rec in t特定初動調査Records)
+              {
+                <option value="@t特定初動調査Rec.特定初動調査区分id">@t特定初動調査Rec.特定初動調査区分名</option>
+              }
+            </select>
+          }
+        }
+      </div>
+    </div>
+
+    <div id="row初動調査ルート" class="row condRow">
+      <label asp-for="Input.初動調査ルートid" class="col-auto col-form-label"></label>
+      <div class="col">
+        @foreach (var rec in Model.特定初動調査区分Records)
+        {
+          var t初動調査ルートRecords = Model.初動調査ルートRecords.Where(r => r.特定初動調査区分id == rec.特定初動調査区分id).ToArray();
+          <select asp-for="Input.初動調査ルートid" data-initialid="@rec.特定初動調査区分id" class="form-select w-auto">
+            <option value="" disabled selected>（選択）</option>
+            @foreach (var t初動調査ルートRec in t初動調査ルートRecords)
+            {
+              <option value="@t初動調査ルートRec.初動調査ルートid">@t初動調査ルートRec.初動調査ルート名</option>
+            }
+          </select>
+        }
+      </div>
+    </div>
+
+    @if (!Model.Is新規)
+    {
+      <div class="row condRow">
+        <label asp-for="Input.調査ルート名" class="col-auto col-form-label"></label>
+        <div class="col">
+          <input type="text" asp-for="Input.調査ルート名" class="form-control" readonly>
+        </div>
+      </div>
+      <div class="row condRow">
+        <label asp-for="Input.調査状況" class="col-auto col-form-label"></label>
+        <div class="col">
+          <input type="text" asp-for="Input.調査状況" class="form-control" readonly>
+        </div>
+      </div>
+    }
+    <div class="row condRow">
+      <label asp-for="Input.created_at" class="col-auto col-form-label"></label>
+      <div class="col">
+        <input type="text" asp-for="Input.created_at" class="form-control" readonly>
+      </div>
+    </div>
+    <div class="row condRow">
+      <label asp-for="Input.updated_at" class="col-auto col-form-label"></label>
+      <div class="col">
+        <input type="text" asp-for="Input.updated_at" class="form-control" readonly>
+      </div>
+    </div>
+    <div class="row condRow">
+      <label asp-for="Input.備考" class="col-auto col-form-label"></label>
+      <div class="col">
+        <input asp-for="Input.備考" class="form-control">
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer d-flex">
+    @if (!Model.Is新規)
+    {
+      <div class="me-auto">
+        <button type="reset" class="btn btn-danger">削除</button>
+      </div>
+    }
+    <div>
+      <input type="hidden" asp-for="Input.スレッドid">
+      <button type="submit" class="btn btn-primary">@(Model.Is新規 ? "登録" : "修正")</button>
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,94 @@
+﻿@using Src.Common
+@using Src.Services
+@inject ProviderService provider
+@inject LoginService login
+@{
+  var settings = provider.GetSettings();
+}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    @(string.IsNullOrWhiteSpace(ViewData["Title"]?.ToString()) ? "" : ViewData["Title"] + " - ")@settings.システム名
+  </title>
+  <link rel="stylesheet" href="~/css/bootstrap_customize.css" asp-append-version="true" />
+  <script defer src="~/lib/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.css" />
+  @await RenderSectionAsync("LibScripts", required: false)
+  <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+  <script defer src="~/js/site.js" asp-append-version="true"></script>
+  @await RenderSectionAsync("Scripts", required: false)
+  <link rel="icon" href="~/favicon.ico" />
+  <link rel="apple-touch-icon" href="~/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="~/android-chrome-192x192.png" sizes="192x192" />
+</head>
+
+<body>
+  <header>
+    <nav class="navbar p-0" style="background-color:#203864" data-bs-theme="dark">
+      <div class="container-fluid">
+        <div class="navbar-brand">@settings.システム名</div>
+        <div class="ms-2">
+          @await RenderSectionAsync("HeaderLeftArea", required: false)
+        </div>
+        <div class="ms-auto me-2">
+          @await RenderSectionAsync("HeaderRightArea", required: false)
+        </div>
+        <div class="text-white me-2">
+          <i class="bi bi-person-fill"></i>@(login.Isログイン済? login.Getユーザー名() : "ゲスト")
+        </div>
+        <div>
+          @if (login.Isログイン済)
+          {
+            <a href="~/api/Login?Logout" type="button" class="btn btn-warning p-1">ログアウト</a>
+          }
+          else
+          {
+            <button type="button" class="btn btn-warning p-1" data-bs-toggle="modal"
+              data-bs-target="#loginModal">ログイン</button>
+          }
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  @RenderBody()
+
+  @if (!login.Isログイン済)
+  {
+    <form class="modal" id="loginModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">ログイン</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="m-1 mb-3">IDとPWを入力してください。</div>
+            <div class="row m-1">
+              <label class="col col-form-label">ＩＤ：</label>
+              <div class="col-10">
+                <input type="text" class="form-control" name="id">
+              </div>
+            </div>
+            <div class="row m-1">
+              <label class="col col-form-label">ＰＷ：</label>
+              <div class="col-10">
+                <input type="password" class="form-control" name="pw">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">ログイン</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  }
+</body>
+
+</html>

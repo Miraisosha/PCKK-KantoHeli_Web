@@ -1,0 +1,43 @@
+/*!
+* Bootstrap カスタマイズ
+*/
+
+// ボタン文字色が黒くならないようcontrastのレートを変更
+$min-contrast-ratio: 3;
+
+//// 角丸を止める
+//$enable-rounded: false;
+// // Primary色変更
+$primary: #1b6ec2;
+
+// フォント変更
+$font-family-sans-serif: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+$font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+// ボタンのDisabledをわかりやすくする
+$btn-disabled-opacity: .4;
+
+// バリデーションエラーのアイコンを無効化
+$enable-validation-icons: false;
+
+@import "../../node_modules/bootstrap/scss/bootstrap.scss";
+
+// divタグでもバリデーションエラーを表示できるようスタイル追加
+div.is-invalid {
+    border: 1px solid var(--bs-form-invalid-border-color);
+}
+
+// readonly項目をグレーアウト表示(Bootstrap5.2以前と同等の挙動にする)、checkbox系のdisabledも同様
+input.form-check-input:disabled,
+input.form-control:read-only,
+textarea.form-control:read-only {
+    background-color: var(--bs-secondary-bg);
+}
+
+// 通常ボタンに枠線を付加
+@each $color, $value in $theme-colors {
+    .btn-#{$color} {
+        --bs-btn-border-color: var(--bs-border-color-translucent);
+        --bs-btn-hover-border-color: var(--bs-body-color);
+    }
+}

@@ -1,0 +1,166 @@
+/* --------------------------------------------
+- 画面レイアウト
+----------------------------------------------- */
+
+/* タブ内容表示ありの基本レイアウト（画面下タブ表示有） */
+#leftArea {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 360px;
+  overflow-y: auto;
+  border-right: 1px solid #888888;
+  background-color: #e8e8e8;
+  display: block;
+}
+
+#mapArea {
+  position: absolute;
+  top: 0;
+  bottom: 360px;
+  left: 360px;
+  right: 0;
+}
+
+#bottomArea {
+  position: absolute;
+  top: calc(100%-360px);
+  height: 360px;
+  left: 360px;
+  right: 0;
+}
+
+/* タブ内容表示なしの場合のレイアウト上書き（画面下タブ非表示） */
+#dispArea[data-bottomtab=""] #mapArea {
+  bottom: 0;
+}
+
+#dispArea[data-bottomtab=""] #bottomArea {
+  top: 100%;
+}
+
+/* 選択済のタブを表示（タブ切り替えボタン部がz-index:1なのでそれより大きい値を指定）、タブボタンを色付け表示 */
+#tab調査依頼,
+#tab依頼状況,
+#tab特定初動調査,
+#tabルート作成 {
+  z-index: 2;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: none;
+  background-color: #f8f8ff;
+}
+
+#dispArea[data-bottomtab="tab調査依頼"] #tab調査依頼,
+#dispArea[data-bottomtab="tab依頼状況"] #tab依頼状況,
+#dispArea[data-bottomtab="tab特定初動調査"] #tab特定初動調査,
+#dispArea[data-bottomtab="tabルート作成"] #tabルート作成 {
+  display: block;
+}
+
+#dispArea[data-bottomtab="tab調査依頼"] #bottomArea button[name="btnタブ選択"][value="tab調査依頼"],
+#dispArea[data-bottomtab="tab依頼状況"] #bottomArea button[name="btnタブ選択"][value="tab依頼状況"],
+#dispArea[data-bottomtab="tab特定初動調査"] #bottomArea button[name="btnタブ選択"][value="tab特定初動調査"],
+#dispArea[data-bottomtab="tabルート作成"] #bottomArea button[name="btnタブ選択"][value="tabルート作成"] {
+  background-color: #16589b;
+}
+
+/* タブを閉じるボタンはタブ表示なしなら非表示 */
+#dispArea[data-bottomtab=""] #bottomArea button[name="btnタブ選択"][value=""] {
+  display: none;
+}
+
+/* 画面レイアウトに位置依存するtoast各種*/
+#toast調査地点追加,
+#toast起点終点設定,
+#toast調査ルート手動描画 {
+  position: absolute;
+  bottom: 210px;
+  z-index: 3;
+}
+
+#toast調査地点追加,
+#toast起点終点設定 {
+  left: 365px;
+}
+
+#toast調査ルート手動描画 {
+  right: 0.3rem;
+}
+
+/* --------------------------------------------
+- 画面左側メニュー
+----------------------------------------------- */
+/* レイヤーパネル選択ボタン/見出し部のサイズ調整 */
+#leftArea>ul.nav button.nav-link {
+  padding: 2px;
+}
+
+#leftArea>div.tab-content>div.tab-pane h4 {
+  margin-bottom: 2px;
+}
+
+/* 画面左側の色付け表示/レイアウト調整(トップレベルcollapseはグレー、それ以外の項目は薄い白でストライプ表示。ただし.striped2指定時は薄い青色でストライプ表示) */
+#leftArea>div.tab-content>div.tab-pane div[data-bs-toggle="collapse"]:not(.striped2) {
+  background-color: var(--bs-secondary-color);
+  color: var(--bs-white);
+  padding: 2px;
+  margin-top: 4px;
+}
+
+#leftArea>div.tab-content>div.tab-pane .collapse div,
+#leftArea>div.tab-content>div.tab-pane .collapsing div {
+  padding: 1px;
+}
+
+#leftArea>div.tab-content>div.tab-pane .collapse div:nth-of-type(odd),
+#leftArea>div.tab-content>div.tab-pane .collapsing div:nth-of-type(odd) {
+  background-color: var(--bs-gray-100);
+}
+
+#leftArea>div.tab-content>div.tab-pane .collapse div:nth-of-type(even),
+#leftArea>div.tab-content>div.tab-pane .collapsing div:nth-of-type(even) {
+  background-color: var(--bs-gray-300);
+}
+
+#leftArea>div.tab-content>div.tab-pane .collapse div.striped2:nth-of-type(odd),
+#leftArea>div.tab-content>div.tab-pane .collapsing div.striped2:nth-of-type(odd) {
+  background-color: var(--bs-primary-bg-subtle);
+}
+
+#leftArea>div.tab-content>div.tab-pane .collapse div.striped2:nth-of-type(even),
+#leftArea>div.tab-content>div.tab-pane .collapsing div.striped2:nth-of-type(even) {
+  background-color: var(--bs-primary-border-subtle);
+}
+
+/* チェックボックスの余白等調整 */
+#leftArea>div.tab-content>div.tab-pane label.form-check>input.form-check-input {
+  margin-left: -20px;
+  margin-right: 4px;
+}
+
+/* 画面左側プルダウンアコーディオンの開閉 */
+#leftArea>div.tab-content>div.tab-pane div[data-bs-toggle="collapse"]::before {
+  font-family: 'bootstrap-icons';
+  content: '\f231';
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#leftArea>div.tab-content>div.tab-pane div[data-bs-toggle="collapse"][aria-expanded="true"]::before {
+  content: '\f229';
+}
+
+/* --------------------------------------------
+- 画面下段
+----------------------------------------------- */
+/* ボタン上部説明 */
+.cond-label {
+  font-size: .8rem;
+  margin: 0;
+  padding: 0;
+}

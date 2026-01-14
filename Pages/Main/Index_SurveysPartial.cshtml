@@ -1,0 +1,87 @@
+﻿@using Src.Common
+@using Src.Services
+@using Src.Util
+@model IndexModel
+@inject LoginService login
+@*======= メイン画面：調査依頼／調査ルート表示Partial(#tab防災ヘリ関連情報) ========*@
+<h4>防災ヘリ関連情報</h4>
+<form id="form防災ヘリ関連情報">
+  <div data-bs-toggle="collapse" data-bs-target="#left調査依頼中" aria-expanded="true">調査依頼（依頼中）</div>
+  <div class="indent collapse show" id="left調査依頼中">
+    <div class="striped2">
+      <label class="form-check">
+        <input class="form-check-input" type="checkbox" name="chkすべて選択" value="" data-target="#left調査依頼中">
+        <span class="form-check-label">すべて選択</span>
+      </label>
+    </div>
+    @foreach (var t組織Rec in Model.組織Records)
+    {
+      var records = Model.調査依頼Records.Where(r => r.組織id == t組織Rec.組織id && r.ステータス == 調査ステータスEnum.依頼中).ToArray();
+      bool show = records.Length > 0;
+      var text = t組織Rec.組織名 + "（" + records.Length switch
+      {
+        0 => "依頼無し",
+        _ => $"{records[0].updated_at:yyyy.M.d HH:mm}更新",
+      } + "）";
+      bool is自組織 = (t組織Rec.組織id == Model.所属組織Rec?.組織id);
+      <div class="striped2" data-bs-toggle="collapse" data-bs-target="@($"#left調査依頼中{t組織Rec.組織id}")"
+        aria-expanded="@(show ? "true" : "false")">@text</div>
+      <section class="collapse @(show ? "show" : "")" id="@($"left調査依頼中{t組織Rec.組織id}")">
+        @foreach (var rec in records)
+        {
+          // 自組織の調査依頼についてはdata-nameを設定する
+          var appendDataText = is自組織 ? $"data-editable data-name=\"{rec.調査依頼名}（{rec.updated_at:yyyy.M.d HH:mm}）\"" : "";
+          <div>
+            <label class="form-check d-flex align-items-center">
+              <input class="form-check-input" type="checkbox" name="irai" value="@rec.調査依頼id" @Html.Raw(appendDataText)>
+              <span class="form-check-label">@rec.調査依頼名<br>@($"{rec.updated_at:yyyy.M.d HH:mm}")</span>
+            </label>
+          </div>
+        }
+      </section>
+    }
+  </div>
+  <div data-bs-toggle="collapse" data-bs-target="#left調査ルート予定" aria-expanded="true">調査ルート（予定）</div>
+  <div class="indent collapse show" id="left調査ルート予定">
+    <div>aaa</div>
+    <div>aaa</div>
+  </div>
+  @if (Model.所属組織Rec is not null)
+  {
+    var records = Model.調査依頼Records.Where(r => r.組織id == Model.所属組織Rec.組織id && r.ステータス == 調査ステータスEnum.一時保存).ToArray();
+    bool show = records.Length > 0;
+    <div data-bs-toggle="collapse" data-bs-target="#left調査依頼一時保存" aria-expanded="@(show ? "true" : "false")">調査依頼（一時保存）
+    </div>
+    <div class="indent collapse show" id="left調査依頼一時保存">
+      @foreach (var rec in records)
+      {
+        <div>
+          <label class="form-check d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" name="irai" value="@rec.調査依頼id"
+              data-name="@(value: $"{rec.調査依頼名}（{rec.updated_at:yyyy.M.d HH:mm}）")">
+            <span class="form-check-label">@rec.調査依頼名<br>@($"{rec.updated_at:yyyy.M.d HH:mm}")</span>
+          </label>
+        </div>
+      }
+    </div>
+  }
+  @if (Model.所属組織Rec?.isルート作成可 == true)
+  {
+    var records = new string[0];
+    bool show = records.Length > 0;
+    <div data-bs-toggle="collapse" data-bs-target="#left調査ルート一時保存" aria-expanded="@(show ? "true" : "false")">調査ルート（一時保存）
+    </div>
+    <div class="indent collapse show" id="left調査ルート一時保存">
+      @foreach (var rec in records)
+      {
+        <div>
+          @* <label class="form-check d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" name="irai" value="@rec.調査ルートid"
+              data-name="@(value: $"{rec.調査ルート名}（{rec.updated_at:yyyy.M.d HH:mm}）")">
+            <span class="form-check-label">@rec.調査ルート名<br>@($"{rec.updated_at:yyyy.M.d HH:mm}")</span>
+          </label> *@
+        </div>
+      }
+    </div>
+  }
+</form>
