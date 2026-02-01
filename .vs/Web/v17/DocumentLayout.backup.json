@@ -3,36 +3,16 @@
   "WorkspaceRootPath": "D:\\01-Development\\PCKK-KantoHeli\\Web\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\src\\common\\tables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:src\\common\\tables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\pages\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\pages\\main\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\main\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\src\\common\\appsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:src\\common\\appsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\src\\common\\consts.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:src\\common\\consts.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\src\\common\\enums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:src\\common\\enums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -42,47 +22,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 194,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "AppSettings.cs",
-              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\AppSettings.cs",
-              "RelativeDocumentMoniker": "Src\\Common\\AppSettings.cs",
-              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\AppSettings.cs",
-              "RelativeToolTip": "Src\\Common\\AppSettings.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-29T17:43:51.512Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Consts.cs",
-              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\Consts.cs",
-              "RelativeDocumentMoniker": "Src\\Common\\Consts.cs",
-              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\Consts.cs",
-              "RelativeToolTip": "Src\\Common\\Consts.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-29T17:43:48.884Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Enums.cs",
-              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\Enums.cs",
-              "RelativeDocumentMoniker": "Src\\Common\\Enums.cs",
-              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\Enums.cs",
-              "RelativeToolTip": "Src\\Common\\Enums.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-29T17:43:44.557Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "Index.cshtml.cs",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml.cs",
               "RelativeDocumentMoniker": "Pages\\Main\\Index.cshtml.cs",
@@ -91,43 +35,6 @@
               "ViewState": "AgIAACMAAAAAAAAAAAAcwFsAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-29T17:42:07.656Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "appsettings.Development.json",
-              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\appsettings.Development.json",
-              "RelativeDocumentMoniker": "appsettings.Development.json",
-              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\appsettings.Development.json",
-              "RelativeToolTip": "appsettings.Development.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAABwAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-01-22T08:27:05.463Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\appsettings.json",
-              "RelativeDocumentMoniker": "appsettings.json",
-              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\appsettings.json",
-              "RelativeToolTip": "appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-01-22T08:17:50.397Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Tables.cs",
-              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\Tables.cs",
-              "RelativeDocumentMoniker": "Src\\Common\\Tables.cs",
-              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\Tables.cs",
-              "RelativeToolTip": "Src\\Common\\Tables.cs",
-              "ViewState": "AgIAAOEAAAAAAAAAAAA/wCYBAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-23T04:14:36.057Z",
               "EditorCaption": ""
             }
           ]
@@ -138,13 +45,26 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Index.cshtml",
+              "RelativeDocumentMoniker": "Pages\\Index.cshtml",
+              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Index.cshtml",
+              "RelativeToolTip": "Pages\\Index.cshtml",
+              "ViewState": "AgIAADgAAAAAAAAAAAAAAFQAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-01-31T02:31:22.785Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "Index.cshtml",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml",
               "RelativeDocumentMoniker": "Pages\\Main\\Index.cshtml",
               "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml",
               "RelativeToolTip": "Pages\\Main\\Index.cshtml",
-              "ViewState": "AgIAAKkBAAAAAAAAAAAAwNUBAAAXAAAAAAAAAA==",
+              "ViewState": "AgIAAK8BAAAAAAAAAAAAwNsBAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-01-29T17:41:02.653Z",
               "EditorCaption": ""
