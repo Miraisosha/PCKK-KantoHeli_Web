@@ -1,0 +1,130 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\01-Development\\PCKK-KantoHeli\\Web\\Web.csproj": {}
+  },
+  "projects": {
+    "D:\\01-Development\\PCKK-KantoHeli\\Web\\Web.csproj": {
+      "version": "0.2.2025.1020",
+      "restore": {
+        "projectUniqueName": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Web.csproj",
+        "projectName": "Web",
+        "projectPath": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Web.csproj",
+        "packagesPath": "C:\\Users\\未来創社）内田\\.nuget\\packages\\",
+        "outputPath": "D:\\01-Development\\PCKK-KantoHeli\\Web\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\ComponentOne\\WinForms\\bin\\v8\\",
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\未来創社）内田\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\ComponentOne.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\ComponentOne\\Packages": {},
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.44, )"
+            },
+            "Dapperaid": {
+              "target": "Package",
+              "version": "[1.2.1, )"
+            },
+            "GeoCoordinate.NetCore": {
+              "target": "Package",
+              "version": "[1.0.0.1, )"
+            },
+            "Google.OrTools": {
+              "target": "Package",
+              "version": "[9.14.6206, )"
+            },
+            "LigerShark.WebOptimizer.Core": {
+              "target": "Package",
+              "version": "[3.0.477, )"
+            },
+            "Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation": {
+              "target": "Package",
+              "version": "[8.0.20, )"
+            },
+            "NetTopologySuite.IO.GeoJSON": {
+              "target": "Package",
+              "version": "[4.0.0, )"
+            },
+            "NetTopologySuite.IO.GeoJSON4STJ": {
+              "target": "Package",
+              "version": "[4.0.0, )"
+            },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[9.0.3, )"
+            },
+            "Npgsql.NetTopologySuite": {
+              "target": "Package",
+              "version": "[9.0.3, )"
+            },
+            "ZLogger": {
+              "target": "Package",
+              "version": "[2.5.10, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "win-x64": {
+          "#import": []
+        }
+      }
+    }
+  }
+}

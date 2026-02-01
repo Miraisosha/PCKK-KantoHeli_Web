@@ -1,0 +1,273 @@
+2026-01-23 03:09:33.702|INF|Web-<Main>$(#200)| 
+2026-01-23 03:09:33.708|INF|Web-<Main>$(#201)| App Starting. (Version=0.2.2025.1020)
+2026-01-23 03:09:34.299|INF|Microsoft.Hosting.Lifetime| Now listening on: http://localhost:5260
+2026-01-23 03:09:34.427|INF|Microsoft.Hosting.Lifetime| Application started. Press Ctrl+C to shut down.
+2026-01-23 03:09:34.429|INF|Microsoft.Hosting.Lifetime| Hosting environment: Development
+2026-01-23 03:09:34.429|INF|Microsoft.Hosting.Lifetime| Content root path: D:\01-Development\PCKK-KantoHeli\Web
+2026-01-23 03:09:37.810|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 03:09:37.822|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 10:22:08.216|INF|Web-<Main>$(#200)| 
+2026-01-23 10:22:08.222|INF|Web-<Main>$(#201)| App Starting. (Version=0.2.2025.1020)
+2026-01-23 10:22:08.767|INF|Microsoft.Hosting.Lifetime| Now listening on: http://localhost:5260
+2026-01-23 10:22:08.880|INF|Microsoft.Hosting.Lifetime| Application started. Press Ctrl+C to shut down.
+2026-01-23 10:22:08.881|INF|Microsoft.Hosting.Lifetime| Hosting environment: Development
+2026-01-23 10:22:08.882|INF|Microsoft.Hosting.Lifetime| Content root path: D:\01-Development\PCKK-KantoHeli\Web
+2026-01-23 10:22:11.835|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 10:22:11.839|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 10:54:50.081|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+2026-01-23 10:54:50.081|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "調査依頼id", "スレッドid", "調査依頼名", "組織id", "ステータス", "備考", "created_at", "updated_at", "deleted_at" from t_調査依頼 where "スレッドid"=@スレッドid and "deleted_at" is null ORDER BY updated_at DESC
+2026-01-23 10:54:50.084|ERR|Src.Services.DbLogService-LogError(#23)|  Param[0:スレッドid] = 1
+2026-01-23 10:54:50.498|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.Main.IndexModel.OnGetAsync(Int32 thread, Boolean partial, String tab) in D:\01-Development\PCKK-KantoHeli\Web\Pages\Main\Index.cshtml.cs:line 77
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Convert[T](Object taskAsObject)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_調査依頼"は存在しません
+    Position: 106
+    File: parse_relation.c
+    Line: 1469
+    Routine: parserOpenTable
+2026-01-23 10:55:10.551|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 10:55:10.551|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 10:55:12.218|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 10:55:12.218|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 10:55:12.935|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 10:55:12.935|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 10:55:13.304|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 10:55:13.304|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 10:55:13.678|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 10:55:13.678|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 10:55:13.921|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 10:55:13.921|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 10:55:14.200|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 10:55:14.200|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 10:55:24.293|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+2026-01-23 10:55:24.293|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "調査依頼id", "スレッドid", "調査依頼名", "組織id", "ステータス", "備考", "created_at", "updated_at", "deleted_at" from t_調査依頼 where "スレッドid"=@スレッドid and "deleted_at" is null ORDER BY updated_at DESC
+2026-01-23 10:55:24.293|ERR|Src.Services.DbLogService-LogError(#23)|  Param[0:スレッドid] = 7
+2026-01-23 10:55:24.616|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.Main.IndexModel.OnGetAsync(Int32 thread, Boolean partial, String tab) in D:\01-Development\PCKK-KantoHeli\Web\Pages\Main\Index.cshtml.cs:line 77
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Convert[T](Object taskAsObject)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_調査依頼"は存在しません
+    Position: 106
+    File: parse_relation.c
+    Line: 1469
+    Routine: parserOpenTable
+2026-01-23 13:13:00.187|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+2026-01-23 13:13:00.187|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "調査依頼id", "スレッドid", "調査依頼名", "組織id", "ステータス", "備考", "created_at", "updated_at", "deleted_at" from t_調査依頼 where "スレッドid"=@スレッドid and "deleted_at" is null ORDER BY updated_at DESC
+2026-01-23 13:13:00.187|ERR|Src.Services.DbLogService-LogError(#23)|  Param[0:スレッドid] = 7
+2026-01-23 13:13:00.497|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.Main.IndexModel.OnGetAsync(Int32 thread, Boolean partial, String tab) in D:\01-Development\PCKK-KantoHeli\Web\Pages\Main\Index.cshtml.cs:line 77
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Convert[T](Object taskAsObject)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_調査依頼"は存在しません
+    Position: 106
+    File: parse_relation.c
+    Line: 1469
+    Routine: parserOpenTable
+2026-01-23 13:18:49.249|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+2026-01-23 13:18:49.250|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "調査依頼id", "スレッドid", "調査依頼名", "組織id", "ステータス", "備考", "created_at", "updated_at", "deleted_at" from t_調査依頼 where "スレッドid"=@スレッドid and "deleted_at" is null ORDER BY updated_at DESC
+2026-01-23 13:18:49.250|ERR|Src.Services.DbLogService-LogError(#23)|  Param[0:スレッドid] = 7
+2026-01-23 13:18:49.521|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.Main.IndexModel.OnGetAsync(Int32 thread, Boolean partial, String tab) in D:\01-Development\PCKK-KantoHeli\Web\Pages\Main\Index.cshtml.cs:line 77
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Convert[T](Object taskAsObject)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_調査依頼"は存在しません
+    Position: 106
+    File: parse_relation.c
+    Line: 1469
+    Routine: parserOpenTable
+2026-01-23 13:22:05.869|INF|Web-<Main>$(#200)| 
+2026-01-23 13:22:05.875|INF|Web-<Main>$(#201)| App Starting. (Version=0.2.2025.1020)
+2026-01-23 13:22:06.373|INF|Microsoft.Hosting.Lifetime| Now listening on: http://localhost:5260
+2026-01-23 13:22:06.484|INF|Microsoft.Hosting.Lifetime| Application started. Press Ctrl+C to shut down.
+2026-01-23 13:22:06.485|INF|Microsoft.Hosting.Lifetime| Hosting environment: Development
+2026-01-23 13:22:06.485|INF|Microsoft.Hosting.Lifetime| Content root path: D:\01-Development\PCKK-KantoHeli\Web
+2026-01-23 13:22:09.123|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 13:22:09.127|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 13:22:15.412|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+2026-01-23 13:22:15.415|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "調査依頼id", "スレッドid", "調査依頼名", "組織id", "ステータス", "備考", "created_at", "updated_at", "deleted_at" from t_調査依頼 where "スレッドid"=@スレッドid and "deleted_at" is null ORDER BY updated_at DESC
+2026-01-23 13:22:15.418|ERR|Src.Services.DbLogService-LogError(#23)|  Param[0:スレッドid] = 7
+2026-01-23 13:22:15.847|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.Main.IndexModel.OnGetAsync(Int32 thread, Boolean partial, String tab) in D:\01-Development\PCKK-KantoHeli\Web\Pages\Main\Index.cshtml.cs:line 77
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Convert[T](Object taskAsObject)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_調査依頼"は存在しません
+    Position: 106
+    File: parse_relation.c
+    Line: 1469
+    Routine: parserOpenTable
+2026-01-23 13:22:44.255|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+2026-01-23 13:22:44.255|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "調査依頼id", "スレッドid", "調査依頼名", "組織id", "ステータス", "備考", "created_at", "updated_at", "deleted_at" from t_調査依頼 where "スレッドid"=@スレッドid and "deleted_at" is null ORDER BY updated_at DESC
+2026-01-23 13:22:44.255|ERR|Src.Services.DbLogService-LogError(#23)|  Param[0:スレッドid] = 7
+2026-01-23 13:22:44.536|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_調査依頼"は存在しません
+
+POSITION: 106
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.Main.IndexModel.OnGetAsync(Int32 thread, Boolean partial, String tab) in D:\01-Development\PCKK-KantoHeli\Web\Pages\Main\Index.cshtml.cs:line 77
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Convert[T](Object taskAsObject)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_調査依頼"は存在しません
+    Position: 106
+    File: parse_relation.c
+    Line: 1469
+    Routine: parserOpenTable
+2026-01-23 13:57:46.208|WRN|Web-<Main>$(#174)| HTTPERROR: NotFound GET /.well-known/appspecific/com.chrome.devtools.json  from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 14:27:56.967|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 14:27:56.967|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 14:40:51.719|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 14:40:51.720|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-23 14:40:58.370|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-23 14:40:58.370|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]

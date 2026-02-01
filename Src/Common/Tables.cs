@@ -250,3 +250,46 @@ public partial class T_調査箇所
     public DateTime updated_at { get; set; }
     public DateTime? deleted_at { get; set; }
 }
+[Table("t_調査予定")]
+public partial class T_調査予定
+{
+    /// <summary>自動連番</summary>
+    [Key]
+    [InsertValue(false, RetrieveInsertedId = true)]
+    public int 調査予定id { get; set; }
+    public string 調査予定名 { get; set; }
+    public 調査ステータスEnum ステータス { get; set; }
+    public bool? is自動作成ルート { get; set; }
+    public LineString? 手動描画調査ルート { get; set; }
+    public int? 起点id { get; set; }
+    public int? 終点id { get; set; }
+    public string? 備考 { get; set; }
+    [InsertValue("CURRENT_TIMESTAMP"), UpdateValue(false)]
+    public DateTime created_at { get; set; }
+    [InsertValue("CURRENT_TIMESTAMP"), UpdateValue("CURRENT_TIMESTAMP")]
+    public DateTime updated_at { get; set; }
+    public DateTime? deleted_at { get; set; }
+}
+[Table("t_調査予定ルート")]
+public partial class T_調査予定ルート
+{
+    [Key]
+    public int 調査予定id { get; set; }
+    [Key]
+    public int 連番 { get; set; }
+    public int? 調査箇所id { get; set; }
+    public Geometry ジオメトリ { get; set; }
+    public bool? is後ろから経路追加 { get; set; }
+    public string? 備考 { get; set; }
+}
+[Table("t_ヘリ飛行設定")]
+public partial class T_ヘリ飛行設定
+{
+    [Key]
+    public int 搭乗者人数 { get; set; }
+    [Key]
+    public int 飛行可能時間_分 { get; set; }
+    public string? 表示名 { get; set; }
+    public string? 備考 { get; set; }
+}
+

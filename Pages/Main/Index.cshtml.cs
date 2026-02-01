@@ -46,6 +46,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
     // 以下、調査ルート作成で参照するテーブル
     public IReadOnlyList<T_起点終点> 起点終点Records { get; set; } = [];
+    public IReadOnlyList<T_調査予定> 一時保存調査予定Records { get; set; } = [];
+
 
     // 初期表示タブ
     public string BottomTab { get; set; } = string.Empty;

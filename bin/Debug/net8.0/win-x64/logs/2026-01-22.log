@@ -1,0 +1,330 @@
+2026-01-22 11:10:18.284|INF|Web-<Main>$(#200)| 
+2026-01-22 11:10:18.290|INF|Web-<Main>$(#201)| App Starting. (Version=0.2.2025.1020)
+2026-01-22 11:10:19.044|INF|Microsoft.Hosting.Lifetime| Now listening on: https://localhost:5002
+2026-01-22 11:10:19.051|INF|Microsoft.Hosting.Lifetime| Application started. Press Ctrl+C to shut down.
+2026-01-22 11:10:19.052|INF|Microsoft.Hosting.Lifetime| Hosting environment: Development
+2026-01-22 11:10:19.053|INF|Microsoft.Hosting.Lifetime| Content root path: D:\01-Development\PCKK-KantoHeli\Web
+2026-01-22 11:24:41.432|INF|Web-<Main>$(#200)| 
+2026-01-22 11:24:41.438|INF|Web-<Main>$(#201)| App Starting. (Version=0.2.2025.1020)
+2026-01-22 11:24:41.803|INF|Microsoft.Hosting.Lifetime| Now listening on: http://localhost:5260
+2026-01-22 11:24:41.916|INF|Microsoft.Hosting.Lifetime| Application started. Press Ctrl+C to shut down.
+2026-01-22 11:24:41.918|INF|Microsoft.Hosting.Lifetime| Hosting environment: Development
+2026-01-22 11:24:41.918|INF|Microsoft.Hosting.Lifetime| Content root path: D:\01-Development\PCKK-KantoHeli\Web
+2026-01-22 11:24:44.125|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+2026-01-22 11:24:44.126|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "災害区分id", "災害区分名", "表示順", "備考", "created_at", "updated_at", "deleted_at" from t_災害区分 where "deleted_at" is null ORDER BY 表示順
+2026-01-22 11:24:44.628|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.IndexModel.OnGetAsync() in D:\01-Development\PCKK-KantoHeli\Web\Pages\Index.cshtml.cs:line 44
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.NonGenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_災害区分"は存在しません
+    Position: 86
+    File: parse_relation.c
+    Line: 1395
+    Routine: parserOpenTable
+2026-01-22 11:43:00.476|INF|Web-<Main>$(#200)| 
+2026-01-22 11:43:00.482|INF|Web-<Main>$(#201)| App Starting. (Version=0.2.2025.1020)
+2026-01-22 11:43:00.838|INF|Microsoft.Hosting.Lifetime| Now listening on: http://localhost:5260
+2026-01-22 11:43:00.957|INF|Microsoft.Hosting.Lifetime| Application started. Press Ctrl+C to shut down.
+2026-01-22 11:43:00.958|INF|Microsoft.Hosting.Lifetime| Hosting environment: Development
+2026-01-22 11:43:00.959|INF|Microsoft.Hosting.Lifetime| Content root path: D:\01-Development\PCKK-KantoHeli\Web
+2026-01-22 11:43:02.775|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+2026-01-22 11:43:02.775|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "災害区分id", "災害区分名", "表示順", "備考", "created_at", "updated_at", "deleted_at" from t_災害区分 where "deleted_at" is null ORDER BY 表示順
+2026-01-22 11:43:03.250|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.IndexModel.OnGetAsync() in D:\01-Development\PCKK-KantoHeli\Web\Pages\Index.cshtml.cs:line 44
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.NonGenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_災害区分"は存在しません
+    Position: 86
+    File: parse_relation.c
+    Line: 1395
+    Routine: parserOpenTable
+2026-01-22 15:55:10.249|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+2026-01-22 15:55:10.249|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "災害区分id", "災害区分名", "表示順", "備考", "created_at", "updated_at", "deleted_at" from t_災害区分 where "deleted_at" is null ORDER BY 表示順
+2026-01-22 15:55:10.491|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.IndexModel.OnGetAsync() in D:\01-Development\PCKK-KantoHeli\Web\Pages\Index.cshtml.cs:line 44
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.NonGenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_災害区分"は存在しません
+    Position: 86
+    File: parse_relation.c
+    Line: 1395
+    Routine: parserOpenTable
+2026-01-22 15:55:31.155|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+2026-01-22 15:55:31.155|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "災害区分id", "災害区分名", "表示順", "備考", "created_at", "updated_at", "deleted_at" from t_災害区分 where "deleted_at" is null ORDER BY 表示順
+2026-01-22 15:55:31.458|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.IndexModel.OnGetAsync() in D:\01-Development\PCKK-KantoHeli\Web\Pages\Index.cshtml.cs:line 44
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.NonGenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_災害区分"は存在しません
+    Position: 86
+    File: parse_relation.c
+    Line: 1395
+    Routine: parserOpenTable
+2026-01-22 15:55:32.552|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+2026-01-22 15:55:32.552|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "災害区分id", "災害区分名", "表示順", "備考", "created_at", "updated_at", "deleted_at" from t_災害区分 where "deleted_at" is null ORDER BY 表示順
+2026-01-22 15:55:32.830|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.IndexModel.OnGetAsync() in D:\01-Development\PCKK-KantoHeli\Web\Pages\Index.cshtml.cs:line 44
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.NonGenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_災害区分"は存在しません
+    Position: 86
+    File: parse_relation.c
+    Line: 1395
+    Routine: parserOpenTable
+2026-01-22 15:55:33.508|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+2026-01-22 15:55:33.508|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "災害区分id", "災害区分名", "表示順", "備考", "created_at", "updated_at", "deleted_at" from t_災害区分 where "deleted_at" is null ORDER BY 表示順
+2026-01-22 15:55:33.774|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.IndexModel.OnGetAsync() in D:\01-Development\PCKK-KantoHeli\Web\Pages\Index.cshtml.cs:line 44
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.NonGenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_災害区分"は存在しません
+    Position: 86
+    File: parse_relation.c
+    Line: 1395
+    Routine: parserOpenTable
+2026-01-22 17:14:19.280|INF|Web-<Main>$(#200)| 
+2026-01-22 17:14:19.286|INF|Web-<Main>$(#201)| App Starting. (Version=0.2.2025.1020)
+2026-01-22 17:14:19.829|INF|Microsoft.Hosting.Lifetime| Now listening on: http://localhost:5260
+2026-01-22 17:14:19.956|INF|Microsoft.Hosting.Lifetime| Application started. Press Ctrl+C to shut down.
+2026-01-22 17:14:19.957|INF|Microsoft.Hosting.Lifetime| Hosting environment: Development
+2026-01-22 17:14:19.958|INF|Microsoft.Hosting.Lifetime| Content root path: D:\01-Development\PCKK-KantoHeli\Web
+2026-01-22 17:14:21.555|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+2026-01-22 17:14:21.555|ERR|Src.Services.DbLogService-LogError(#19)| SQL= select "災害区分id", "災害区分名", "表示順", "備考", "created_at", "updated_at", "deleted_at" from t_災害区分 where "deleted_at" is null ORDER BY 表示順
+2026-01-22 17:14:22.037|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"t_災害区分"は存在しません
+
+POSITION: 86
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.IndexModel.OnGetAsync() in D:\01-Development\PCKK-KantoHeli\Web\Pages\Index.cshtml.cs:line 44
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.NonGenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"t_災害区分"は存在しません
+    Position: 86
+    File: parse_relation.c
+    Line: 1395
+    Routine: parserOpenTable
+2026-01-22 17:29:49.031|INF|Web-<Main>$(#200)| 
+2026-01-22 17:29:49.037|INF|Web-<Main>$(#201)| App Starting. (Version=0.2.2025.1020)
+2026-01-22 17:29:49.408|INF|Microsoft.Hosting.Lifetime| Now listening on: http://localhost:5260
+2026-01-22 17:29:49.517|INF|Microsoft.Hosting.Lifetime| Application started. Press Ctrl+C to shut down.
+2026-01-22 17:29:49.518|INF|Microsoft.Hosting.Lifetime| Hosting environment: Development
+2026-01-22 17:29:49.519|INF|Microsoft.Hosting.Lifetime| Content root path: D:\01-Development\PCKK-KantoHeli\Web
+2026-01-22 17:29:58.973|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-01-22 17:29:58.977|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]
+2026-01-22 17:34:23.222|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:42P01: リレーション"g_市区町村"は存在しません
+
+POSITION: 245
+2026-01-22 17:34:23.225|ERR|Src.Services.DbLogService-LogError(#19)| SQL= WITH w_地震明細 AS (
+    SELECT LEFT(市区町村コード,5) AS code, MAX(最大震度) AS intensity
+    FROM t_地震明細
+    WHERE 地震ID=ANY(@quake) AND 最大震度>='4' AND deleted_at IS NULL
+    GROUP BY 1
+)
+SELECT w_地震明細.code, intensity, wkb_geometry
+FROM w_地震明細
+INNER JOIN g_市区町村 on w_地震明細.code=g_市区町村.n03_007
+ORDER BY code
+2026-01-22 17:34:23.228|ERR|Src.Services.DbLogService-LogError(#23)|  Param[0:quake] = [1]
+2026-01-22 17:34:23.541|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.PostgresException (0x80004005): 42P01: リレーション"g_市区町村"は存在しません
+
+POSITION: 245
+   at DapperAid.DbAccess.LoggableDbConnection.Command.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 434
+   at Src.WebAPI.MapDataApi.GetEarthquakePolygonAsync(Int32[] quake) in D:\01-Development\PCKK-KantoHeli\Web\Src\WebAPI\MapDataAPI.cs:line 77
+   at lambda_method93(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in D:\01-Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+  Exception data:
+    Severity: ERROR
+    SqlState: 42P01
+    MessageText: リレーション"g_市区町村"は存在しません
+    Position: 245
+    File: parse_relation.c
+    Line: 1395
+    Routine: parserOpenTable
