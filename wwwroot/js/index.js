@@ -14,6 +14,18 @@
   };
   setListTableEvent();
 
+  // スレッド行　クリックイベント
+  const setTabClickEvent = () => {
+    document.querySelectorAll('#listTable>tbody .tabCellClick').forEach((elem) => {
+      elem.addEventListener('click', (e) => {
+        if (elem.id.match(/^td(\d+)-(\d+)$/)) {
+          window.open('Main/' + RegExp.$2, "_blank");
+        }
+      });
+    });
+  };
+  setTabClickEvent();
+
   // ----------------------------------------
   // 編集モーダル操作
   // ----------------------------------------

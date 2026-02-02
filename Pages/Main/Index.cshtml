@@ -571,3 +571,97 @@
     </div>
   </div>
 </form>
+
+@*-- ルート作成：起点終点指定操作説明toast --*@
+<div id="toast起点終点設定" class="toast" style="position:absolute; bottom:200px; left:405px; z-index:3;"
+     data-bs-autohide="false" data-bs-animation="false">
+    <div class="toast-header fw-bold"></div>
+    <div class="toast-body bg-light">
+        地図上をクリックして指定してください。
+        <div class="mt-2 pt-2 border-top text-end">
+            <button type="button" data-bs-dismiss="toast" class="btn btn-secondary">キャンセル</button>
+        </div>
+    </div>
+</div>
+
+@*-- ルート作成：調査ルート手動描画操作説明toast --*@
+<div id="toast調査ルート手動描画" class="toast" style="position:absolute; bottom:200px; right:0.3rem; z-index:3;"
+     data-bs-autohide="false" data-color="@Model.所属組織Rec?.ピン表示色">
+    <div class="toast-header fw-bold">調査ルート手動描画</div>
+    <div class="toast-body bg-light">
+        クリックで始点・経由地点を、ダブルクリックで終点を指定してください。<br>右クリックで経由地点をUndoできます。
+        <div class="mt-2 pt-2 border-top text-end row">
+            <div class="col-auto me-auto">
+                <button type="button" name="btn調査ルート手動描画削除" value="" class="btn btn-danger">削除</button>
+            </div>
+            <div class="col">
+                <button type="button" name="btn調査ルート手動描画" data-bs-dismiss="toast" value=""
+                        class="btn btn-secondary">
+                    キャンセル
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@*-- ルート作成：内容確認モーダル --*@
+<form method="post" asp-page-handler="Plan" id="modal調査予定登録" class="modal" data-bs-backdrop="static"
+      data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@*(タイトルはJavaScriptにて設定)*@</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">@*(文面はJavaScriptにて設定)*@</div>
+                <div>
+                    <input type="text" name="input.title" maxlength="50" class="form-control w-100">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" name="mode">
+                <input type="hidden" name="tempid">
+                <input type="hidden" name="drawroute">
+                <button type="button" value="register" class="btn btn-primary">@*(文面はJavaScriptにて設定)*@</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+@*-- ルート作成：一時保存ルート呼び出しモーダル --*@
+<form method="post" asp-page-handler="DeletePlan" id="modal調査予定呼び出し" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">一時保存ルート呼出・削除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    調査ルート名を選択してください。<br>
+                    選択したルートの削除または呼出ができます。
+                </div>
+                <div>
+                    <select name="tempid" id="sel一時保存調査予定" class="form-select">
+                        @foreach (var rec in Model.一時保存調査予定Records)
+                        {
+                            <option value="@rec.調査予定id">
+                                @rec.調査予定名（@($"{rec.updated_at:yyyy/M/d HH:mm}")）
+                            </option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn一時保存調査予定削除" class="btn btn-danger me-auto">削除</button>
+                <button type="button" id="btn一時保存調査予定呼出" class="btn btn-primary">呼び出し</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+            </div>
+        </div>
+    </div>
+</form>
+

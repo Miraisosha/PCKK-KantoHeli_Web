@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.2.2025.1020")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.2.2025.1020+3c0a0598176cd1063347be9c5276ce3aa13e2bfa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.2.2025.1020+d00183903b69727eafd96e932f17afaddc9d3f03")]
 [assembly: System.Reflection.AssemblyProductAttribute("関東ヘリ")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.2.2025.1020")]

@@ -1,0 +1,36 @@
+2026-02-01 16:47:37.607|INF|Web-<Main>$(#200)| 
+2026-02-01 16:47:37.609|INF|Web-<Main>$(#201)| App Starting. (Version=0.2.2025.1020)
+2026-02-01 16:47:38.230|INF|Microsoft.Hosting.Lifetime| Now listening on: http://localhost:5260
+2026-02-01 16:47:38.268|INF|Microsoft.Hosting.Lifetime| Application started. Press Ctrl+C to shut down.
+2026-02-01 16:47:38.269|INF|Microsoft.Hosting.Lifetime| Hosting environment: Development
+2026-02-01 16:47:38.269|INF|Microsoft.Hosting.Lifetime| Content root path: C:\Users\j.uchida\Documents\Development\PCKK-KantoHeli\Web
+2026-02-01 16:47:43.710|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
+2026-02-01 16:47:43.712|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
+2026-02-02 09:12:16.518|ERR|Src.Services.DbLogService-LogError(#16)| DB処理エラー:Failed to connect to 192.168.11.222:5432
+2026-02-02 09:12:17.021|ERR|Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware| An unhandled exception has occurred while executing the request.Npgsql.NpgsqlException (0x80004005): Failed to connect to 192.168.11.222:5432
+ ---> System.TimeoutException: The operation has timed out.
+   at Npgsql.TaskTimeoutAndCancellation.ExecuteAsync(Func`2 getTaskFunc, NpgsqlTimeout timeout, CancellationToken cancellationToken)
+   at Npgsql.Internal.NpgsqlConnector.ConnectAsync(NpgsqlTimeout timeout, CancellationToken cancellationToken)
+   at DapperAid.DbAccess.LoggableDbConnection.OpenAsync(CancellationToken cancellationToken)
+   at Dapper.SqlMapper.QueryAsync[T](IDbConnection cnn, Type effectiveType, CommandDefinition command) in /_/Dapper/SqlMapper.Async.cs:line 433
+   at DapperAid.QueryRunner.SelectAsync[TFrom,TColumns](Expression`1 where, String otherClauses)
+   at Pages.Main.IndexModel.OnGetRealTimeInfoStreamAsync() in C:\Users\j.uchida\Documents\Development\PCKK-KantoHeli\Web\Pages\Main\Index.cshtml.cs:line 129
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Convert[T](Object taskAsObject)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.ExecutorFactory.GenericTaskHandlerMethod.Execute(Object receiver, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeHandlerMethodAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeNextPageFilterAsync()
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Rethrow(PageHandlerExecutedContext context)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.PageActionInvoker.InvokeInnerFilterAsync()
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextResourceFilter>g__Awaited|25_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ResourceExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Src.Basis.BasicAuthMiddleware.Invoke(HttpContext context) in C:\Users\j.uchida\Documents\Development\PCKK-KantoHeli\Web\Src\Basis\BasicAuthMiddleware.cs:line 26
+   at Microsoft.AspNetCore.Diagnostics.StatusCodePagesMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2026-02-02 09:22:41.523|WRN|Web-<Main>$(#174)| HTTPERROR: NotFound GET /.well-known/appspecific/com.chrome.devtools.json  from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]

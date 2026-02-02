@@ -77,7 +77,6 @@
           <th style="width:9rem">作成日時</th>
           <th style="width:9rem">最終更新日時</th>
           <th style="width:9rem">調査依頼</th>
-          <th style="width:12rem">初動調査ルート</th>
           <th style="width:20rem">備考</th>
         </tr>
       </thead>
@@ -92,31 +91,12 @@
                 <button type="button" name="btn編集" class="btn btn-sm btn-primary" value="@rec.スレッドid">編集</button>
               }
             </td>
-            <td>@Model.災害区分Records.FirstOrDefault(r => r.災害区分id == rec.災害区分id)?.災害区分名</td>
-            <td>@rec.スレッド名</td>
-            <td>@($"{rec.created_at:yyyy/MM/dd HH:mm}")</td>
-            <td>@($"{rec.updated_at:yyyy/MM/dd HH:mm}")</td>
-            <td class="text-center">
-              @if (rec.調査状況 is null)
-              { // 開発デモ用暫定:正式版では調査ルートが未作成ならボタンとして表示
-                @if (login.Isログイン済)
-                {
-                  <a asp-page="/Main/Index" asp-route-thread="@rec.スレッドid" target="@($"initial_{rec.スレッドid}")"
-                    class="btn btn-sm btn-primary">ルート作成</a>
-                }
-                else
-                {
-                  <span>未作成</span>
-                }
-              }
-              else
-              {
-                <a asp-page="/Main/Index" asp-route-thread="@rec.スレッドid" target="@($"initial_{rec.スレッドid}")"
-                  class="btn btn-link m-0 py-0">@rec.調査状況</a>
-              }
-            </td>
-            <td>@rec.調査ルート名</td>
-            <td class="">@rec.備考</td>
+            <td class="tabCellClick" id="td2-@rec.スレッドid">@Model.災害区分Records.FirstOrDefault(r => r.災害区分id == rec.災害区分id)?.災害区分名</td>
+            <td class="tabCellClick" id="td3-@rec.スレッドid">@rec.スレッド名</td>
+            <td class="tabCellClick" id="td4-@rec.スレッドid">@($"{rec.created_at:yyyy/MM/dd HH:mm}")</td>
+            <td class="tabCellClick" id="td5-@rec.スレッドid">@($"{rec.updated_at:yyyy/MM/dd HH:mm}")</td>
+            <td class="tabCellClick" id="td6-@rec.スレッドid">@rec.調査ルート名</td>
+            <td class="tabCellClick" id="td7-@rec.スレッドid">@rec.備考</td>
           </tr>
         }
       </tbody>
