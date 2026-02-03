@@ -25,9 +25,9 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
 
     // タブ名(タブ選択ボタンのvalue=タブ内容表示領域divのid)
-    public const string TabName調査依頼 = "tab調査依頼";
-    public const string TabName依頼状況 = "tab依頼状況";
-    public const string TabName特定初動調査 = "tab特定初動調査";
+    public const string TabName調査依頼 = "tabTyosaIrai";
+    public const string TabName依頼状況 = "tabIraiJyokyo";
+    public const string TabName特定初動調査 = "tabTokuteiSyodou";
     public const string TabNameルート作成 = "tabルート作成";
 
     #region 画面表示内容 ------------------------------------------------------
