@@ -15,6 +15,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\新しいフォルダー\**" />
+    <Content Remove="wwwroot\新しいフォルダー\**" />
+    <EmbeddedResource Remove="wwwroot\新しいフォルダー\**" />
+    <None Remove="wwwroot\新しいフォルダー\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- DB操作 -->
     <PackageReference Include="Dapper" Version="2.1.44" />
     <PackageReference Include="Dapperaid" Version="1.2.1" />

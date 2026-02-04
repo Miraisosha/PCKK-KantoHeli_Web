@@ -38,29 +38,39 @@
         initInputAssist(editModalElement);
         // 災害区分/特定初動調査区分の変更イベントを設定
         const sel災害区分 = editModalElement.querySelector('select[name="Input.災害区分id"]');
-        const elements特定初動調査区分 = editModalElement.querySelectorAll('select[data-disasterid]');
+        const radio特定初動調査区分 = document.querySelectorAll('input[name="Input.特定初動調査区分id"]');
+        const jishinSaigaiId = 10;
+        const 首都直下_特定初動調査区分id = 101;
         const change初動調査表示内容 = () => {
+          console.log(sel災害区分.value);
           // 現在選択されている災害区分に特定初動調査が定義されている場合、特定初動調査行表示＆当該災害区分のプルダウンのみ有効化
           let selected初動調査区分id = false; // 特定初動調査プルダウン未定義の災害区分の場合、falseのままとなる（行自体非表示）
-          elements特定初動調査区分.forEach((/** @type{HTMLElement}*/ element) => {
-            const selected = (element.dataset.disasterid == sel災害区分.value);
-            element.style.display = (selected ? '' : 'none');
-            element.disabled = !selected;
-            if (selected) {
-              selected初動調査区分id = element.value;
+          editModalElement.querySelector('#row特定初動調査').style.display = ((sel災害区分.value == jishinSaigaiId) ? '' : 'none');
+//          editModalElement.querySelector('#rowTokuteiComment').style.display = ((sel災害区分.value == jishinSaigaiId) ? '' : 'none');
+          let selected特定初動調査区分id = null;
+          radio特定初動調査区分.forEach(radio => {
+            if (radio.checked) {
+              selected特定初動調査区分id = radio.value;
             }
           });
-          editModalElement.querySelector('#row特定初動調査').style.display = (selected初動調査区分id !== false ? '' : 'none');
-          editModalElement.querySelector('#row初動調査ルート').style.display = (selected初動調査区分id ? '' : 'none');
+          const row初動調査ルート = editModalElement.querySelector('#row初動調査ルート');
+          if (selected特定初動調査区分id == 首都直下_特定初動調査区分id) {
+            //editModalElement.querySelector('#row初動調査ルート').style.display =
+            row初動調査ルート.classList.remove('d-none');
+          } else { 
+            row初動調査ルート.classList.add('d-none');
+          }
           // 特定初動調査区分が選択されている場合、初動調査ルート行表示＆選択されている特定初動調査区分についての初動調査ルートのみ有効化
           editModalElement.querySelectorAll('select[data-initialid]').forEach((/** @type{HTMLSelectElement}*/ element) => {
-            const selected = (element.dataset.initialid == selected初動調査区分id);
-            element.style.display = (selected ? '' : 'none');
-            element.disabled = !selected;
+            const selected = (element.dataset.initialid == selected特定初動調査区分id);
+            //element.style.display = (selected ? '' : 'none');
+            //element.style.display = '';
+            //element.disabled = !selected;
+            element.style.visibility = selected ? 'visible' : 'hidden';
           });
         };
         sel災害区分.addEventListener('change', () => change初動調査表示内容());
-        elements特定初動調査区分.forEach((element) => {
+        radio特定初動調査区分.forEach((element) => {
           element.addEventListener('change', () => change初動調査表示内容());
         });
         change初動調査表示内容(); // 初期表示時にも実施

@@ -30,7 +30,7 @@ public class Index_EditModalModel(ILogger<Index_EditModalModel> logger, DbConnec
         [Accept("dt"), Required] public string? 災害発生日時 { get; set; }
         [Display(Name = "災害区分"), Required] public int? 災害区分id { get; set; }
         [MaxLength(50), Required] public string? スレッド名 { get; set; }
-        [Display(Name = "特定初動調査")] public int? 特定初動調査区分id { get; set; }
+        [Display(Name = "首都直下地震非常体制発令基準")] public int? 特定初動調査区分id { get; set; }
         [Display(Name = "初動調査ルート")] public int? 初動調査ルートid { get; set; }
         public 調査状況Enum? 初動調査状況 { get; set; }
         public string? 調査ルート名 { get; set; }

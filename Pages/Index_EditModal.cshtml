@@ -1,4 +1,4 @@
-﻿@page
+@page
 @using Src.Services
 @using Src.Util
 @model Index_EditModalModel
@@ -40,38 +40,32 @@
     <div id="row特定初動調査" class="row condRow">
       <label asp-for="Input.特定初動調査区分id" class="col-auto col-form-label"></label>
       <div class="col">
-        @foreach (var rec in Model.災害区分Records)
-        {
-          var t特定初動調査Records = Model.特定初動調査区分Records.Where(r => r.災害区分id == rec.災害区分id).ToArray();
-          if (t特定初動調査Records.Length > 0)
-          {
-            <select asp-for="Input.特定初動調査区分id" data-disasterid="@rec.災害区分id" class="form-select w-auto">
-              <option value="">（なし）</option>
-              @foreach (var t特定初動調査Rec in t特定初動調査Records)
-              {
-                <option value="@t特定初動調査Rec.特定初動調査区分id">@t特定初動調査Rec.特定初動調査区分名</option>
-              }
-            </select>
-          }
-        }
+        <div class="d-flex align-items-center gap-5">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" asp-for="Input.特定初動調査区分id" id="radYes" value="101">
+            <label class="form-check-label" for="radYes">該当</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" asp-for="Input.特定初動調査区分id" id="radNo" value="">
+            <label class="form-check-label" for="radNo">非該当</label>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div id="row初動調査ルート" class="row condRow">
-      <label asp-for="Input.初動調査ルートid" class="col-auto col-form-label"></label>
-      <div class="col">
-        @foreach (var rec in Model.特定初動調査区分Records)
-        {
-          var t初動調査ルートRecords = Model.初動調査ルートRecords.Where(r => r.特定初動調査区分id == rec.特定初動調査区分id).ToArray();
-          <select asp-for="Input.初動調査ルートid" data-initialid="@rec.特定初動調査区分id" class="form-select w-auto">
-            <option value="" disabled selected>（選択）</option>
-            @foreach (var t初動調査ルートRec in t初動調査ルートRecords)
-            {
+    <div id="row初動調査ルート" class="condRow d-flex align-items-center">
+      <label asp-for="Input.初動調査ルートid" class="col-form-label mb-0"></label>
+      @foreach (var rec in Model.特定初動調査区分Records)
+      {
+        var t初動調査ルートRecords = Model.初動調査ルートRecords.Where(r => r.特定初動調査区分id == rec.特定初動調査区分id).ToArray();
+        <select asp-for="Input.初動調査ルートid" data-initialid="@rec.特定初動調査区分id" class="form-select w-auto">
+          <option value="" disabled selected>（選択）</option>
+          @foreach (var t初動調査ルートRec in t初動調査ルートRecords)
+          {
               <option value="@t初動調査ルートRec.初動調査ルートid">@t初動調査ルートRec.初動調査ルート名</option>
-            }
-          </select>
-        }
-      </div>
+          }
+        </select>
+      }
     </div>
 
     @if (!Model.Is新規)
