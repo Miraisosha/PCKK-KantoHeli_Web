@@ -1,8 +1,0 @@
-2026-01-31 10:40:33.917|INF|Web-<Main>$(#200)| 
-2026-01-31 10:40:33.923|INF|Web-<Main>$(#201)| App Starting. (Version=0.2.2025.1020)
-2026-01-31 10:40:34.473|INF|Microsoft.Hosting.Lifetime| Now listening on: http://localhost:5260
-2026-01-31 10:40:34.586|INF|Microsoft.Hosting.Lifetime| Application started. Press Ctrl+C to shut down.
-2026-01-31 10:40:34.587|INF|Microsoft.Hosting.Lifetime| Hosting environment: Development
-2026-01-31 10:40:34.588|INF|Microsoft.Hosting.Lifetime| Content root path: D:\01-Development\PCKK-KantoHeli\Web
-2026-01-31 10:40:38.470|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=rb7OALSL4m0_Wt7KQnjE3HpTe_eNrRkrEkbfaLYcoxs line=1 col=1166 ) (http://localhost:5260/)
-2026-01-31 10:40:38.474|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"]

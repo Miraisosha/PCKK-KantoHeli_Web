@@ -1866,3 +1866,8 @@ POSITION: 46
     File: parse_relation.c
     Line: 1469
     Routine: parserOpenTable
+2026-02-05 15:12:08.564|WRN|Web-<Main>$(#174)| HTTPERROR: NotFound GET /.well-known/appspecific/com.chrome.devtools.json  from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
+2026-02-05 15:12:28.428|WRN|Web-<Main>$(#174)| HTTPERROR: NotFound GET /.well-known/appspecific/com.chrome.devtools.json  from:127.0.0.1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
+2026-02-05 15:12:29.215|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught SyntaxError: Unexpected token '<<'  (/Main/3?tab=tab%E3%83%AB%E3%83%BC%E3%83%88%E4%BD%9C%E6%88%90 file=http://localhost:5260/js/main/index.js?v=VcY3v3C20FLH1qjNgNMnlBeocaKXGislSn7jShGX4qw line=4 col=1 ) (http://localhost:5260/Main/3?tab=tab%E3%83%AB%E3%83%BC%E3%83%88%E4%BD%9C%E6%88%90)
+2026-02-05 15:12:29.215|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:127.0.0.1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
+2026-02-05 15:12:31.073|WRN|Web-<Main>$(#174)| HTTPERROR: NotFound GET /.well-known/appspecific/com.chrome.devtools.json  from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
