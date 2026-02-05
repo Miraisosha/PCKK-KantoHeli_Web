@@ -29,6 +29,9 @@ wwwroot\lib\openlayers\dist\ol.js.map
 wwwroot\lib\openlayers\ol.min.css
 wwwroot\Logo_of_MLIT.svg
 wwwroot\Logo_of_MLIT.svg.png
+<<<<<<< HEAD
 wwwroot\js\main\index.js.bak
 wwwroot\js\main\Usersj.uchidaDocumentsApplicationGVIM_tmp
 wwwroot\css\main\index.css.bak
+=======
+>>>>>>> f28a51702256b74a3f85866d5ee9c736fef8342f

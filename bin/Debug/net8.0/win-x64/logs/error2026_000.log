@@ -1600,6 +1600,7 @@ POSITION: 106
 2026-02-04 19:00:07.805|WRN|Web-<Main>$(#174)| HTTPERROR: NotFound GET /.well-known/appspecific/com.chrome.devtools.json  from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
 2026-02-04 19:01:34.681|WRN|Web-<Main>$(#174)| HTTPERROR: NotFound GET /.well-known/appspecific/com.chrome.devtools.json  from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
 2026-02-04 19:02:26.043|WRN|Web-<Main>$(#174)| HTTPERROR: NotFound GET /.well-known/appspecific/com.chrome.devtools.json  from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
+<<<<<<< HEAD
 2026-02-05 09:46:55.608|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')  (/ file=http://localhost:5260/js/index.js?v=h-_H5XDCaXSM-K8SQOz2LFrFrZA_4AmSAPQTEicLexA line=1 col=1383 ) (http://localhost:5260/)
 2026-02-05 09:46:55.612|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
 2026-02-05 09:49:48.316|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: ReferenceError: add明細行 is not defined  (/Main/4 in Promise) (http://localhost:5260/Main/4)
@@ -1871,3 +1872,5 @@ POSITION: 46
 2026-02-05 15:12:29.215|WRN|Src.WebAPI.LogJsAPI-LogJsError(#23)| JavaScriptError: Uncaught SyntaxError: Unexpected token '<<'  (/Main/3?tab=tab%E3%83%AB%E3%83%BC%E3%83%88%E4%BD%9C%E6%88%90 file=http://localhost:5260/js/main/index.js?v=VcY3v3C20FLH1qjNgNMnlBeocaKXGislSn7jShGX4qw line=4 col=1 ) (http://localhost:5260/Main/3?tab=tab%E3%83%AB%E3%83%BC%E3%83%88%E4%BD%9C%E6%88%90)
 2026-02-05 15:12:29.215|WRN|Src.WebAPI.LogJsAPI-LogJsError(#24)|     from:127.0.0.1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
 2026-02-05 15:12:31.073|WRN|Web-<Main>$(#174)| HTTPERROR: NotFound GET /.well-known/appspecific/com.chrome.devtools.json  from:::1 ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"]
+=======
+>>>>>>> f28a51702256b74a3f85866d5ee9c736fef8342f

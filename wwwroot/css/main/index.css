@@ -41,9 +41,9 @@
 }
 
 /* 選択済のタブを表示（タブ切り替えボタン部がz-index:1なのでそれより大きい値を指定）、タブボタンを色付け表示 */
-#tab調査依頼,
-#tab依頼状況,
-#tab特定初動調査,
+#tabTyosaIrai,
+#tabIraiJyokyo,
+#tabTokuteiSyodou,
 #tabルート作成 {
   z-index: 2;
   position: absolute;
@@ -55,16 +55,16 @@
   background-color: #f8f8ff;
 }
 
-#dispArea[data-bottomtab="tab調査依頼"] #tab調査依頼,
-#dispArea[data-bottomtab="tab依頼状況"] #tab依頼状況,
-#dispArea[data-bottomtab="tab特定初動調査"] #tab特定初動調査,
+#dispArea[data-bottomtab="tabTyosaIrai"] #tabTyosaIrai,
+#dispArea[data-bottomtab="tabIraiJyokyo"] #tabIraiJyokyo,
+#dispArea[data-bottomtab="tabTokuteiSyodou"] #tabTokuteiSyodou,
 #dispArea[data-bottomtab="tabルート作成"] #tabルート作成 {
   display: block;
 }
 
-#dispArea[data-bottomtab="tab調査依頼"] #bottomArea button[name="btnタブ選択"][value="tab調査依頼"],
-#dispArea[data-bottomtab="tab依頼状況"] #bottomArea button[name="btnタブ選択"][value="tab依頼状況"],
-#dispArea[data-bottomtab="tab特定初動調査"] #bottomArea button[name="btnタブ選択"][value="tab特定初動調査"],
+#dispArea[data-bottomtab="tabTyosaIrai"] #bottomArea button[name="btnタブ選択"][value="tabTyosaIrai"],
+#dispArea[data-bottomtab="tabIraiJyokyo"] #bottomArea button[name="btnタブ選択"][value="tabIraiJyokyo"],
+#dispArea[data-bottomtab="tabTokuteiSyodou"] #bottomArea button[name="btnタブ選択"][value="tabTokuteiSyodou"],
 #dispArea[data-bottomtab="tabルート作成"] #bottomArea button[name="btnタブ選択"][value="tabルート作成"] {
   background-color: #16589b;
 }
