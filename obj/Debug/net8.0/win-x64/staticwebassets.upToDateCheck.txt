@@ -9,6 +9,7 @@ wwwroot\favicon.ico
 wwwroot\files\heliports.json
 wwwroot\files\manual.pdf
 wwwroot\js\index.js
+wwwroot\js\main\index.js
 wwwroot\js\site.js
 wwwroot\js\_map.js
 wwwroot\lib\bootstrap-icons\font\bootstrap-icons.css
@@ -26,4 +27,8 @@ wwwroot\lib\jquery\jquery.min.js
 wwwroot\lib\openlayers\dist\ol.js
 wwwroot\lib\openlayers\dist\ol.js.map
 wwwroot\lib\openlayers\ol.min.css
-wwwroot\js\main\index.js
+wwwroot\Logo_of_MLIT.svg
+wwwroot\Logo_of_MLIT.svg.png
+wwwroot\js\main\index.js.bak
+wwwroot\js\main\Usersj.uchidaDocumentsApplicationGVIM_tmp
+wwwroot\css\main\index.css.bak

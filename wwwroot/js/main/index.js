@@ -1,16 +1,19 @@
 'use strict';
 {
   // タブ・ないしタブ間での相互連携があるelement定義
-  const dispArea = document.getElementById("dispArea");
+  const dispArea        = document.getElementById("dispArea");
   const tab特定初動調査 = document.getElementById("tab特定初動調査");
-  const tab調査依頼 = document.getElementById("tab調査依頼");
-  const tab依頼状況 = document.getElementById("tab依頼状況");
-  const tabRouteCreateElement = document.getElementById('tabルート作成');
+  const tab調査依頼     = document.getElementById("tab調査依頼");
+  const tab依頼状況     = document.getElementById("tab依頼状況");
+  const tabルート作成   = document.getElementById("tabルート作成");
 
   // =====================================================================
   // 地図表示（以下の順にレイヤを作成・追加する（レイヤ作成処理は後ろで宣言する関係でfunctionとして定義しホイスティング））
   // =====================================================================
   const map = createMap(document.getElementById('map'), document.getElementById('sel背景地図選択'));
+
+  // 選択中状態で表示すべきfeatureのidの一覧
+  let selectedFeatureIds = [];
 
   // 災害関連情報
   init市区町村震度Layer();
@@ -31,6 +34,9 @@
   init依頼状況タブ();
   if (tab特定初動調査) {
     init特定初動調査タブ();
+  }
+  if (tabルート作成) {
+    initルート作成タブ();
   }
 
   // 地図に対する描画操作（地点追加等）
@@ -216,9 +222,13 @@
 
 
 
-  // ====================================================================
+  // **********************************************************************************************************
+  // **********************************************************************************************************
+  // **********************************************************************************************************
   // タブ制御（※画面表示は#dispArea[data-bottomtab="(タブ名)"]で制御)
-  // ====================================================================
+  // **********************************************************************************************************
+  // **********************************************************************************************************
+  // **********************************************************************************************************
 
   /**
    * 画面下部タブ共通：当該タブ表示時の地図上表示内容を設定する
@@ -343,47 +353,6 @@
     });
   });
 
-
-  // ====================================================================
-  // 特定初動調査タブ
-  // ====================================================================
-  function init特定初動調査タブ() {
-    // -------------------------------------
-    // 調査ルートの地図表示/一覧表示
-    // -------------------------------------
-    const sel初動調査ルート = tab特定初動調査.querySelector('select[name="routeid"]');
-    const tbody特定初動調査 = tab特定初動調査.querySelector('#table特定初動調査 tbody');
-    const load初動調査ルート = () => {
-      const source調査ルート = new ol.source.Vector();
-      set調査地点Source(tab特定初動調査, new ol.source.Vector(), source調査ルート);
-      tbody特定初動調査.innerHTML = '';
-      ajaxExecute('?Handler=InitialRoute&route=' + sel初動調査ルート.value, {},
-        { title: '初動調査ルート読み込み' },
-      ).then((json) => {
-        const features = geojsonFormatter.readFeatures(json.routes);
-        source調査ルート.addFeatures(features);
-        features.forEach((f) => {
-          const text = f.get('text');
-          if (text == '始') {
-            tab特定初動調査.querySelector('input[name="txt始点"]').value = f.get('name');
-          } else if (text == '終') {
-            tab特定初動調査.querySelector('input[name="txt終点"]').value = f.get('name');
-          } else if (f.get('text')) {
-            tbody特定初動調査.appendChild(create明細行(tab特定初動調査, f));
-          }
-        });
-      }, () => { });
-    }
-    // プルダウン変更/書記表示時に読み込み
-    sel初動調査ルート.addEventListener('change', load初動調査ルート);
-    load初動調査ルート();
-    // -------------------------------------
-    // 調査予定ルートとして公開
-    // -------------------------------------
-    tab特定初動調査.querySelector('button[name="btn初動調査登録"]').addEventListener('click', (e) => {
-      showAlert('工事中', '調査ルートとして公開する処理は工事中です。');
-    })
-  }
 
   // ====================================================
   // 調査依頼タブ
@@ -660,27 +629,76 @@
     //TODO 調査依頼取消後、reload防災ヘリ関連情報()をawaitなどでよびだし、thenのタイミングでload依頼状況を再呼出
 
   }
-  // *************************************************************************************************************************
-  // *************************************************************************************************************************
-  // *************************************************************************************************************************
-  // *************************************************************************************************************************
-  // *************************************************************************************************************************
-  const tbodyルート作成 = document.querySelector('#tableルート作成>tbody');
 
-  // ====================================================
+  // ====================================================================
+  // 首都直下初動タブ（特定初動調査）
+  // ====================================================================
+  function init特定初動調査タブ() {
+    // -------------------------------------
+    // 調査ルートの地図表示/一覧表示
+    // -------------------------------------
+    const sel初動調査ルート = tab特定初動調査.querySelector('select[name="routeid"]');
+    const tbody特定初動調査 = tab特定初動調査.querySelector('#table特定初動調査 tbody');
+    const load初動調査ルート = () => {
+      const source調査ルート = new ol.source.Vector();
+      set調査地点Source(tab特定初動調査, new ol.source.Vector(), source調査ルート);
+      tbody特定初動調査.innerHTML = '';
+      ajaxExecute('?Handler=InitialRoute&route=' + sel初動調査ルート.value, {},
+        { title: '初動調査ルート読み込み' },
+      ).then((json) => {
+        const features = geojsonFormatter.readFeatures(json.routes);
+        source調査ルート.addFeatures(features);
+        features.forEach((f) => {
+          const text = f.get('text');
+          if (text == '始') {
+            tab特定初動調査.querySelector('input[name="txt始点"]').value = f.get('name');
+          } else if (text == '終') {
+            tab特定初動調査.querySelector('input[name="txt終点"]').value = f.get('name');
+          } else if (f.get('text')) {
+            tbody特定初動調査.appendChild(create明細行(tab特定初動調査, f));
+          }
+        });
+      }, () => { });
+    }
+    // プルダウン変更/書記表示時に読み込み
+    sel初動調査ルート.addEventListener('change', load初動調査ルート);
+    load初動調査ルート();
+    // -------------------------------------
+    // 調査予定ルートとして公開
+    // -------------------------------------
+    tab特定初動調査.querySelector('button[name="btn初動調査登録"]').addEventListener('click', (e) => {
+      showAlert('工事中', '調査ルートとして公開する処理は工事中です。');
+    })
+  }
+
+  // ==========================================================================================================================
+  // ==========================================================================================================================
+  // ==========================================================================================================================
+  // ==========================================================================================================================
+  // ==========================================================================================================================
+  // ==========================================================================================================================
+  // ====================================================================
   // ルート作成タブ
-  // ====================================================
-  let /** @type{null|([Number])=>void} */ initルート作成;
-
-  // 以下、ルート作成タブの内容がある場合のみ処理定義
-  if (tbodyルート作成) {
+  // ====================================================================
+  // ==========================================================================================================================
+  // ==========================================================================================================================
+  // ==========================================================================================================================
+  // ==========================================================================================================================
+  // ==========================================================================================================================
+  // ==========================================================================================================================
+  function initルート作成タブ() {
     const modal調査予定登録Element = document.getElementById('modal調査予定登録');
+    const tbodyルート作成 = document.querySelector('#tableルート作成>tbody');
+    const source調査地点 = new ol.source.Vector();
+    set調査地点Source(tabルート作成, source調査地点, new ol.source.Vector());
 
-    initルート作成 = (tempid) => {
+    const initルート作成 = (tempid) => {
+      console.log("initルート作成!!!!!");
       // 画面初期状態を読み込み（一時保存id指定時はその保存内容を読み出し）
       ajaxExecute(`?Handler=Plan&tempid=${tempid || ''}`, {},
         { title: tempid ? '一時保存ルート呼出・削除' : '調査ルート作成' }
       ).then((json) => {
+        console.log("Handler!!!!!");
         // まずは画面表示内容を初期化
         tbodyルート作成.innerHTML = '';
         selectedFeatureIds = json.id;
@@ -688,7 +706,7 @@
         features.forEach((f) => {
           const id = f.get('id');
           f.setId(`${id}`);
-          const trElement = add明細行(tbodyルート作成, f);
+          const trElement = create明細行(tbodyルート作成, f);
           if (selectedFeatureIds.indexOf(id) != -1) {
             trElement.querySelector('input[type="checkbox"][name="id"]').checked = true;
           }
@@ -715,9 +733,9 @@
       });
 
       // フィルタ指定状態を初期化
-      $(tabRouteCreateElement.querySelector('select[name="irai"]')).multiselect('selectAll');
-      $(tabRouteCreateElement.querySelector('select[name="priority"]')).multiselect('deselectAll');
-      tabRouteCreateElement.querySelector('select[name="persons"]').value = '';
+      $(tabルート作成.querySelector('select[name="irai"]')).multiselect('selectAll');
+      $(tabルート作成.querySelector('select[name="priority"]')).multiselect('deselectAll');
+      tabルート作成.querySelector('select[name="persons"]').value = '';
     };
 
 
@@ -749,9 +767,9 @@
 
 
     // 「調査依頼絞込」フィルタ処理
-    const /** @type{HTMLSelectElement} */ sel調査依頼Filter = tabRouteCreateElement.querySelector('select[name="irai"]');
-    const /** @type{HTMLSelectElement} */ sel優先度Filter = tabRouteCreateElement.querySelector('select[name="priority"]');
-    const /** @type{HTMLSelectElement} */ sel搭乗人数Filter = tabRouteCreateElement.querySelector('select[name="persons"]');
+    const /** @type{HTMLSelectElement} */ sel調査依頼Filter = tabルート作成.querySelector('select[name="irai"]');
+    const /** @type{HTMLSelectElement} */ sel優先度Filter = tabルート作成.querySelector('select[name="priority"]');
+    const /** @type{HTMLSelectElement} */ sel搭乗人数Filter = tabルート作成.querySelector('select[name="persons"]');
     const filterルート作成対象 = () => {
       const irai = Array.from(sel調査依頼Filter.selectedOptions).map((o) => o.value);
       const priority = Array.from(sel優先度Filter.selectedOptions).map((o) => o.value);
@@ -772,12 +790,6 @@
     initMultiSelect(sel優先度Filter, filterルート作成対象, '優先度');
     sel搭乗人数Filter.addEventListener('change', filterルート作成対象);
 
-    // *************************************************************************************************************************
-    // *************************************************************************************************************************
-    // *************************************************************************************************************************
-    // *************************************************************************************************************************
-    // *************************************************************************************************************************
-
     // 起点終点関係操作
     const toast起点終点設定Element = document.getElementById('toast起点終点設定');
     toast起点終点設定Element.addEventListener('hidden.bs.toast', (e) => {
@@ -787,8 +799,8 @@
         mapDraw = null;
       }
     });
-    const /** @type{HTMLSelectElement} */ selルート作成起点 = tabRouteCreateElement.querySelector('select[name="selルート作成起点"]');
-    const /** @type{HTMLSelectElement} */ selルート作成終点 = tabRouteCreateElement.querySelector('select[name="selルート作成終点"]');
+    const /** @type{HTMLSelectElement} */ selルート作成起点 = tabルート作成.querySelector('select[name="selルート作成起点"]');
+    const /** @type{HTMLSelectElement} */ selルート作成終点 = tabルート作成.querySelector('select[name="selルート作成終点"]');
 
     /**
      * 起点終点のプルダウンに対し、指定された緯度経度の選択肢がなければこれを追加します
@@ -855,7 +867,7 @@
     };
     initルート作成起点終点(selルート作成起点, '起点');
     initルート作成起点終点(selルート作成終点, '終点');
-    tabRouteCreateElement.querySelector('button[name="btnルート起点終点反転"]').addEventListener('click', (e) => {
+    tabルート作成.querySelector('button[name="btnルート起点終点反転"]').addEventListener('click', (e) => {
       // 始点と終点を反転（選択経路も反転）
       const old起点Value = selルート作成起点.value;
       const old終点Value = selルート作成終点.value;
@@ -874,7 +886,7 @@
       const formData = new FormData(modal調査予定登録Element);
       formData.append('input.startid', opt起点.dataset.id || '');
       formData.append('input.endid', opt終点.dataset.id || '');
-      formData.append('auto', tabRouteCreateElement.querySelector('input[name="radioルート作成モード"]').value);
+      formData.append('auto', tabルート作成.querySelector('input[name="radioルート作成モード"]').value);
       formData.append('startx', opt起点.dataset.x || '');
       formData.append('starty', opt起点.dataset.y || '');
       formData.append('endx', opt終点.dataset.x || '');
@@ -896,7 +908,7 @@
       const formData = create調査予定FormData(calc ? 'calc' : '');
       ajaxExecute('?Handler=Plan',
         { method: 'POST', body: formData },
-        { title: title, form: tabRouteCreateElement, progress: calc ? '最短ルート自動作成中' : null },
+        { title: title, form: tabルート作成, progress: calc ? '最短ルート自動作成中' : null },
       ).then((json) => {
         // 得られた調査ルートを表示反映
         layer調査ルート.getSource().clear();
@@ -912,7 +924,7 @@
         // 入力エラーがあればエラーを表示
         if (json.error) {
           showAlert(title + 'エラー', json.error);
-          setInvalidStyle(tabRouteCreateElement, json.erroritems);
+          setInvalidStyle(tabルート作成, json.erroritems);
         }
         // サーバ側で有効とみなされた地点を画面に反映、有効とみなされなかったがチェックされている行があればチェックを外し選択不可とする
         selectedFeatureIds = json.id;
@@ -997,7 +1009,7 @@
         const formData = create調査予定FormData('check');
         ajaxExecute(modal調査予定登録Element.action,
           { method: 'POST', body: formData },
-          { title: button.dataset.modaltitle, form: tabRouteCreateElement }
+          { title: button.dataset.modaltitle, form: tabルート作成 }
         ).then((response) => {
           // 一覧入力内容チェックOKなら依頼名入力モーダルを表示
           modal調査予定登録Element.querySelector('.modal-title').innerHTML = button.dataset.modaltitle;

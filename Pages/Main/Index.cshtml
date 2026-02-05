@@ -35,9 +35,12 @@
   </div>
 }
 <div id="dispArea" data-bottomtab="@Model.BottomTab" style="overflow-y:hidden">
-  @*===========================================================================
-  = 画面左側メニュー部
-  ===========================================================================*@
+  @* ******************************************************************************************** *@
+  @* ******************************************************************************************** *@
+  @* ******************************************************************************************** *@
+  @* 画面左側メニュー部                                                                           *@
+  @* ******************************************************************************************** *@
+  @* ******************************************************************************************** *@
   <div id="leftArea">
     <ul class="nav nav-underline ms-2" style="font-size:1.5em">
       <li class="nav-item">
@@ -129,6 +132,11 @@
       </div>
     </div>
   </div>
+  @* ******************************************************************************************** *@
+  @* ******************************************************************************************** *@
+  @* 地図表示部                                                                                   *@
+  @* ******************************************************************************************** *@
+  @* ******************************************************************************************** *@
   @*===========================================================================
   = 地図表示部
   ===========================================================================*@
@@ -142,9 +150,11 @@
       </div>
     </div>
   </div>
-  @*===========================================================================
-  = 画面下段
-  ===========================================================================*@
+  @* ******************************************************************************************** *@
+  @* ******************************************************************************************** *@
+  @* 画面下段                                                                                     *@
+  @* ******************************************************************************************** *@
+  @* ******************************************************************************************** *@
   <div id="bottomArea">
     <div style="z-index:1; position:absolute; margin-top:-32px; padding-left:4px;">
       <button type="button" name="btnタブ選択" value="@IndexModel.TabName調査依頼" class="btn btn-secondary"
@@ -163,60 +173,6 @@
       }
       <button type="button" name="btnタブ選択" value="" class="btn btn-dark ms-4">∨</button>
     </div>
-    @*-------------------------------------------------------------------
-    - 特定初動調査タブ
-    -------------------------------------------------------------------*@
-    @if (Model.所属組織Rec?.isルート作成可 == true && Model.特定初動調査区分Rec is not null)
-    {
-      var disabled = !(Model.スレッドRec.初動調査状況 is null or 調査状況Enum.ルート作成中);
-      <div id="tab特定初動調査">
-        <div class="row align-items-end m-1 g-1" style="margin-top:-6px !important;">
-          <div class="col-auto">
-            <label class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>初動調査ルート選択</label>
-            <select name="routeid" class="form-select form-select-sm" asp-for="@Model.スレッドRec.初動調査ルートid"
-              disabled="@disabled">
-              @foreach (var rec in Model.初動調査ルートRecords)
-              {
-                var text = rec.初動調査ルート名 + (Model.スレッドRec.初動調査ルートid == rec.初動調査ルートid && !disabled ? "（推奨ルート）" : "");
-                <option value="@rec.初動調査ルートid">@text</option>
-              }
-            </select>
-          </div>
-          <div class="col-auto ms-2 mb-1">始点</div>
-          <div class="col-auto">
-            <input type="text" name="txt始点" class="form-control form-control-sm" readonly style="width:15rem" value="">
-          </div>
-          <div class="col-auto ms-2 mb-1">終点</div>
-          <div class="col-auto">
-            <input type="text" name="txt終点" class="form-control form-control-sm" readonly style="width:15rem" value="">
-          </div>
-          <div class="col-auto ms-auto"><button type="button" name="btn初動調査登録" class="btn btn-warning px-2"
-              data-modaltitle="調査予定ルートとして公開" data-modalcaption="調査ルート名を入力して公開してください。" data-modalbutton="公開"
-              value="register" disabled="@disabled">
-              <div class="small lh-1">調査予定ルート<br>として公開</div>
-            </button>
-          </div>
-        </div>
-        <div style="position:absolute; top:4rem; bottom:0; left:0px; right:0; overflow-y:scroll;">
-          <table id="table特定初動調査" class="table table-sm table-bordered table-striped fixTHead">
-            <thead>
-              <tr class="table-dark">
-                <th style="width:4rem;">巡回順</th>
-                <th style="width:25rem;">地点名</th>
-                <th style="width:6rem;">依頼者</th>
-                <th style="width:5rem;">優先度</th>
-                <th style="width:5rem;">調査手法</th>
-                <th style="width:5rem;">搭乗希望</th>
-                <th style="width:5rem;">登録方法</th>
-                <th style="">備考</th>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    }
     @*-------------------------------------------------------------------
     - 調査依頼タブ
     -------------------------------------------------------------------*@
@@ -329,188 +285,243 @@
       </form>
     </div>
     @*-------------------------------------------------------------------
+    - 首都直下初動タブ（特定初動調査）
+    -------------------------------------------------------------------*@
+    @if (Model.所属組織Rec?.isルート作成可 == true && Model.特定初動調査区分Rec is not null)
+    {
+      var disabled = !(Model.スレッドRec.初動調査状況 is null or 調査状況Enum.ルート作成中);
+      <div id="tab特定初動調査">
+        <div class="row align-items-end m-1 g-1" style="margin-top:-6px !important;">
+          <div class="col-auto">
+            <label class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>初動調査ルート選択</label>
+            <select name="routeid" class="form-select form-select-sm" asp-for="@Model.スレッドRec.初動調査ルートid"
+              disabled="@disabled">
+              @foreach (var rec in Model.初動調査ルートRecords)
+              {
+                var text = rec.初動調査ルート名 + (Model.スレッドRec.初動調査ルートid == rec.初動調査ルートid && !disabled ? "（推奨ルート）" : "");
+                <option value="@rec.初動調査ルートid">@text</option>
+              }
+            </select>
+          </div>
+          <div class="col-auto ms-2 mb-1">始点</div>
+          <div class="col-auto">
+            <input type="text" name="txt始点" class="form-control form-control-sm" readonly style="width:15rem" value="">
+          </div>
+          <div class="col-auto ms-2 mb-1">終点</div>
+          <div class="col-auto">
+            <input type="text" name="txt終点" class="form-control form-control-sm" readonly style="width:15rem" value="">
+          </div>
+          <div class="col-auto ms-auto"><button type="button" name="btn初動調査登録" class="btn btn-warning px-2"
+              data-modaltitle="調査予定ルートとして公開" data-modalcaption="調査ルート名を入力して公開してください。" data-modalbutton="公開"
+              value="register" disabled="@disabled">
+              <div class="small lh-1">調査予定ルート<br>として公開</div>
+            </button>
+          </div>
+        </div>
+        <div style="position:absolute; top:4rem; bottom:0; left:0px; right:0; overflow-y:scroll;">
+          <table id="table特定初動調査" class="table table-sm table-bordered table-striped fixTHead">
+            <thead>
+              <tr class="table-dark">
+                <th style="width:4rem;">巡回順</th>
+                <th style="width:25rem;">地点名</th>
+                <th style="width:6rem;">依頼者</th>
+                <th style="width:5rem;">優先度</th>
+                <th style="width:5rem;">調査手法</th>
+                <th style="width:5rem;">搭乗希望</th>
+                <th style="width:5rem;">登録方法</th>
+                <th style="">備考</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+    @*-------------------------------------------------------------------
     - ルート作成タブ
     -------------------------------------------------------------------*@
     @if (Model.所属組織Rec?.isルート作成可 == true)
     {
       <div id="tabルート作成">
-          <div style="position:absolute; top:-6px; bottom:0; width:360px; left:0;">
-              <div class="row m-1 g-1">
-                  <div class="col">
-                      <label class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>ルート作成</label>
-                  </div>
-              </div>
-              <div class="row mx-2 g-1 align-items-center">
-                  <div class="col-2">起点</div>
-                  <div class="col-9">
-                      <select name="selルート作成起点" class="form-select form-select-sm">
-                          <option disabled selected value="">(選択)</option>
-                          <option value="*">（地図から指定）</option>
-                          @foreach (var rec in Model.起点終点Records)
-                          {
-                              <option value="@($"{rec.経度:#0.000000} / {rec.緯度:#0.000000}")" data-id="@rec.起点終点id" data-x="@rec.経度"
-                                      data-y="@rec.緯度">@rec.起点終点名</option>
-                          }
-                      </select>
-                  </div>
-              </div>
-              <div class="row mx-2 g-1 align-items-center">
-                  <div class="col">
-                      <button name="btnルート起点終点反転" class="btn btn-sm btn-info py-0 px-2">
-                          <i class="bi bi-arrow-down-up"></i>
-                      </button>
-                  </div>
-              </div>
-              <div class="row mx-2 g-1 align-items-center">
-                  <div class="col-2">終点</div>
-                  <div class="col-9">
-                      <select name="selルート作成終点" class="form-select form-select-sm">
-                          <option disabled selected value="">(選択)</option>
-                          <option value="*">（地図から指定）</option>
-                          @foreach (var rec in Model.起点終点Records)
-                          {
-                              <option value="@($"{rec.経度:#0.000000} / {rec.緯度:#0.000000}")" data-id="@rec.起点終点id" data-x="@rec.経度"
-                                      data-y="@rec.緯度">@rec.起点終点名</option>
-                          }
-                      </select>
-                  </div>
-              </div>
-              <div class="row mx-2 mt-2 g-1 align-items-center">
-                  <div class="col-2">経路</div>
-                  <div class="col-auto">
-                      <label class="form-check">
-                          <input class="form-check-input" type="radio" id="radioルート手動作成" name="radioルート作成モード" value="false" checked>
-                          <span class="form-check-label">手動</span>
-                          <span class="form-text">（地点選択順に追加）</span>
-                      </label>
-                  </div>
-                  <div class="col-auto">
-                      <button id="btnルート作成Undo" class="btn btn-sm btn-info py-1 px-2">
-                          <i class="bi bi-arrow-counterclockwise"></i>
-                      </button>
-                  </div>
-              </div>
-              <div class="row mx-2 g-1 align-items-center">
-                  <div class="col-2"></div>
-                  <div class="col-auto">
-                      <label class="form-check">
-                          <input class="form-check-input" type="radio" id="radioルート自動作成" name="radioルート作成モード" value="true">
-                          <span class="form-check-label">自動</span>
-                          <div class="btn btn-sm btn-info ms-2 py-1 px-2">ルート作成実行</div>
-                      </label>
-                  </div>
-              </div>
-              <div class="row mx-2 mt-4 g-1 align-items-center">
-                  <div class="col-4">総飛行距離</div>
-                  <div class="col-auto" id="divルート作成_総飛行距離"></div>
-              </div>
-              <div class="row mx-2 g-1 align-items-center">
-                  <div class="col-4">調査箇所</div>
-                  <div class="col-auto" id="divルート作成_調査箇所"></div>
-              </div>
-              <div class="row mx-2 g-1 align-items-center">
-                  <div class="col-4">飛行時間</div>
-                  <div class="col-auto" id="divルート作成_飛行時間"></div>
-              </div>
-              <div class="row mx-2 g-1 align-items-center">
-                  <div class="col-4">同乗可能人数</div>
-                  <div class="col-auto" id="divルート作成_同乗可能人数"></div>
-              </div>
-          </div>
-          <div style="position:absolute; top:-6px; bottom:0; left:340px; right:0;">
-              <form id="form調査依頼絞込" class="row align-items-end m-1 g-1">
-                  <div class="col-auto">
-                      <label class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>調査依頼絞り込み</label>
-                      <div style="width:300px">
-                          <select name="irai" multiple="multiple" size="1" class="form-select form-select-sm">
-                              @foreach (var rec in Model.調査依頼Records.Where(r => r.ステータス == 調査ステータスEnum.依頼中))
-                              {
-                                  <option value="@rec.調査依頼id" selected>@rec.調査依頼名（@($"{rec.updated_at:yyyy/M/d HH:mm}")）</option>
-                              }
-                          </select>
-                      </div>
-                  </div>
-                  <div class="col-auto">
-                      <div class="d-inline-block" style="width:100px;">
-                          <select name="priority" multiple="multiple" size="1" class="form-select form-select-sm">
-                              <option value="高">高</option>
-                              <option value="中">中</option>
-                              <option value="低">低</option>
-                          </select>
-                      </div>
-                  </div>
-                  <div class="col-auto">
-                      <div class="d-inline-block w-auto">
-                          <select name="persons" class="form-select form-select-sm">
-                              <option value="">搭乗人数</option>
-                              <option value="0">なし</option>
-                              <option value="1">1名以下</option>
-                              <option value="2">2名以下</option>
-                              <option value="3">3名以下</option>
-                              <option value="4">4名以下</option>
-                              <option value="5">5名以下</option>
-                              <option value="6">6名以下</option>
-                              <option value="7">7名以下</option>
-                              <option value="8">8名以下</option>
-                          </select>
-                      </div>
-                  </div>
-                  <div class="col-auto ms-3">
-                      <label class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>オプション</label>
-                      <div>
-                          <button type="button" name="btn調査予定登録" class="btn btn-sm btn-info px-2" data-modaltitle="調査ルートの一時保存"
-                                  data-modalcaption="調査ルート名を入力して一時保存してください。" data-modalbutton="一時保存" value="tempsave">
-                              一時保存
-                          </button>
-                          <button type="button" class="btn btn-sm btn-info px-2" data-bs-toggle="modal"
-                                  data-bs-target="#modal調査予定呼び出し" disabled="@(Model.一時保存調査予定Records.Count == 0)">
-                              一時保存ルート呼び出し
-                          </button>
-                      </div>
-                  </div>
-                  <div class="col-auto ms-auto">
-                      <button type="button" id="btn調査ルート手動描画" class="btn btn-sm btn-info px-2 ms-2"
-                              value="">
-                          調査ルート手動描画
-                      </button>
-                  </div>
-                  <div class="col-auto">
-                      <button type="button" name="btn調査予定登録" class="btn btn-warning px-2"
-                              data-modaltitle="調査予定ルートとして公開" data-modalcaption="調査ルート名を入力して公開してください。" data-modalbutton="公開"
-                              value="register">
-                          <div class="small lh-1">調査予定ルート<br>として公開</div>
-                      </button>
-                  </div>
-              </form>
-          </div>
-          <div style="position:absolute; top:4rem; bottom:0; left:350px; right:0; overflow-y:scroll;">
-              <table id="tableルート作成" class="table table-sm table-bordered table-striped fixTHead">
-                  <thead>
-                      <tr class="table-dark">
-                          <th style="width:2rem;" class="text-center">
-                              <input type="checkbox" name="chk全選択" class="form-check-input">
-                          </th>
-                          <th style="width:25rem;">地点名</th>
-                          <th style="width:6.5rem;">優先度</th>
-                          <th style="width:5rem;">搭乗希望</th>
-                          <th style="width:5rem;">登録方法</th>
-                          <th style="">備考</th>
-                          <th style="width:10rem;">更新日時</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                  </tbody>
-              </table>
-          </div>
+        <div style="position:absolute; top:-6px; bottom:0; width:360px; left:0;">
+            <div class="row m-1 g-1">
+                <div class="col">
+                    <label class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>ルート作成</label>
+                </div>
+            </div>
+            <div class="row mx-2 g-1 align-items-center">
+                <div class="col-2">起点</div>
+                <div class="col-9">
+                    <select name="selルート作成起点" class="form-select form-select-sm">
+                        <option disabled selected value="">(選択)</option>
+                        <option value="*">（地図から指定）</option>
+                        @foreach (var rec in Model.起点終点Records)
+                        {
+                            <option value="@($"{rec.経度:#0.000000} / {rec.緯度:#0.000000}")" data-id="@rec.起点終点id" data-x="@rec.経度"
+                                    data-y="@rec.緯度">@rec.起点終点名</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="row mx-2 g-1 align-items-center">
+                <div class="col">
+                    <button name="btnルート起点終点反転" class="btn btn-sm btn-info py-0 px-2">
+                        <i class="bi bi-arrow-down-up"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="row mx-2 g-1 align-items-center">
+                <div class="col-2">終点</div>
+                <div class="col-9">
+                    <select name="selルート作成終点" class="form-select form-select-sm">
+                        <option disabled selected value="">(選択)</option>
+                        <option value="*">（地図から指定）</option>
+                        @foreach (var rec in Model.起点終点Records)
+                        {
+                            <option value="@($"{rec.経度:#0.000000} / {rec.緯度:#0.000000}")" data-id="@rec.起点終点id" data-x="@rec.経度"
+                                    data-y="@rec.緯度">@rec.起点終点名</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="row mx-2 mt-2 g-1 align-items-center">
+                <div class="col-2">経路</div>
+                <div class="col-auto">
+                    <label class="form-check">
+                        <input class="form-check-input" type="radio" id="radioルート手動作成" name="radioルート作成モード" value="false" checked>
+                        <span class="form-check-label">手動</span>
+                        <span class="form-text">（地点選択順に追加）</span>
+                    </label>
+                </div>
+                <div class="col-auto">
+                    <button id="btnルート作成Undo" class="btn btn-sm btn-info py-1 px-2">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="row mx-2 g-1 align-items-center">
+                <div class="col-2"></div>
+                <div class="col-auto">
+                    <label class="form-check">
+                        <input class="form-check-input" type="radio" id="radioルート自動作成" name="radioルート作成モード" value="true">
+                        <span class="form-check-label">自動</span>
+                        <div class="btn btn-sm btn-info ms-2 py-1 px-2">ルート作成実行</div>
+                    </label>
+                </div>
+            </div>
+            <div class="row mx-2 mt-4 g-1 align-items-center">
+                <div class="col-4">総飛行距離</div>
+                <div class="col-auto" id="divルート作成_総飛行距離"></div>
+            </div>
+            <div class="row mx-2 g-1 align-items-center">
+                <div class="col-4">調査箇所</div>
+                <div class="col-auto" id="divルート作成_調査箇所"></div>
+            </div>
+            <div class="row mx-2 g-1 align-items-center">
+                <div class="col-4">飛行時間</div>
+                <div class="col-auto" id="divルート作成_飛行時間"></div>
+            </div>
+            <div class="row mx-2 g-1 align-items-center">
+                <div class="col-4">同乗可能人数</div>
+                <div class="col-auto" id="divルート作成_同乗可能人数"></div>
+            </div>
+        </div>
+        <div style="position:absolute; top:-6px; bottom:0; left:340px; right:0;">
+            <form id="form調査依頼絞込" class="row align-items-end m-1 g-1">
+                <div class="col-auto">
+                    <label class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>調査依頼絞り込み</label>
+                    <div style="width:300px">
+                        <select name="irai" multiple="multiple" size="1" class="form-select form-select-sm">
+                            @foreach (var rec in Model.調査依頼Records.Where(r => r.ステータス == 調査ステータスEnum.依頼中))
+                            {
+                                <option value="@rec.調査依頼id" selected>@rec.調査依頼名（@($"{rec.updated_at:yyyy/M/d HH:mm}")）</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="d-inline-block" style="width:100px;">
+                        <select name="priority" multiple="multiple" size="1" class="form-select form-select-sm">
+                            <option value="高">高</option>
+                            <option value="中">中</option>
+                            <option value="低">低</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="d-inline-block w-auto">
+                        <select name="persons" class="form-select form-select-sm">
+                            <option value="">搭乗人数</option>
+                            <option value="0">なし</option>
+                            <option value="1">1名以下</option>
+                            <option value="2">2名以下</option>
+                            <option value="3">3名以下</option>
+                            <option value="4">4名以下</option>
+                            <option value="5">5名以下</option>
+                            <option value="6">6名以下</option>
+                            <option value="7">7名以下</option>
+                            <option value="8">8名以下</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-auto ms-3">
+                    <label class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>オプション</label>
+                    <div>
+                        <button type="button" name="btn調査予定登録" class="btn btn-sm btn-info px-2" data-modaltitle="調査ルートの一時保存"
+                                data-modalcaption="調査ルート名を入力して一時保存してください。" data-modalbutton="一時保存" value="tempsave">
+                            一時保存
+                        </button>
+                        <button type="button" class="btn btn-sm btn-info px-2" data-bs-toggle="modal"
+                                data-bs-target="#modal調査予定呼び出し" disabled="@(Model.一時保存調査予定Records.Count == 0)">
+                            一時保存ルート呼び出し
+                        </button>
+                    </div>
+                </div>
+                <div class="col-auto ms-auto">
+                    <button type="button" id="btn調査ルート手動描画" class="btn btn-sm btn-info px-2 ms-2"
+                            value="">
+                        調査ルート手動描画
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <button type="button" name="btn調査予定登録" class="btn btn-warning px-2"
+                            data-modaltitle="調査予定ルートとして公開" data-modalcaption="調査ルート名を入力して公開してください。" data-modalbutton="公開"
+                            value="register">
+                        <div class="small lh-1">調査予定ルート<br>として公開</div>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div style="position:absolute; top:4rem; bottom:0; left:350px; right:0; overflow-y:scroll;">
+            <table id="tableルート作成" class="table table-sm table-bordered table-striped fixTHead">
+                <thead>
+                    <tr class="table-dark">
+                        <th style="width:2rem;" class="text-center">
+                            <input type="checkbox" name="chk全選択" class="form-check-input">
+                        </th>
+                        <th style="width:25rem;">地点名</th>
+                        <th style="width:6.5rem;">優先度</th>
+                        <th style="width:5rem;">搭乗希望</th>
+                        <th style="width:5rem;">登録方法</th>
+                        <th style="">備考</th>
+                        <th style="width:10rem;">更新日時</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
       </div>
     }
   </div>
 </div>
 
-@*-------------------------------------------------------------------
-- 各種Toast/Modal
--------------------------------------------------------------------*@
-
+@* ******************************************************************************************** *@
+@* ******************************************************************************************** *@
+@* 各種Toast/Modal                                                                              *@
+@* ******************************************************************************************** *@
+@* ******************************************************************************************** *@
 @*-- 調査依頼：地点追加操作説明toast --*@
 <div id="toast調査地点追加" class="toast" data-bs-autohide="false" data-requester="@Model.所属組織Rec?.組織名">
   <div class="toast-header fw-bold">調査地点追加</div>
@@ -664,4 +675,3 @@
         </div>
     </div>
 </form>
-
