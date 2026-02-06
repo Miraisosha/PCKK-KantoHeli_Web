@@ -1,55 +1,18 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\",
+  "WorkspaceRootPath": "D:\\01-Development\\PCKK-KantoHeli\\Web\\",
   "Documents": [
     {
-<<<<<<< HEAD
-=======
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|c:\\users\\j.uchida\\documents\\development\\pckk-kantoheli\\web\\pages\\index_editmodal.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\index_editmodal.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|c:\\users\\j.uchida\\documents\\development\\pckk-kantoheli\\web\\pages\\index_editmodal.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\index_editmodal.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
->>>>>>> f28a51702256b74a3f85866d5ee9c736fef8342f
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|c:\\users\\j.uchida\\documents\\development\\pckk-kantoheli\\web\\pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-<<<<<<< HEAD
-=======
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|c:\\users\\j.uchida\\documents\\development\\pckk-kantoheli\\web\\pages\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|c:\\users\\j.uchida\\documents\\development\\pckk-kantoheli\\web\\wwwroot\\js\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:wwwroot\\js\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
->>>>>>> f28a51702256b74a3f85866d5ee9c736fef8342f
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|c:\\users\\j.uchida\\documents\\development\\pckk-kantoheli\\web\\pages\\main\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\pages\\main\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\main\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-<<<<<<< HEAD
-=======
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|c:\\users\\j.uchida\\documents\\development\\pckk-kantoheli\\web\\pages\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|c:\\users\\j.uchida\\documents\\development\\pckk-kantoheli\\web\\pages\\_viewimports.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\_viewimports.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|c:\\users\\j.uchida\\documents\\development\\pckk-kantoheli\\web\\pages\\_viewstart.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\_viewstart.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
->>>>>>> f28a51702256b74a3f85866d5ee9c736fef8342f
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|c:\\users\\j.uchida\\documents\\development\\pckk-kantoheli\\web\\wwwroot\\js\\main\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\wwwroot\\js\\main\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
       "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:wwwroot\\js\\main\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -58,181 +21,53 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-<<<<<<< HEAD
           "DockedWidth": 169,
           "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "Index.cshtml",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml",
+              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml",
               "RelativeDocumentMoniker": "Pages\\Main\\Index.cshtml",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml",
+              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml",
               "RelativeToolTip": "Pages\\Main\\Index.cshtml",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAgAAAACAAAAAAAAAA==",
+              "ViewState": "AgIAAI4AAAAAAAAAAAAAAK0AAABLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-02-02T06:49:06.836Z",
+              "WhenOpened": "2026-02-05T08:38:02.677Z",
               "EditorCaption": ""
             }
           ]
         },
         {
           "DockedWidth": 231,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-=======
-          "DockedWidth": 176,
-          "SelectedChildIndex": 0,
-          "Children": [
+              "DocumentIndex": 2,
+              "Title": "Index.cshtml.cs",
+              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml.cs",
+              "RelativeDocumentMoniker": "Pages\\Main\\Index.cshtml.cs",
+              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml.cs",
+              "RelativeToolTip": "Pages\\Main\\Index.cshtml.cs",
+              "ViewState": "AgIAAIwAAAAAAAAAAAAUwM0AAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-05T08:38:03.252Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "Index_EditModal.cshtml",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Index_EditModal.cshtml",
-              "RelativeDocumentMoniker": "Pages\\Index_EditModal.cshtml",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Index_EditModal.cshtml",
-              "RelativeToolTip": "Pages\\Index_EditModal.cshtml",
-              "ViewState": "AgIAABwAAAAAAAAAAAAIwEcAAAAEAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-02-04T02:22:04.964Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "_ViewImports.cshtml",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\_ViewImports.cshtml",
-              "RelativeDocumentMoniker": "Pages\\_ViewImports.cshtml",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\_ViewImports.cshtml",
-              "RelativeToolTip": "Pages\\_ViewImports.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-02-04T01:43:56.408Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "_ViewStart.cshtml",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\_ViewStart.cshtml",
-              "RelativeDocumentMoniker": "Pages\\_ViewStart.cshtml",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\_ViewStart.cshtml",
-              "RelativeToolTip": "Pages\\_ViewStart.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-02-04T01:43:53.73Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml",
-              "RelativeDocumentMoniker": "Pages\\Main\\Index.cshtml",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml",
-              "RelativeToolTip": "Pages\\Main\\Index.cshtml",
-              "ViewState": "AgIAAGMBAAAAAAAAAAD4v4kBAABAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-02-02T06:49:06.836Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Index.cshtml",
-              "RelativeDocumentMoniker": "Pages\\Index.cshtml",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Index.cshtml",
-              "RelativeToolTip": "Pages\\Index.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACoAAAAGAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-01-31T02:31:22.785Z"
-            }
-          ]
-        },
-        {
-          "DockedWidth": 224,
-          "SelectedChildIndex": 4,
-          "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
               "Title": "index.js",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\index.js",
-              "RelativeDocumentMoniker": "wwwroot\\js\\index.js",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\index.js",
-              "RelativeToolTip": "wwwroot\\js\\index.js",
-              "ViewState": "AgIAABwAAAAAAAAAAAAIwDsAAAA+AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2026-02-04T02:36:00.772Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
->>>>>>> f28a51702256b74a3f85866d5ee9c736fef8342f
-              "Title": "Index.cshtml.cs",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml.cs",
-              "RelativeDocumentMoniker": "Pages\\Main\\Index.cshtml.cs",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml.cs",
-              "RelativeToolTip": "Pages\\Main\\Index.cshtml.cs",
-<<<<<<< HEAD
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEYAAAA2AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-05T02:38:46.919Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-=======
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsBAAAEAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-02T20:49:49.722Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
->>>>>>> f28a51702256b74a3f85866d5ee9c736fef8342f
-              "Title": "index.js",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\index.js",
+              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\index.js",
               "RelativeDocumentMoniker": "wwwroot\\js\\main\\index.js",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\index.js",
-              "RelativeToolTip": "wwwroot\\js\\main\\index.js",
-<<<<<<< HEAD
-              "ViewState": "AgIAAGYDAAAAAAAAAAD4v4oDAAAuAAAAAAAAAA==",
+              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\index.js*",
+              "RelativeToolTip": "wwwroot\\js\\main\\index.js*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAxAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2026-02-02T20:49:08.946Z"
-=======
-              "ViewState": "AgIAAF8BAAAAAAAAAAAQwJoBAAAuAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2026-02-02T20:49:08.946Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Index.cshtml.cs",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Index.cshtml.cs",
-              "RelativeDocumentMoniker": "Pages\\Index.cshtml.cs",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Index.cshtml.cs",
-              "RelativeToolTip": "Pages\\Index.cshtml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAADIAAAAIAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-03T06:04:54.831Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Index_EditModal.cshtml.cs",
-              "DocumentMoniker": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Index_EditModal.cshtml.cs",
-              "RelativeDocumentMoniker": "Pages\\Index_EditModal.cshtml.cs",
-              "ToolTip": "C:\\Users\\j.uchida\\Documents\\Development\\PCKK-KantoHeli\\Web\\Pages\\Index_EditModal.cshtml.cs",
-              "RelativeToolTip": "Pages\\Index_EditModal.cshtml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAsAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-04T02:24:32.758Z",
+              "WhenOpened": "2026-02-05T08:38:03.267Z",
               "EditorCaption": ""
->>>>>>> f28a51702256b74a3f85866d5ee9c736fef8342f
             }
           ]
         }
