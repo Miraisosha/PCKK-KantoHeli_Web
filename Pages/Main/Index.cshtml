@@ -148,7 +148,7 @@
     <div id="map" class="position-absolute top-0 bottom-0 start-0 end-0" data-mapinitx="@settings.MapInitX"
          data-mapinity="@settings.MapInitY" data-mapinitz="@settings.MapInitZ"></div>
     <div class="position-absolute top-0 end-0 p-4">
-      <div class="input-group">
+      <div class="input-group" style=display:none;">
         <input type="text" class="form-control" style="width:240px" placeholder="住所から検索（準備中）">
         <button type="button" class="btn btn-primary" disabled>検索</button>
       </div>
@@ -199,18 +199,8 @@
             <ul class="dropdown-menu p-2">
               <li><button class="dropdown-item" type="button" name="btn調査地点追加" value="Point">点で登録</button></li>
               <li><button class="dropdown-item" type="button" name="btn調査地点追加" value="LineString">線で登録</button></li>
-              <li>
-                <button class="dropdown-item" type="button" name="btn調査地点追加" value="River"
-                        disabled>
-                  KPデータ（河川）から登録
-                </button>
-              </li>
-              <li>
-                <button class="dropdown-item" type="button" name="btn調査地点追加" value="Road"
-                        disabled>
-                  KPデータ（道路）から登録
-                </button>
-              </li>
+              <li><button class="dropdown-item" type="button" name="btn調査地点追加" value="River">KPデータ（河川）から登録</button></li>
+              <li><button class="dropdown-item" type="button" name="btn調査地点追加" value="Road">KPデータ（道路）から登録</button></li>
             </ul>
           </div>
         </div>
@@ -516,7 +506,7 @@
                 </button>
               </div>
             </div>
-            <div class="col-auto ms-auto">
+            <div class="col-auto ms-auto" style="display:none;">
               <button type="button" id="btn調査ルート手動描画" class="btn btn-sm btn-info px-2 ms-2"
                       value="">
                 調査ルート手動描画
@@ -622,6 +612,48 @@
     </div>
   </div>
 </form>
+
+@*-- 調査依頼登録：距離標登録モーダル --*@
+<div id="modalKPPoint" class="modaless-panel">
+  <div class="panel-header">
+    調査地点追加
+  </div>
+  <div class="panel-body">
+    <div class="panel-body">
+      <div class="form-row d-flex align-items-center gap-2">
+        <label id="lblRoadRiver" class="me-2">河川</label>
+        <select id="selRoadRiver" class="form-select form-select-sm flex-8">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+      <div class="form-row d-flex align-items-center gap-2">
+        <label class="me-2">始点</label>
+        <input id="startKp"
+               type="number"
+               class="form-control form-control-sm kp-input flex-2"
+               step="1">
+
+        <span class="ms-1">kp</span>
+      </div>
+      <div class="form-row d-flex align-items-center gap-2">
+        <label class="me-2">終点</label>
+        <input id="endKp"
+               type="number"
+               class="form-control form-control-sm kp-input flex-2"
+               step="1">
+
+        <span class="ms-1">kp</span>
+      </div>
+      <div class="note">
+        ※地図上のデータをクリックして選択することもできます。
+      </div>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <button id="btnKPCancel" class="btn btn-secondary">キャンセル</button>
+    <button id="btnKPOk" class="btn btn-primary">完了</button>
+  </div>
+</div>
 
 @*-- ルート作成：起点終点指定操作説明toast --*@
 <div id="toast起点終点設定" class="toast" style="position:absolute; bottom:200px; left:405px; z-index:3;"

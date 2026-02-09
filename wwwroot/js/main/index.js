@@ -5,7 +5,7 @@
   const tab特定初動調査 = document.getElementById("tab特定初動調査");
   const tab調査依頼 = document.getElementById("tab調査依頼");
   const tab依頼状況 = document.getElementById("tab依頼状況");
-  const tabRouteCreateElement = document.getElementById('tabルート作成');
+  const tabルート作成 = document.getElementById('tabルート作成');
 
   // =====================================================================
   // 地図表示（以下の順にレイヤを作成・追加する（レイヤ作成処理は後ろで宣言する関係でfunctionとして定義しホイスティング））
@@ -23,6 +23,17 @@
   const layer調査地点 = createSpotLayer(map);
   const layer調査ルート = createRouteLayer(map);
   init防災ヘリ関連情報Layers();
+  const layerKPLine河川 = createKPLineRiver(map);
+  const layerKPLine道路 = createKPLineRoad(map);
+  const layerKP河川 = createKPRiver(map);
+  const layerKP道路 = createKPRoad(map);
+  const layerSelectionKP = createSelectionKPLayer(map);
+  const mapKPSource = new ol.source.Vector();
+  const mapKPSource河川 = setKPSource('River');
+  const mapKPSource道路 = setKPSource('Road');
+  layerKP河川.setSource(mapKPSource河川);
+  layerKP道路.setSource(mapKPSource道路);
+  layerSelectionKP.setSource(mapKPSource);
 
   // タブ
   const layer編集中調査地点 = createSpotLayer(map);
@@ -55,10 +66,50 @@
           checkbox.checked = !checkbox.checked;
           checkbox.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
         }
+      } else if (layer === layerKP河川) {
+        onKPLayer_Click(feature);
+      } else if (layer === layerKP道路) {
+        onKPLayer_Click(feature);
       }
       //TODO それ以外の選択処理
     });
   });
+
+  /**
+   * 河川距離標・道路距離標　マウスオーバーイベント
+   */
+  let overFeature = null;
+  map.on('pointermove', function (evt) {
+    if (evt.dragging) return;
+
+    const feature = map.forEachFeatureAtPixel(
+      evt.pixel,
+      (feature, layer) => {
+        feature._hoverLayer = layer;
+        return feature;
+      },
+      { layerFilter: l => l === layerKP河川 ||  l === layerKP道路 }
+    );
+
+    // マウスアウト
+    if (overFeature && overFeature !== feature) {
+      onMouseOut(overFeature);
+      overFeature = null;
+    }
+
+    // マウスオーバー
+    if (feature && feature !== overFeature) {
+      if (feature._hoverLayer === layerKP河川) {
+        onMouseOverKPRiver(feature);
+      } else if (feature._hoverLayer === layerKP道路) {
+        onMouseOverKPRoad(feature);
+      }
+      overFeature = feature;
+    }
+    const hit = map.hasFeatureAtPixel(evt.pixel);
+    map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+  });
+
 
   // 共通：右クリックでLineString等描画のundo
   map.getViewport().addEventListener('contextmenu', (e) => {
@@ -67,6 +118,100 @@
       mapDraw.removeLastPoint();
     }
   });
+
+  /**
+   * ********************************************************************************************
+   * ********************************************************************************************
+   * ********************************************************************************************
+   * ********************************************************************************************
+   * 距離標レイヤ　クリック
+   * ********************************************************************************************
+   * ********************************************************************************************
+   * ********************************************************************************************
+   * ********************************************************************************************
+   * @param {any} feature
+   */
+  const onKPLayer_Click = (feature) => {
+    const geom = feature.getGeometry();
+
+    const features = mapKPSource.getFeatures();
+    const cnt = features.length;
+    const existing = features.find(f =>
+      f.get('srcFeature') === feature
+    );
+    if (existing) {
+      mapKPSource.removeFeature(existing);
+      if (mapKPSource.getFeatures().length == 0) {
+        if (feature._hoverLayer === layerKP河川) {
+          layerKP河川.setStyle(styleKPRiver);
+          layerKPLine河川.setStyle(styleKPLineRiver);
+        } else if (feature._hoverLayer === layerKP道路) {
+          layerKP道路.setStyle(styleKPRiver);
+          layerKPLine道路.setStyle(styleKPLineRiver);
+        }
+      }
+      return;
+    }
+
+    if (cnt == 0) {
+      const selectedFeature = new ol.Feature({ geometry: new ol.geom.Point(geom.getCoordinates()) });
+      selectedFeature.set('srcFeature', feature);
+      mapKPSource.addFeature(selectedFeature);
+      if (feature._hoverLayer === layerKP河川) {
+        let suikei = feature.get('水系名');
+        let kasen = feature.get('河川名');
+        let sayugan = feature.get('左右岸');
+        layerKP河川.setStyle(function (f) {
+          if ((suikei != '' && f.get('水系名')) && (kasen != '' && f.get('河川名') == kasen) && (sayugan != '' && f.get('左右岸') == sayugan)) {
+            return styleKPRiver(f);
+          } else {
+            return null;
+          }
+        });
+        layerKPLine河川.setStyle(function (f) {
+          if ((suikei != '' && f.get('水系名')) && (kasen != '' && f.get('河川名') == kasen) && (sayugan != '' && f.get('左右岸') == sayugan)) {
+            return styleKPLineRiver(f);
+          } else {
+            return null;
+          }
+        });
+      } else if (feature._hoverLayer === layerKP道路) {
+        let syubetsu = feature.get('道路種別');
+        let rosen = feature.get('路線');
+        let genkyu = feature.get('現旧新区分');
+        let jyoge = feature.get('上下区分');
+        layerKP道路.setStyle(function (f) {
+          if ((syubetsu != '' && f.get('道路種別') == syubetsu) && (rosen != '' && f.get('路線') == rosen) && (genkyu != '' && f.get('現旧新区分') == genkyu) && (jyoge != '' && f.get('上下区分'))) {
+            return styleKPRiver(f);
+          } else {
+            return null;
+          }
+        });
+        layerKPLine道路.setStyle(function (f) {
+          if ((syubetsu != '' && f.get('道路種別') == syubetsu) && (rosen != '' && f.get('路線') == rosen) && (genkyu != '' && f.get('現旧新区分') == genkyu) && (jyoge != '' && f.get('上下区分'))) {
+            return styleKPLineRiver(f);
+          } else {
+            return null;
+          }
+        });
+      }
+    } else if (cnt == 1) {
+      const selectedFeature = new ol.Feature({ geometry: new ol.geom.Point(geom.getCoordinates()) });
+      selectedFeature.set('srcFeature', feature);
+      mapKPSource.addFeature(selectedFeature);
+
+      let kp_name = ''
+      if (feature._hoverLayer === layerKP河川) {
+        kp_name = '距離標';
+      } else if (feature._hoverLayer === layerKP道路) {
+        kp_name = '地点標名称'
+      }
+      const kp = mapKPSource.getFeatures().map(f => {
+        const src = f.get('srcFeature');
+        return src?.get(kp_name);
+      });
+    }
+  };
 
   // ====================================================================
   // リアルタイム情報表示
@@ -250,6 +395,7 @@
   // --------------------------------
   document.querySelectorAll('button[name="btnタブ選択"]').forEach((button) => {
     button.addEventListener('click', e => {
+      console.log("TAB Change:" + button.value);
       // URL変更
       history.replaceState({}, '', `?tab=${button.value}`);
       // 未ログインならログインモーダル表示、ログイン済なら表示タブ切り替え
@@ -267,6 +413,12 @@
         layer編集中調査ルート.setSource(source調査ルート);
         source調査ルート.changed(); // レイヤ再描画
         //TODO おそらくはinteraction停止が必要
+
+        // 2026/02/08 Mirai
+        layerKP河川.setVisible(false);
+        layerKP道路.setVisible(false);
+        layerKPLine河川.setVisible(false);
+        layerKPLine道路.setVisible(false);
       }
     });
   });
@@ -474,6 +626,13 @@
         map.removeInteraction(mapDraw);
         mapDraw = null;
       }
+      hideModalKPPoint();
+      layerKP河川.setVisible(false);
+      layerKP道路.setVisible(false);
+      layerKPLine河川.setVisible(false);
+      layerKPLine道路.setVisible(false);
+      mapKPSource.clear();
+
       if (drawType == 'LineString' || drawType == 'Point') {
         // 描画オブジェクトを初期化して設定
         mapDraw = new ol.interaction.Draw({
@@ -503,7 +662,23 @@
         document.querySelectorAll('#toast調査地点追加 span[data-type]').forEach((element) => element.classList.add('d-none'));
         document.querySelector(`#toast調査地点追加 span[data-type="${drawType}"]`).classList.remove('d-none');
         displayingToast.show();
+      // KPデータ（河川）から登録
+      } else if (drawType == 'River') {
+        layerKP河川.setVisible(true);
+        layerKPLine河川.setVisible(true);
+        setModalKPPoint(drawType);
+      // KPデータ（道路）から登録
+      } else if (drawType == 'Road') { 
+        layerKP道路.setVisible(true);
+        layerKPLine道路.setVisible(true);
+        setModalKPPoint(drawType);
       }
+    };
+    function hideKPLayer() {
+      layerKP河川.setVisible(false);
+      layerKP道路.setVisible(false);
+      layerKPLine河川.setVisible(false);
+      layerKPLine道路.setVisible(false);
     };
     // 調査依頼一覧：調査地点追加のドロップダウンボタンクリック時、調査地点追加のUIを起動
     document.querySelectorAll('button[name="btn調査地点追加"]').forEach((button) => {
@@ -585,6 +760,355 @@
         location.href = `?tab=tab調査依頼`;
       }, () => { });
     });
+
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // ================================
+    // 距離標　調査地点登録 ダイアログ
+    // ================================
+    const modalKPPoint = document.getElementById("modalKPPoint");
+    const selRoadRiver = document.getElementById('selRoadRiver');
+    const mapKP河川 = new Map();
+    const mapKP道路 = new Map();
+    // ================================
+    // 距離標入力ダイアログ　表示
+    // ================================
+    function setModalKPPoint(drawType) {
+      modalKPPoint.style.display = "block";
+      // ウインドウ位置
+      const rect = tab調査依頼.getBoundingClientRect();
+      const panel = document.getElementById('modalKPPoint');
+      panel.style.left = "3px";
+      panel.style.top = (rect.top + 5) + "px";
+    };
+    // ================================
+    // 河川データ読み込み
+    // ================================
+    mapKPSource河川.on('change', () => {
+      if (mapKPSource河川.getState() != 'ready') return;
+      if (mapKP河川.length > 0) return;
+
+      const features = mapKPSource河川.getFeatures();
+      features.forEach(f => {
+        const 水系名 = f.get('水系名');
+        const 河川名 = f.get('河川名');
+        const 左右岸 = f.get('左右岸');
+
+        if (!水系名 || !河川名 || !左右岸) return;
+
+        const key = `${水系名}_${河川名}_${左右岸}`;
+        const text = `${水系名} ${河川名} （${左右岸}）`;
+
+        if (!mapKP河川.has(key)) {
+          mapKP河川.set(key, text);
+        }
+      });
+      createRiverSelect(mapKP河川);
+    });
+    // ================================
+    // 道路データ読み込み
+    // ================================
+    mapKPSource道路.on('change', () => {
+      if (mapKPSource道路.getState() != 'ready') return;
+      if (mapKP道路.length > 0) return;
+
+      const features = mapKPSource道路.getFeatures();
+      features.forEach(f => {
+        const 地方整備局   = f.get('地方整備局');
+        const 事務所       = f.get('事務所');
+        const 道路種別     = f.get('道路種別');
+        const 路線         = f.get('路線');
+        const 現旧新区分   = f.get('現旧新区分');
+        const 上下区分     = f.get('上下区分');
+
+        const key = `${地方整備局}_${事務所}_${道路種別}_${路線}_${現旧新区分}_${上下区分}`;
+        const text = `${道路種別} ${路線}号線 ${現旧新区分} ${上下区分}`;
+
+        if (!mapKP道路.has(key)) {
+          mapKP道路.set(key, text);
+        }
+      });
+      createRiverSelect(mapKP道路);
+    });
+    // ================================
+    // セレクトボックス作成
+    // ================================
+    function createRiverSelect(uniqueMap) {
+      selRoadRiver.innerHTML = '';
+      selRoadRiver.appendChild(new Option('選択してください', ''));
+
+      const sortedEntries = [...uniqueMap.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0], 'ja'));
+
+      sortedEntries.forEach(([key, text]) => {
+        selRoadRiver.appendChild(new Option(text, key));
+      });
+    };
+    // ================================
+    // 河川・道路プルダウン　イベント
+    // ================================
+    selRoadRiver.addEventListener('change', e => {
+      mapKPSource.clear();
+      document.getElementById('startKp').value = '';
+      document.getElementById('endKp').value = '';
+      const values = e.target.value.split('_');
+      if (values.length == 3) {
+        const suikei  = values[0];
+        const kasen   = values[1];
+        const sayugan = values[2];
+        layerKP河川.setStyle(function (f) {
+          if ((suikei != '' && f.get('水系名')) && (kasen != '' && f.get('河川名') == kasen) && (sayugan != '' && f.get('左右岸') == sayugan)) {
+            return styleKPRiver(f);
+          } else {
+            return null;
+          }
+        });
+        layerKPLine河川.setStyle(function (f) {
+          if ((suikei != '' && f.get('水系名')) && (kasen != '' && f.get('河川名') == kasen) && (sayugan != '' && f.get('左右岸') == sayugan)) {
+            return styleKPLineRiver(f);
+          } else {
+            return null;
+          }
+        });
+        zoomKPLine(layerKP河川);
+      } else if (values.length == 6) {
+        const jimusyo   = values[1]
+        const syubetsu  = values[2]
+        const rosen     = values[3]
+        const genkyu    = values[4]
+        const jyoge     = values[5]
+        layerKP道路.setStyle(function (f) {
+          if ((syubetsu != '' && f.get('道路種別') == syubetsu) && (rosen != '' && f.get('路線') == rosen) && (genkyu != '' && f.get('現旧新区分') == genkyu) && (jyoge != '' && f.get('上下区分'))) {
+            return styleKPRiver(f);
+          } else {
+            return null;
+          }
+        });
+        layerKPLine道路.setStyle(function (f) {
+          if ((syubetsu != '' && f.get('道路種別') == syubetsu) && (rosen != '' && f.get('路線') == rosen) && (genkyu != '' && f.get('現旧新区分') == genkyu) && (jyoge != '' && f.get('上下区分'))) {
+            return styleKPRiver(f);
+          } else {
+            return null;
+          }
+        });
+        zoomKPLine(layerKP道路);
+      }
+    });
+    // ================================
+    // 数値入力制限（km）
+    // ================================
+    document.querySelectorAll('.kp-input').forEach(input => {
+      input.addEventListener('input', () => {
+        input.value = input.value.replace(/[^0-9.]/g, '');
+      });
+      input.addEventListener('change', e => {
+        selectNearestKP();
+      });
+    });
+    // ================================
+    // 一番近い距離標を選択状態にする
+    // ================================
+    function selectNearestKP() {
+      const key = selRoadRiver.value;
+      if (!key) return;
+      const parts = key.split('_');
+
+      let source = null;
+      let layerKP = null;
+      let layerKPLine = null;
+
+      if (parts.length === 3) {
+        // 河川
+        source = mapKPSource河川;
+        layerKP = layerKP河川;
+        layerKPLine = layerKPLine河川;
+      } else if (parts.length === 6) {
+        // 道路
+        source = mapKPSource道路;
+        layerKP = layerKP道路;
+        layerKPLine = layerKPLine道路;
+      } else {
+        return;
+      }
+
+      const kp_s_raw = document.getElementById('startKp').value;
+      const kp_e_raw = document.getElementById('endKp').value;
+      const kp_s = kp_s_raw !== '' ? Number(kp_s_raw) : null;
+      const kp_e = kp_e_raw !== '' ? Number(kp_e_raw) : null;
+      if (kp_s === null && kp_e === null) return;
+
+      const kpProp = (parts.length === 3) ? '距離標':'地点標名称'; 
+
+      mapKPSource.clear();
+      if ((kp_s !== null && kp_e === null) || (kp_s === null && kp_e !== null)) {
+        // 距離標が片方入力されている場合
+        const targetKp = kp_s !== null ? kp_s : kp_e;
+        let nearestFeature = null;
+        let minDiff = Infinity;
+        source.getFeatures().forEach(f => {
+          if (!isSameGroup(f, parts)) return;
+          let kp = f.get(kpProp);
+          if (kp == null) return;
+          kp = Number(String(kp).replace(/[^\d.]/g, ''));
+          if (isNaN(kp)) return;
+          const diff = Math.abs(kp - targetKp);
+          if (diff < minDiff) {
+            minDiff = diff;
+            nearestFeature = f;
+          }
+        });
+        if (nearestFeature) {
+          const geom = nearestFeature.getGeometry();
+          const selectedFeature = new ol.Feature({ geometry: new ol.geom.Point(geom.getCoordinates()) });
+          selectedFeature.set('srcFeature', nearestFeature);
+          mapKPSource.addFeature(selectedFeature);
+        }
+        return;
+      } else {
+        // 距離標が両方入力されている場合
+        const kpMin = Math.min(kp_s, kp_e);
+        const kpMax = Math.max(kp_s, kp_e);
+
+        const rangeFeatures = [];
+
+        source.getFeatures().forEach(f => {
+          if (!isSameGroup(f, parts)) return;
+
+          let kp = f.get(kpProp);
+          if (kp == null) return;
+
+          kp = Number(String(kp).replace(/[^\d.]/g, ''));
+          if (isNaN(kp)) return;
+
+          if (kp >= kpMin && kp <= kpMax) {
+            rangeFeatures.push(f);
+          }
+        });
+        // 同じポイントの場合はENDを削除
+        if (rangeFeatures.length == 1) {
+          endFeature = null;
+          document.getElementById('endKp').value = '';
+        } else {
+          rangeFeatures.forEach(f => {
+            const geom = f.getGeometry();
+            const selectedFeature = new ol.Feature({ geometry: new ol.geom.Point(geom.getCoordinates()) });
+            selectedFeature.set('srcFeature', f);
+            mapKPSource.addFeature(selectedFeature);
+          });
+        }
+        console.log(rangeFeatures);
+      }
+    }
+
+    function isSameGroup(feature, parts) {
+      if (parts.length === 3) {
+        const [水系名, 河川名, 左右岸] = parts;
+        return (
+          feature.get('水系名') === 水系名 &&
+          feature.get('河川名') === 河川名 &&
+          feature.get('左右岸') === 左右岸
+        );
+      }
+
+      if (parts.length === 6) {
+        const [地方整備局, 事務所, 道路種別, 路線, 現旧新区分, 上下区分] = parts;
+        return (
+          feature.get('地方整備局') === 地方整備局 &&
+          feature.get('事務所') === 事務所 &&
+          feature.get('道路種別') === 道路種別 &&
+          feature.get('路線') === 路線 &&
+          feature.get('現旧新区分') === 現旧新区分 &&
+          feature.get('上下区分') === 上下区分
+        );
+      }
+      return false;
+    }
+
+
+    // ================================
+    // 選択された道路・河川にズーム
+    // ================================
+    const zoomKPLine = (layer) => {
+      const source = layer.getSource();
+      if (!source) return;
+      const styleFn = layer.getStyle();
+      if (!styleFn) return;
+      const resolution = map.getView().getResolution();
+      const visibleFeatures = source.getFeatures().filter(f => {
+        return styleFn(f, resolution) !== null;
+      });
+      if (!visibleFeatures.length) return;
+      let extent = ol.extent.createEmpty();
+      visibleFeatures.forEach(f => {
+        ol.extent.extend(extent, f.getGeometry().getExtent());
+      });
+      map.getView().fit(extent, {
+        padding: [50, 50, 50, 50],
+        duration: 300,
+        maxZoom: 18
+      });
+    };
+
+    // ================================
+    // ドラッグ移動（ヘッダーのみ）
+    // ================================
+    (function enableDragModalKPPoint() {
+      const panel = document.getElementById('modalKPPoint');
+      const header = panel.querySelector('.panel-header');
+      let dragging = false;
+      let startX = 0;
+      let startY = 0;
+      let panelX = 0;
+      let panelY = 0;
+      header.addEventListener('mousedown', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = panel.getBoundingClientRect();
+        startX = e.clientX;
+        startY = e.clientY;
+        panelX = rect.left;
+        panelY = rect.top;
+        dragging = true;
+      });
+      document.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        panel.style.left = panelX + dx + 'px';
+        panel.style.top = panelY + dy + 'px';
+      });
+      document.addEventListener('mouseup', () => {
+        dragging = false;
+      });
+    })();
+    // ================================
+    // ボタン処理
+    // ================================
+    document.getElementById('btnKPCancel').onclick = () => {
+      console.log("Cancel !!!");
+      document.getElementById('modalKPPoint').style.display = 'none';
+      hideModalKPPoint();
+      hideKPLayer();
+      mapKPSource.clear();
+    };
+    document.getElementById('btnKPOk').onclick = () => {
+      const data = {
+        selRoadRiver: document.getElementById('selRoadRiver').value,
+        startKp: Number(document.getElementById('startKp').value),
+        endKp: Number(document.getElementById('endKp').value)
+      };
+      hideModalKPPoint();
+      hideKPLayer();
+      mapKPSource.clear();
+      console.log('確定:', data);
+    };
+    function hideModalKPPoint() {
+      modalKPPoint.style.display = "none";
+    }
   }
 
   // ====================================================

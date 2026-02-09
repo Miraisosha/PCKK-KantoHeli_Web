@@ -46,5 +46,16 @@
   <ItemGroup>
     <!-- その他余計なファイル等の除去 -->
     <Content Remove="appsettings.Development.json" Condition="'$(Configuration)'=='Release'" />
+    <Content Remove="wwwroot\js\main\JavaScript.js" />
+    <Content Remove="wwwroot\js\main\_selectionKP.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\files\kp_river.geojson">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\files\kp_road.geojson">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

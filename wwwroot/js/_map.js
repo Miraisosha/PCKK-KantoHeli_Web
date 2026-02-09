@@ -209,3 +209,181 @@ const createRouteLayer = (map) => {
   map.addLayer(layer調査ルート);
   return layer調査ルート;
 };
+
+/**
+ * 河川　距離標レイヤ作成
+ * 
+ * @param {any} map
+ * @returns
+ */
+const createKPRiver = (map) => {
+  const layer = new ol.layer.Vector({
+    style: styleKPRiver,
+    visible: false
+  });
+  map.addLayer(layer);
+  return layer;
+};
+function setKPSource(drawType) {
+  let url = null;
+  if (drawType == 'River') {
+    url = '/files/kp_river.json'
+  } else if (drawType == 'Road') {
+    url = '/files/kp_road.json'
+  } else {
+    return null;
+  }
+  return new ol.source.Vector({
+    url: url,
+    format: new ol.format.GeoJSON({
+      dataProjection: 'EPSG:4326',
+      featureProjection: 'EPSG:3857'
+    })
+  })
+}
+function styleKPRiver(feature) {
+  const styles = [];
+  styles.push(
+    new ol.style.Style({
+      image: new ol.style.Circle({
+        radius: 5,
+        fill: new ol.style.Fill({ color: 'blue' }),
+        stroke: new ol.style.Stroke({ color: '#fff', width: 1 })
+      })
+    })
+  );
+  styles.push(
+    new ol.style.Style({
+      stroke: new ol.style.Stroke({
+        color: 'blue',
+        width: 2
+      })
+    })
+  );
+  return styles;
+}
+function onMouseOverKPRiver(feature) {
+  feature.setStyle(new ol.style.Style({
+    image: new ol.style.Circle({
+      radius: 7,
+      fill: new ol.style.Fill({ color: 'orange' }),
+      stroke: new ol.style.Stroke({ color: '#fff', width: 2 })
+    }),
+    text: new ol.style.Text({
+      text: feature.get('左右岸') + " " + Number(feature.get('距離標')) + "KP",
+      font: '12px sans-serif',
+      fill: new ol.style.Fill({ color: '#000' }),
+      stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
+      offsetY: -12
+    })
+  }));
+}
+const createKPLineRiver = (map) => {
+  const layer = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: '/files/kp_river_line.json',
+      format: new ol.format.GeoJSON({
+        dataProjection: 'EPSG:4326',     // GeoJSON の座標系
+        featureProjection: 'EPSG:3857'   // 地図表示用
+      })
+    }),
+    style: styleKPLineRiver,
+    visible:false 
+  });
+  map.addLayer(layer);
+  return layer;
+}
+function styleKPLineRiver(feature) {
+  return new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: '#81AFFF',
+      width: 2
+    })
+  });
+}
+
+/**
+ * 道路　距離標レイヤ作成
+ * 
+ * @param {any} map
+ * @returns
+ */
+const createKPRoad = (map) => {
+  const layer = new ol.layer.Vector({
+    style: styleKPRoad,
+    visible:false,
+  });
+  map.addLayer(layer);
+  return layer;
+};
+function styleKPRoad(feature) {
+  return new ol.style.Style({
+    image: new ol.style.Circle({
+      radius: 5,
+      fill: new ol.style.Fill({ color: 'blue' }),
+      stroke: new ol.style.Stroke({ color: '#fff', width: 1 })
+    }),
+//    text: new ol.style.Text({
+//      text: feature.get('路線') + "号線 " + feature.get('地点標名称') + "KP",
+//      font: '8px sans-serif',
+//      fill: new ol.style.Fill({ color: '#000' }),
+//      stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
+//      offsetY: 12
+//    })
+  });
+}
+function onMouseOverKPRoad(feature) {
+  feature.setStyle(new ol.style.Style({
+    image: new ol.style.Circle({
+      radius: 7,
+      fill: new ol.style.Fill({ color: 'orange' }),
+      stroke: new ol.style.Stroke({ color: '#fff', width: 2 })
+    }),
+    text: new ol.style.Text({
+      text: feature.get('路線') + "号線 " + feature.get('地点標名称') + "KP",
+      font: '12px sans-serif',
+      fill: new ol.style.Fill({ color: '#000' }),
+      stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
+      offsetY: 12
+    })
+  }));
+
+}
+function onMouseOut(feature) {
+  feature.setStyle(undefined);
+}
+
+const createSelectionKPLayer = (map) => {
+  const selectLayer = new ol.layer.Vector({
+    style: new ol.style.Style({
+      image: new ol.style.Circle({
+        radius: 10,
+        stroke: new ol.style.Stroke({
+          color: 'red',
+          width: 3
+        }),
+        fill: new ol.style.Fill({
+          color: 'rgba(255,0,0,0.2)'
+        })
+      })
+    })
+  });
+  map.addLayer(selectLayer);
+  return selectLayer;
+}
+
+const createKPLineRoad = (map) => {
+  const layer = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: '/files/kp_road_line.json',
+      format: new ol.format.GeoJSON({
+        dataProjection: 'EPSG:4326',     // GeoJSON の座標系
+        featureProjection: 'EPSG:3857'   // 地図表示用
+      })
+    }),
+    style: styleKPLineRiver,
+    visible: false
+  });
+  map.addLayer(layer);
+  return layer;
+}

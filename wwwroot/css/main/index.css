@@ -164,3 +164,76 @@
   margin: 0;
   padding: 0;
 }
+
+/* --------------------------------------------
+- 調査依頼登録：距離標登録モードレス
+----------------------------------------------- */
+.modaless-panel {
+  position: absolute;
+  width: 420px;
+  background: #fff;
+  border: 2px solid #666;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+  font-size: 14px;
+  z-index: 1000;
+  border-radius: 8px;
+  display:none;
+}
+
+.panel-header {
+  padding: 10px;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+  cursor: move;
+  user-select: none;
+}
+
+.panel-body {
+  padding: 12px;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 6px;
+}
+
+  .form-row label {
+    width: 40px;
+  }
+
+  .form-row select {
+    flex: 1;
+  }
+
+.km-input {
+  width: 60px;
+  text-align: right;
+}
+
+.note {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.panel-footer {
+  padding: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #ccc;
+}
+.form-row {
+  width: 100%;
+}
+
+.flex-8 {
+  flex: 0 0 80%;
+}
+
+.flex-2 {
+  flex: 0 0 20%;
+  max-width: 120px; /* kpが大きくなりすぎるのを防ぐ */
+}
+
