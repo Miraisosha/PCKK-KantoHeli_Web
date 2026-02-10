@@ -1,4 +1,5 @@
 'use strict';
+window.app = window.app || {};
 
 // ------------------------------------------------------------
 // 地図表示関連(要openlayers)
@@ -93,6 +94,10 @@ const createMap = (targetElement, sel背景地図選択Element) => {
   // 作成されたオブジェクトを戻り値で返す
   return map;
 };
+window.app.map = createMap(
+  document.getElementById('map'),
+  document.getElementById('sel背景地図選択')
+);
 
 /**
  * 汎用：指定された色コードが明るい色か否かを返します。
@@ -210,6 +215,14 @@ const createRouteLayer = (map) => {
   return layer調査ルート;
 };
 
+
+// ********************************************************************************************
+// ********************************************************************************************
+// 調査地点追加　距離標　登録
+// ********************************************************************************************
+// ********************************************************************************************
+const kp_font = '14px sans-serif';
+const kp_font_offset = -18;
 /**
  * 河川　距離標レイヤ作成
  * 
@@ -271,10 +284,10 @@ function onMouseOverKPRiver(feature) {
     }),
     text: new ol.style.Text({
       text: feature.get('左右岸') + " " + Number(feature.get('距離標')) + "KP",
-      font: '12px sans-serif',
+      font: kp_font,
       fill: new ol.style.Fill({ color: '#000' }),
       stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
-      offsetY: -12
+      offsetY: kp_font_offset,
     })
   }));
 }
@@ -341,10 +354,10 @@ function onMouseOverKPRoad(feature) {
     }),
     text: new ol.style.Text({
       text: feature.get('路線') + "号線 " + feature.get('地点標名称') + "KP",
-      font: '12px sans-serif',
+      font: kp_font,
       fill: new ol.style.Fill({ color: '#000' }),
       stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
-      offsetY: 12
+      offsetY: kp_font_offset,
     })
   }));
 
@@ -353,6 +366,12 @@ function onMouseOut(feature) {
   feature.setStyle(undefined);
 }
 
+/**
+ * 距離標選択状態
+ * 
+ * @param {any} map
+ * @returns
+ */
 const createSelectionKPLayer = (map) => {
   const selectLayer = new ol.layer.Vector({
     style: new ol.style.Style({
@@ -371,6 +390,22 @@ const createSelectionKPLayer = (map) => {
   map.addLayer(selectLayer);
   return selectLayer;
 }
+/**
+ * 距離標選択完了時のライン
+ * @param {any} map
+ */
+const createSelectedKPLineLayer = (map) => {
+  const layer = new ol.layer.Vector({
+    style: new ol.style.Style({
+      stroke: new ol.style.Stroke({
+        color: '#0396FE',
+        width: 4
+      })
+    })
+  });
+  map.addLayer(layer);
+  return layer;
+}
 
 const createKPLineRoad = (map) => {
   const layer = new ol.layer.Vector({
@@ -387,3 +422,16 @@ const createKPLineRoad = (map) => {
   map.addLayer(layer);
   return layer;
 }
+
+/**
+ * 選択状態のfeatureを返す
+ * @param {any} feature
+ * @returns
+ */
+const getSelectedKPPoint = (feature) => {
+  const geom = feature.getGeometry();
+  const selectedFeature = new ol.Feature({ geometry: new ol.geom.Point(geom.getCoordinates()) });
+  selectedFeature.set('srcFeature', feature);
+  return selectedFeature;
+}
+

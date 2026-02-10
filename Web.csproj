@@ -15,9 +15,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\js\main\新しいフォルダー\**" />
     <Compile Remove="wwwroot\新しいフォルダー\**" />
+    <Content Remove="wwwroot\js\main\新しいフォルダー\**" />
     <Content Remove="wwwroot\新しいフォルダー\**" />
+    <EmbeddedResource Remove="wwwroot\js\main\新しいフォルダー\**" />
     <EmbeddedResource Remove="wwwroot\新しいフォルダー\**" />
+    <None Remove="wwwroot\js\main\新しいフォルダー\**" />
     <None Remove="wwwroot\新しいフォルダー\**" />
   </ItemGroup>
 
@@ -47,6 +51,7 @@
     <!-- その他余計なファイル等の除去 -->
     <Content Remove="appsettings.Development.json" Condition="'$(Configuration)'=='Release'" />
     <Content Remove="wwwroot\js\main\JavaScript.js" />
+    <Content Remove="wwwroot\js\main\_kp.js" />
     <Content Remove="wwwroot\js\main\_selectionKP.js" />
   </ItemGroup>
 
@@ -57,5 +62,9 @@
     <Content Update="wwwroot\files\kp_road.geojson">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\js\main\新しいフォルダー1\" />
   </ItemGroup>
 </Project>
