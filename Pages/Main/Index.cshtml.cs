@@ -672,6 +672,63 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         return new JsonResult(new { success = "削除しました。" });
     }
     #endregion ----------------------------------------------------------------
+
+    #region 依頼状況タブ ------------------------------------------------------------------------
+    /// <summary>
+    /// ajax(post): 調査箇所の削除（依頼取消）
+    /// </summary>
+    /// <param name="id">削除対象の調査箇所id（複数可）</param>
+    /// <returns></returns>
+    public async Task<IActionResult> OnPostDeleteSpotAsync([FromForm] int[] id)
+    {
+        if (!login.Isログイン済)
+        {
+            return BadRequest("ログインが無効です。調査箇所を削除できません。");
+        }
+        var userRec = await login.Getユーザー情報Async();
+
+        if (id == null || id.Length == 0)
+        {
+            return new JsonResult(new { error = "削除対象が指定されていません。" });
+        }
+
+        con.Open();
+        using var tran = await con.BeginTransactionAsync();
+        // 対象レコードをロックして取得
+        var targets = await tran.SelectAsync<T_調査箇所>(r => r.調査箇所id == SqlExpr.In(id), otherClauses: "FOR UPDATE");
+        if (targets.Count == 0)
+        {
+            return new JsonResult(new { error = "指定された調査箇所は存在しないか既に削除されています。" });
+        }
+
+        // 権限チェック：自部署のみ削除可能（必要なら管理者判定を追加）
+        foreach (var rec in targets)
+        {
+            if (rec.組織id != userRec.組織id)
+            {
+                logger.ZLogWarning($"調査箇所削除権限違反: 調査箇所id={rec.調査箇所id}, 組織id={rec.組織id}, ユーザ={userRec.ユーザーid}");
+                return new JsonResult(new { error = "選択したデータを削除する権限がありません。" });
+            }
+        }
+
+        // 論理削除
+        var idsToDelete = targets.Select(r => r.調査箇所id).ToArray();
+        await tran.UpdateAsync(() => new T_調査箇所 { deleted_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP") },
+            r => r.調査箇所id == SqlExpr.In(idsToDelete));
+
+        // 親の調査依頼ステータスを更新
+        var parentIraiIds = targets.Select(r => r.調査依頼id).Where(v => v != 0).Distinct().ToArray();
+        if (parentIraiIds.Length > 0)
+        {
+            await Update調査依頼Status(tran, parentIraiIds);
+        }
+
+        await tran.CommitAsync();
+
+        return new JsonResult(new { success = "削除しました。" });
+    }
+    #endregion ----------------------------------------------------------------
+
     #region 調査ルートタブ ------------------------------------------------------------------------
     /// <summary>
     /// ajax(get): 調査ルート作成用の情報を返す

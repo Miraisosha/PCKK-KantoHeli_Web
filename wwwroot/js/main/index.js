@@ -1,5 +1,6 @@
 'use strict';
 import { initKPManager } from './kp/kpManager.js';
+import { initDistanceMeasure } from './distance/Measure.js';
 
 
 // タブ・ないしタブ間での相互連携があるelement定義
@@ -89,6 +90,7 @@ const kpManager = initKPManager({
     調査依頼タブ.create調査依頼行FromKP(kpResult);
   }
 });
+const distance = initDistanceMeasure({ map });
 
 // 共通：地図上をマウスクリックした際の制御
 map.on('click', (e) => {
@@ -333,21 +335,19 @@ function init防災ヘリ関連情報Layers() {
     // OKボタンにID保持
     const okBtn = document.getElementById("btnSendOK");
     okBtn.dataset.id = id;
-    okBtn.dataset.name = name;
     modalSend.show();
   }
   // OKボタンイベント
   document.getElementById("btnSendOK").addEventListener("click", function () {
     const id = this.dataset.id;
-    const name = this.dataset.name;
     console.log("差し戻し実行:", id);
     ajaxGetJson('?Handler=UpdateStatus&id=' + id + '&status=101')
       .then((json) => {
         console.log(json);
         console.log("OK!!:", json.id);
+        modalSend.hide();
+        showSendBackDoneModal(name, id);
       }, showAlert);
-    modalSend.hide();
-    showSendBackDoneModal(name, id);
   });
   // キャンセルボタンクリック
   document.getElementById("btnSendCancel").addEventListener("click", function () {
@@ -881,6 +881,41 @@ function init依頼状況タブ() {
 
 
   //TODO 依頼取消処理実装
+  // 実装：選択された調査箇所(id)をサーバのDeleteSpotハンドラへPOSTし、成功時に関連情報を再読込して表示を更新する
+  const btn依頼取消 = tab依頼状況.querySelector('button[name="btn調査依頼取消"]');
+  if (btn依頼取消) {
+    btn依頼取消.addEventListener('click', async (e) => {
+      const checkboxes = tbody依頼状況.querySelectorAll('input[type="checkbox"][name="id"]:checked');
+      if (!checkboxes.length) {
+        showAlert('依頼取消', '取消したい地点をチェック選択してください。');
+        return;
+      }
+      const ok = await showConfirm('依頼取消', 'チェックしている地点の依頼を取消します。よろしいですか？', { okButtonName: '取消' });
+      if (!ok) { return; }
+
+      // form data 作成（id を複数 append）
+      const formData = new FormData();
+      checkboxes.forEach((cb) => formData.append('id', cb.value));
+
+      ajaxExecute('?Handler=DeleteSpot',
+        { method: 'POST', body: formData },
+        { title: '依頼取消', progress: '取消処理中...' }
+      ).then((json) => {
+        // サーバ側応答を確認してUI更新
+        // (成功メッセージ等はサーバ実装に依存)
+        // 防災ヘリ関連情報を再読み込みし、その完了後に依頼状況を再読込
+        reload防災ヘリ関連情報()
+          .then(() => {
+            load依頼状況();
+            showAlert('依頼取消', json.success || '依頼を取消しました。');
+          }, (err) => {
+            // reload が失敗しても一覧は再読込する
+            load依頼状況();
+            showAlert('依頼取消', json.success || '依頼を取消しました。');
+          });
+      }, showAlert);
+    });
+  }
 
   //TODO 調査依頼取消後、reload防災ヘリ関連情報()をawaitなどでよびだし、thenのタイミングでload依頼状況を再呼出
 

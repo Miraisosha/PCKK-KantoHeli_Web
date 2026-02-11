@@ -117,7 +117,25 @@
       </div>
       <div id="tab距離計測" class="tab-pane" role="tabpanel" tabindex="0">
         <h4>距離計測</h4>
-        <div>（工事中）</div>
+        <div class="d-flex gap-2 mb-2">
+          <button id="btnMeasureStart" class="btn btn-warning">計測開始</button>
+          <button id="btnMeasureClear" class="btn btn-secondary">クリア</button>
+        </div>
+
+        <div class="fw-bold">
+          合計　<span id="measureTotal">0 km</span>
+        </div>
+        <div class="mt-2" style="height:350px; overflow-y:auto;">
+          <table class="table table-sm table-bordered">
+            <thead class="table-light">
+              <tr>
+                <th>地点名</th>
+                <th style="width:120px;">区間距離</th>
+              </tr>
+            </thead>
+            <tbody id="measureList"></tbody>
+          </table>
+        </div>
       </div>
       <div id="tabマニュアル類" class="tab-pane" role="tabpanel" tabindex="0">
         <h4>マニュアル・問い合わせ先</h4>
