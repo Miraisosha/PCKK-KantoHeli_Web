@@ -28,16 +28,16 @@ const layer調査ルート = createRouteLayer(map);
 init防災ヘリ関連情報Layers();
 
 // 調査依頼　距離標選択
-const layerKPLine河川 = createKPLineRiver(map);
-const layerKPLine道路 = createKPLineRoad(map);
-const layerKP河川 = createKPRiver(map);
-const layerKP道路 = createKPRoad(map);
-const layerSelectionKP = createSelectionKPLayer(map);
-const layerSelectedKPLine = createSelectedKPLineLayer(map);
-const mapKPSource = new ol.source.Vector();
+const layerKPLine河川         = createKPLineRiver(map);           // 距離標　河川 Line
+const layerKPLine道路         = createKPLineRoad(map);            // 距離標　道路 Line
+const layerKP河川             = createKPRiver(map);               // 距離標　河川 Point
+const layerKP道路             = createKPRoad(map);                // 距離標　道路 Point
+const layerSelectionKP        = createSelectionKPLayer(map);      // 選択中 Point
+const layerSelectedKPLine     = createSelectedKPLineLayer(map);   // 選択完了 Line
+const mapKPSource             = new ol.source.Vector();
 const mapSelectedKPLineSource =  new ol.source.Vector();
-const mapKPSource河川 = setKPSource('River');
-const mapKPSource道路 = setKPSource('Road');
+const mapKPSource河川         = setKPSource('River');
+const mapKPSource道路         = setKPSource('Road');
 layerKP河川.set('drawType', 'River');
 layerKP道路.set('drawType', 'Road');
 layerKP河川.setSource(mapKPSource河川);
@@ -49,6 +49,20 @@ const layer編集中調査地点 = createSpotLayer(map);
 const layer編集中調査ルート = createRouteLayer(map);
 const /** @type{Map<string, ol.source.Vector>} */ map調査地点Source = {};
 const /** @type{Map<string, ol.source.Vector>} */ map調査ルートSource = {};
+
+const 調査依頼タブ = init調査依頼タブ();
+init依頼状況タブ();
+if (tab特定初動調査) {
+  init特定初動調査タブ();
+}
+if (tabルート作成) {
+  initルート作成タブ();
+}
+
+// 地図に対する描画操作（地点追加等）
+let /** @type{ol.interaction.Draw?} */ mapDraw = null;
+// 何らかの表示中のtoast
+let /** @type{bootstrap.Toast?} */ displayingToast = null;
 
 const kpManager = initKPManager({
   map,
@@ -72,23 +86,9 @@ const kpManager = initKPManager({
     endKp: document.getElementById('endKp')
   },
   onConfirm: (kpResult) => {
-    create調査依頼行FromKP(kpResult);
+    調査依頼タブ.create調査依頼行FromKP(kpResult);
   }
 });
-
-init調査依頼タブ();
-init依頼状況タブ();
-if (tab特定初動調査) {
-  init特定初動調査タブ();
-}
-if (tabルート作成) {
-  initルート作成タブ();
-}
-
-// 地図に対する描画操作（地点追加等）
-let /** @type{ol.interaction.Draw?} */ mapDraw = null;
-// 何らかの表示中のtoast
-let /** @type{bootstrap.Toast?} */ displayingToast = null;
 
 // 共通：地図上をマウスクリックした際の制御
 map.on('click', (e) => {
@@ -265,6 +265,152 @@ function init防災ヘリ関連情報Layers() {
         layer調査ルート.getSource().addFeatures(routes);
       }, showAlert);
   }
+  // --------------------------------------------------------------------
+  // 調査ルート（予定）吹き出しメニュー　イベント
+  document.querySelectorAll('.dropdown-item').forEach((b) => {
+    b.addEventListener("click", function (e) {
+      const kmlBtn = e.target.closest(".btnKml");
+      // ------------------------
+      // KML出力
+      if (kmlBtn) {
+        const id = kmlBtn.dataset.id;
+        const name = kmlBtn.dataset.name;
+        console.log("KML OK!!:");
+        showKmlModal(name, id);
+      }
+      // ------------------------
+      // 差し戻し
+      const modBtn = e.target.closest(".btn差戻");
+      if (modBtn) {
+        const id = modBtn.dataset.id;
+        const name = modBtn.dataset.name;
+        showSendBackModal(name, id);
+      }
+    });
+  });
+  // --------------------------------------------------------------------
+  // 調査ルート（予定）吹き出し KML出力 確認モーダル
+  const modalKPElement = document.getElementById("modalKPDownloadConfirm");
+  const modalKP = new bootstrap.Modal(modalKPElement);
+  // 表示関数
+  function showKmlModal(name, id) {
+    // 名前表示
+    document.getElementById("kmlName").textContent = name;
+    // OKボタンにID保持
+    const okBtn = document.getElementById("btnKMLOK");
+    okBtn.dataset.id = id;
+    modalKP.show();
+  }
+  // 非表示
+  function hideKmlModal() {
+    modalKP.hide();
+  }
+  document.getElementById("btnKMLOK").addEventListener("click", function () {
+    const id = this.dataset.id;
+        console.log("KML OK!!:");
+    console.log("KML出力実行:", id);
+    ajaxGetJson('?Handler=Features&irai=' + id)
+      .then((json) => {
+        const spots = geojsonFormatter.readFeatures(json.spots);
+        console.log("KML出力:", id);
+        console.log(spots);
+        downloadSpotsAsKml(json, 'spots.kml');
+      }, showAlert);
+
+    modalKP.hide();
+  });
+  document.getElementById("btnKMLCancel").addEventListener("click", function () {
+    modalKP.hide();
+  });
+  // --------------------------------------------------------------------
+  // 調査ルート（予定）吹き出し 差し戻し 確認モーダル
+  const modalSendElement = document.getElementById("modalSendBackConfirm");
+  const modalSend = new bootstrap.Modal(modalSendElement);
+  // 表示関数
+  function showSendBackModal(name, id) {
+    // 名前表示
+    document.getElementById("SendBackName").textContent = name;
+    // OKボタンにID保持
+    const okBtn = document.getElementById("btnSendOK");
+    okBtn.dataset.id = id;
+    okBtn.dataset.name = name;
+    modalSend.show();
+  }
+  // OKボタンイベント
+  document.getElementById("btnSendOK").addEventListener("click", function () {
+    const id = this.dataset.id;
+    const name = this.dataset.name;
+    console.log("差し戻し実行:", id);
+    ajaxGetJson('?Handler=UpdateStatus&id=' + id + '&status=101')
+      .then((json) => {
+        console.log(json);
+        console.log("OK!!:", json.id);
+      }, showAlert);
+    modalSend.hide();
+    showSendBackDoneModal(name, id);
+  });
+  // キャンセルボタンクリック
+  document.getElementById("btnSendCancel").addEventListener("click", function () {
+    modalSend.hide();
+  });
+  // --------------------------------------------------------------------
+  // 調査ルート（予定）吹き出し 差し戻し完了モーダル
+  const modalSendDoneElement = document.getElementById("modalSendBackDone");
+  const modalSendDone = new bootstrap.Modal(modalSendDoneElement);
+  // ダイアログ表示
+  function showSendBackDoneModal(name, id) {
+    // 名前表示
+    document.getElementById("SendBackDoneName").textContent = name;
+    modalSendDone.show();
+  }
+  // 閉じるボタンクリック
+  document.getElementById("btnSendDoneCancel").addEventListener("click", function () {
+    modalSendDone.hide();
+  });
+
+
+
+
+  function downloadSpotsAsKml(geoJsonObject, fileName = "spots.kml") {
+
+    if (!geoJsonObject.spots) {
+      console.error("spots が存在しません");
+      return;
+    }
+
+    const geoJsonFormat = new ol.format.GeoJSON();
+    const kmlFormat = new ol.format.KML({
+      writeStyles: true
+    });
+
+    // spots だけ読み込み
+    const spotFeatures = geoJsonFormat.readFeatures(
+      geoJsonObject.spots,
+      {
+        dataProjection: 'EPSG:4326',     // CRS84 = EPSG:4326
+        featureProjection: 'EPSG:4326'
+      }
+    );
+
+    // KML文字列生成
+    const kmlString = kmlFormat.writeFeatures(spotFeatures);
+
+    // ダウンロード処理
+    const blob = new Blob([kmlString], {
+      type: "application/vnd.google-earth.kml+xml"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   // 初期化時にも読み込み
   show表示対象Features();
 }
@@ -412,6 +558,13 @@ function init調査依頼タブ() {
   set調査地点Source(tab調査依頼, source調査地点, new ol.source.Vector());
   const tbody調査依頼 = document.querySelector('#table調査依頼>tbody');
 
+  // 登録方法　表示用
+  const getSpotTypeDisplay = (spottype) => {
+    let text = spottype;
+    text = text.replace('河川KP', 'KPデータ（河川）');
+    text = text.replace('道路KP', 'KPデータ（道路）');
+    return text;
+  };
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -419,18 +572,6 @@ function init調査依頼タブ() {
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  function create調査依頼行FromKP(kpResult) {
-    // KP情報から geometry / feature を作る
-    const feature = createFeatureFromKP(kpResult);
-
-    const tr = create調査依頼行(feature);
-    tbody調査依頼.appendChild(tr);
-
-    source調査地点.addFeature(feature);
-  }
-  function createFeatureFromKP() {
-
-  }
   /**
    * 調査依頼共通：調査依頼一覧の行に指定されたfeatureを追加します
    * @param {ol.Feature} feature 調査箇所のFeature
@@ -446,14 +587,22 @@ function init調査依頼タブ() {
     }
     feature.setId(`${featureId}`); // 削除時のkeyとしてもつかうので
 
-    const /** 調査地点名 */ name = feature.get('name') ?? '';
-    const /** 依頼者名 */ requester = feature.get('requester') ?? '';
-    const /** 優先度 */ priority = feature.get('priority') ?? '';
-    const /** 調査手法名 */ survey = feature.get('survey') ?? '';
-    const /** 搭乗希望人数(0-8) */ persons = feature.get('persons') ?? '';
-    const /** 登録方法 */ spottype = feature.get('spottype') ?? '';
-    const /** 備考 */ remarks = feature.get('remarks') ?? '';
-    const /** 更新日時 */ updated = feature.get('updated') ?? '';
+    const /** 調査地点名 */            name        = feature.get('name') ?? '';
+    const /** 依頼者名 */              requester   = feature.get('requester') ?? '';
+    const /** 優先度 */                priority    = feature.get('priority') ?? '';
+    const /** 調査手法名 */            survey      = feature.get('survey') ?? '';
+    const /** 搭乗希望人数(0-8) */     persons     = feature.get('persons') ?? '';
+    const /** 登録方法 */              spottype    = feature.get('spottype') ?? '';
+    const /** 備考 */                  remarks     = feature.get('remarks') ?? '';
+    const /** 更新日時 */              updated     = feature.get('updated') ?? '';
+    const spottype_display = getSpotTypeDisplay(spottype);
+    let surveys = [];
+    if (spottype == '点') {
+      surveys.push('通過');
+      surveys.push('周回');
+    } else {
+      surveys.push('通過');
+    }
 
     const geometry = feature.getGeometry();
     const trElement = document.createElement('tr');
@@ -471,7 +620,7 @@ function init調査依頼タブ() {
     innerHTML += `</div><input type="hidden" name="input.priority" value="${priority}"></td>`;
     // 調査手法名
     innerHTML += `<td><select name="input.survey" class="form-select form-select-sm">`;
-    for (let value of ['通過', '周回']) {
+    for (let value of surveys) {
       innerHTML += `<option value="${value}" ${value == survey ? 'selected' : ''}>${value}</option>`;
     }
     innerHTML += `</select></td>`;
@@ -482,7 +631,7 @@ function init調査依頼タブ() {
     }
     innerHTML += `</select></td>`;
     // 登録方法（およびジオメトリ）・備考・更新日時
-    innerHTML += `<td class="text-center">${spottype}<input type="hidden" name="input.spottype" value="${spottype}">
+    innerHTML += `<td class="text-center">${spottype_display}<input type="hidden" name="input.spottype" value="${spottype}">
       <input type="hidden" name="input.geometry" value="${htmlEncode(geojsonFormatter.writeGeometry(geometry))}"></td>`;
     innerHTML += `<td><input type="text" name="input.remarks" maxlength="100" class="form-control form-control-sm" value="${htmlEncode(remarks)}"></td>`;
     innerHTML += `<td>${updated || ' '}</td>`;
@@ -539,7 +688,6 @@ function init調査依頼タブ() {
    * @param {string|null} drawType 追加する調査地点の種類(Point/LineString)、UIを停止する場合はnull等の値
    */
   const start追加地点指定 = (drawType) => {
-    console.log("start追加地点指定 --------------------------------------------------");
     const toast調査地点追加Element = document.getElementById('toast調査地点追加');
     displayingToast = bootstrap.Toast.getOrCreateInstance(toast調査地点追加Element);
     displayingToast.hide();
@@ -560,15 +708,7 @@ function init調査依頼タブ() {
         condition: (e) => { return e.originalEvent.button !== 2; }// 右クリックは描画進行イベントとはしない
         //style: openlayersデフォルトのものとする
       });
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       mapDraw.on('drawend', function (e) {
-        console.log("drawend --------------------------------------------------");
         // 指定終了時にレイヤ/一覧へ描画内容追加
         e.feature.set('color', '#FF0000');
         e.feature.set('requester', toast調査地点追加Element.dataset.requester);
@@ -581,16 +721,10 @@ function init調査依頼タブ() {
         tbody調査依頼.querySelectorAll('input[type="checkbox"][name="id"]').forEach((cb) => cb.checked = (cb.value == e.feature.getId()));
         trElement.querySelector('input[name="input.name"]').focus();
         // 地図上の選択状態も同期をとって変更
+        console.log(e.feature);
         source調査地点.addFeature(e.feature); // レイヤ再描画
         start追加地点指定(null);
       });
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       // 描画による位置指定開始
       map.addInteraction(mapDraw);
       // Toastも表示(drawTypeに応じた説明文のブロックを表示ありにする)
@@ -599,11 +733,9 @@ function init調査依頼タブ() {
       displayingToast.show();
     // KPデータ（河川）から登録
     } else if (drawType == 'River') {
-      kpManager.showRiverKP();
       kpManager.showModal(drawType);
     // KPデータ（道路）から登録
     } else if (drawType == 'Road') {
-      kpManager.showRoadKP();
       kpManager.showModal(drawType);
     }
   };
@@ -636,6 +768,7 @@ function init調査依頼タブ() {
     button.addEventListener('click', (e) => {
       form調査依頼.querySelector('input[name="mode"]').value = 'check';
       const formData = new FormData(form調査依頼);
+      console.log(form調査依頼.action);
       ajaxExecute(form調査依頼.action,
         { method: 'POST', body: formData },
         { title: button.dataset.modaltitle, form: form調査依頼 }
@@ -687,6 +820,29 @@ function init調査依頼タブ() {
       location.href = `?tab=tab調査依頼`;
     }, () => { });
   });
+  // ---------------------------------------------
+  // 距離標から調査依頼行を作成
+  function create調査依頼行FromKP(kpResult) {
+    const feature = kpResult.feature;
+    const toast調査地点追加Element = document.getElementById('toast調査地点追加');
+    feature.set('color', '#FF0000');
+    feature.set('requester', toast調査地点追加Element.dataset.requester);
+    feature.set('survey', '通過');
+    feature.set('spottype', feature.get('drawType') == 'River' ? '河川KP' : '道路KP');
+    feature.set('inputMode', 'KP');
+    const trElement = create調査依頼行(feature);
+    tbody調査依頼.appendChild(trElement);
+    source調査地点.addFeature(feature);
+    trElement.scrollIntoView();
+    tbody調査依頼.querySelectorAll('input[type="checkbox"][name="id"]').forEach((cb) => cb.checked = (cb.value == feature.getId()));
+    trElement.querySelector('input[name="input.name"]').focus();
+    // 地図上の選択状態も同期をとって変更
+    source調査地点.addFeature(feature);
+    start追加地点指定(null);
+  }
+  return {
+    create調査依頼行FromKP
+  }
 }
 
 // ====================================================

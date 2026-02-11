@@ -654,6 +654,82 @@
     <button id="btnKPOk" class="btn btn-primary">完了</button>
   </div>
 </div>
+@*-- 左メニュー調査依頼　調査ルート（予定）　KML出力モーダル --*@
+<div class="modal fade" id="modalKPDownloadConfirm" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">KML出力</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-2">
+          以下のルートをKMLファイルで出力します。<br>
+        </div>
+        <div class="mb-2" id="kmlName"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btnKMLOK" class="btn btn-primary">OK</button>
+        <button type="button" id="btnKMLCancel" class="btn btn-secondary" data-bs-dismiss="modal">
+          キャンセル
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+@*-- 左メニュー調査依頼　調査ルート（予定）　差し戻しモーダル --*@
+<div class="modal fade" id="modalSendBackConfirm" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">一時保存に差し戻し</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-2">
+          以下のルートを一時保存に差し戻します。<br>
+        </div>
+        <div class="mb-2" id="SendBackName"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btnSendOK" class="btn btn-warning">差し戻し</button>
+        <button type="button" id="btnSendCancel" class="btn btn-secondary" data-bs-dismiss="modal">
+          キャンセル
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+@*-- 左メニュー調査依頼　調査ルート（予定）　差し戻し完了モーダル --*@
+<div class="modal fade" id="modalSendBackDone" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">一時保存に差し戻し</h5>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-2">
+          以下のルートを一時保存に差し戻しました。<br>
+        </div>
+        <div class="mb-2" id="SendBackDoneName"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btnSendDoneCancel" class="btn btn-secondary" data-bs-dismiss="modal">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 @*-- ルート作成：起点終点指定操作説明toast --*@
 <div id="toast起点終点設定" class="toast" style="position:absolute; bottom:200px; left:405px; z-index:3;"

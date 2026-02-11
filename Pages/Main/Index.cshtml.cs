@@ -349,6 +349,50 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="status"></param>
+    /// <returns></returns>
+    public async Task<IActionResult> OnGetUpdateStatusAsync(int id, 調査ステータスEnum? status = null)
+    {
+        if (!login.Isログイン済)
+        {
+            return BadRequest("ログインが無効です。調査依頼を編集できません。");
+        }
+        var userRec = await login.Getユーザー情報Async();
+
+        // 編集対象一時保存データの存在チェック
+        var rec = await con.SelectFirstOrDefaultAsync<T_調査依頼>(r => r.調査依頼id == id && r.deleted_at == null);
+        if (rec is null)
+        {
+            return new JsonResult(new { error = "データは既に削除済です。編集できません。" });
+        }
+        else if (status == 調査ステータスEnum.一時保存 && rec.ステータス != 調査ステータスEnum.一時保存)
+        {
+            return new JsonResult(new { error = "一時保存データは既に調査依頼済です。編集できません。" });
+        }
+        else if (rec.組織id != userRec.組織id)
+        {
+            //TODO 管理者に全組織のデータ削除権限を与える場合はこのチェックをバイパスさせること
+            logger.ZLogWarning($"調査依頼の組織コード相違を検出：調査依頼id={id},組織id={rec.組織id}、ログインユーザ={userRec.ユーザーid}");
+            return new JsonResult(new { error = "データを編集する権限がありません。" });
+        }
+
+//        var records = await con.SelectAsync<T_調査箇所>(
+//            r => r.調査依頼id == id && (status == null || r.調査状況 == status) && r.deleted_at == null,
+//            otherClauses: $"ORDER BY {nameof(T_調査箇所.調査箇所id)}");
+
+        return new JsonResult(new
+        {
+            success = new
+            {
+                title = rec.調査依頼名,
+//                features = await dataService.ToFearureCollectionAsync(records, "#FF0000"),
+            }
+        });
+    }
 
 
 

@@ -423,15 +423,3 @@ const createKPLineRoad = (map) => {
   return layer;
 }
 
-/**
- * 選択状態のfeatureを返す
- * @param {any} feature
- * @returns
- */
-const getSelectedKPPoint = (feature) => {
-  const geom = feature.getGeometry();
-  const selectedFeature = new ol.Feature({ geometry: new ol.geom.Point(geom.getCoordinates()) });
-  selectedFeature.set('srcFeature', feature);
-  return selectedFeature;
-}
-

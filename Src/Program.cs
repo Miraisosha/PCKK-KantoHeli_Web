@@ -67,7 +67,8 @@ builder.Services.AddRazorPages(options =>
     .AddViewOptions(options =>
         // 検証属性からのクライアント側検証htmlの出力を抑止
         options.HtmlHelperOptions.ClientValidationEnabled = false)
-    .AddRazorRuntimeCompilation(); // 2026/02/09 Add
+    ;
+//    .AddRazorRuntimeCompilation(); // 2026/02/09 Add
 
 
 // WebAPIも使用
@@ -186,10 +187,10 @@ if (settings.ForceHttps接続)
     app.UseHttpsRedirection();
 }
 // 2026/02/09 Add
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseDeveloperExceptionPage();
+//}
 
 
 app.UseMiddleware<BasicAuthMiddleware>(); // 自前で書いたBasic認証モジュールでアクセス制限できるようにする
