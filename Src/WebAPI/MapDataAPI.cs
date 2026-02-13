@@ -64,14 +64,28 @@ public class MapDataApi(ILogger<MapDataApi> logger, DbConnection con, LoginServi
         //TODO 改善後のポリゴンが届いたら取得元テーブルを変更
         var sql = """
             WITH w_地震明細 AS (
-                SELECT LEFT(市区町村コード,5) AS code, MAX(最大震度) AS intensity
-                FROM t_地震明細
-                WHERE 地震ID=ANY(@quake) AND 最大震度>='4' AND deleted_at IS NULL
+                SELECT
+                    LEFT(市区町村コード,5) AS code,
+                    MAX(最大震度) AS intensity
+                FROM
+                    t_地震明細
+                WHERE
+                    地震ID = ANY(@quake)
+                AND
+                    最大震度 >= '4'
+                AND
+                    deleted_at IS NULL
                 GROUP BY 1
             )
-            SELECT w_地震明細.code, intensity, wkb_geometry
-            FROM w_地震明細
-            INNER JOIN g_市区町村 on w_地震明細.code=g_市区町村.n03_007
+            SELECT
+                w_地震明細.code,
+                intensity, wkb_geometry
+            FROM
+                w_地震明細
+            INNER JOIN
+                g_市区町村
+            on
+                w_地震明細.code = g_市区町村.n03_007
             ORDER BY code
             """;
         var records = (quake.Length == 0)

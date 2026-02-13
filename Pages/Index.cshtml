@@ -75,11 +75,10 @@
       <thead>
         <tr class="table-primary align-middle text-center">
           <th style="width:7rem"></th>
-          <th style="width:8rem">区分</th>
+          <th style="width:10rem">区分</th>
           <th style="min-width:15rem">スレッド名</th>
           <th style="width:9rem">作成日時</th>
           <th style="width:9rem">最終更新日時</th>
-          <th style="width:9rem">調査依頼</th>
           <th style="min-width:20rem">備考</th>
         </tr>
       </thead>
@@ -98,13 +97,12 @@
               @Model.災害区分Records.FirstOrDefault(r => r.災害区分id == rec.災害区分id)?.災害区分名
               @if (rec.特定初動調査区分id == 101)
               {
-                <div style="font-size:10px;color:red;">※首都直下地震に該当</div>    
+                <div style="font-size:12px;color:red;">※首都直下地震に該当</div>    
               }
             </td>
             <td class="tabCellClick" id="td3-@rec.スレッドid">@rec.スレッド名</td>
             <td class="tabCellClick" id="td4-@rec.スレッドid">@($"{rec.created_at:yyyy/MM/dd HH:mm}")</td>
             <td class="tabCellClick" id="td5-@rec.スレッドid">@($"{rec.updated_at:yyyy/MM/dd HH:mm}")</td>
-            <td class="tabCellClick" id="td6-@rec.スレッドid">@rec.調査ルート名</td>
             <td class="tabCellClick" id="td7-@rec.スレッドid">@rec.備考</td>
           </tr>
         }

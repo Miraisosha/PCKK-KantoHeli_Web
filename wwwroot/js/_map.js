@@ -294,7 +294,7 @@ function onMouseOverKPRiver(feature) {
 const createKPLineRiver = (map) => {
   const layer = new ol.layer.Vector({
     source: new ol.source.Vector({
-      url: '/files/kp_river_line.json',
+      url: 'files/kp_river_line.json',
       format: new ol.format.GeoJSON({
         dataProjection: 'EPSG:4326',     // GeoJSON の座標系
         featureProjection: 'EPSG:3857'   // 地図表示用
@@ -410,7 +410,7 @@ const createSelectedKPLineLayer = (map) => {
 const createKPLineRoad = (map) => {
   const layer = new ol.layer.Vector({
     source: new ol.source.Vector({
-      url: '/files/kp_road_line.json',
+      url: 'files/kp_road_line.json',
       format: new ol.format.GeoJSON({
         dataProjection: 'EPSG:4326',     // GeoJSON の座標系
         featureProjection: 'EPSG:3857'   // 地図表示用

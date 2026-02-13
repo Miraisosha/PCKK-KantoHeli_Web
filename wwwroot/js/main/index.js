@@ -1,6 +1,7 @@
 'use strict';
 import { initKPManager } from './kp/kpManager.js';
 import { initDistanceMeasure } from './distance/Measure.js';
+import { initCapital } from './capital.js';
 
 
 // タブ・ないしタブ間での相互連携があるelement定義
@@ -53,9 +54,6 @@ const /** @type{Map<string, ol.source.Vector>} */ map調査ルートSource = {};
 
 const 調査依頼タブ = init調査依頼タブ();
 init依頼状況タブ();
-if (tab特定初動調査) {
-  init特定初動調査タブ();
-}
 if (tabルート作成) {
   initルート作成タブ();
 }
@@ -65,6 +63,7 @@ let /** @type{ol.interaction.Draw?} */ mapDraw = null;
 // 何らかの表示中のtoast
 let /** @type{bootstrap.Toast?} */ displayingToast = null;
 
+// 調査依頼　距離標入力
 const kpManager = initKPManager({
   map,
   layers: {
@@ -90,6 +89,21 @@ const kpManager = initKPManager({
     調査依頼タブ.create調査依頼行FromKP(kpResult);
   }
 });
+// 首都直下初動
+const capital = initCapital({
+  tabElement: tab特定初動調査,
+  set調査地点Source,
+  create明細行,
+  ajaxExecute,
+  geojsonFormatter,
+  createDetailRecord: (tab, feature) => {
+    create明細行(ta, feature);
+  }
+})
+if (tab特定初動調査) {
+  capital.load初動調査ルート();
+}
+// 距離計測
 const distance = initDistanceMeasure({ map });
 
 // 共通：地図上をマウスクリックした際の制御
@@ -475,7 +489,7 @@ document.querySelectorAll('button[name="btnタブ選択"]').forEach((button) => 
  * @param {ol.Feature} feature 調査箇所のFeature
  * @returns {HTMLTableRowElement} 明細行
  */
-const create明細行 = (tab, feature) => {
+function create明細行(tab, feature) {
   const /** 調査箇所id */ id = feature.get('id') ?? ''; //
   const /** 調査地点名 */ name = feature.get('name') ?? '';
   const /** 依頼者名 */ requester = feature.get('requester') ?? '';
@@ -565,13 +579,6 @@ function init調査依頼タブ() {
     text = text.replace('道路KP', 'KPデータ（道路）');
     return text;
   };
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   /**
    * 調査依頼共通：調査依頼一覧の行に指定されたfeatureを追加します
    * @param {ol.Feature} feature 調査箇所のFeature
@@ -661,7 +668,6 @@ function init調査依頼タブ() {
    * @param {Number} [tempid] 一時保存を呼び出す場合は、一時保存された調査依頼id
    */
   const init調査依頼編集 = (tempid) => {
-    console.log("init調査依頼編集 --------------------------------------------------");
     source調査地点.clear();
     tbody調査依頼.innerHTML = '';
     if (tempid) {
@@ -919,47 +925,6 @@ function init依頼状況タブ() {
 
   //TODO 調査依頼取消後、reload防災ヘリ関連情報()をawaitなどでよびだし、thenのタイミングでload依頼状況を再呼出
 
-}
-
-// ====================================================================
-// 首都直下初動タブ（特定初動調査）
-// ====================================================================
-function init特定初動調査タブ() {
-  // -------------------------------------
-  // 調査ルートの地図表示/一覧表示
-  // -------------------------------------
-  const sel初動調査ルート = tab特定初動調査.querySelector('select[name="routeid"]');
-  const tbody特定初動調査 = tab特定初動調査.querySelector('#table特定初動調査 tbody');
-  const load初動調査ルート = () => {
-    const source調査ルート = new ol.source.Vector();
-    set調査地点Source(tab特定初動調査, new ol.source.Vector(), source調査ルート);
-    tbody特定初動調査.innerHTML = '';
-    ajaxExecute('?Handler=InitialRoute&route=' + sel初動調査ルート.value, {},
-      { title: '初動調査ルート読み込み' },
-    ).then((json) => {
-      const features = geojsonFormatter.readFeatures(json.routes);
-      source調査ルート.addFeatures(features);
-      features.forEach((f) => {
-        const text = f.get('text');
-        if (text == '始') {
-          tab特定初動調査.querySelector('input[name="txt始点"]').value = f.get('name');
-        } else if (text == '終') {
-          tab特定初動調査.querySelector('input[name="txt終点"]').value = f.get('name');
-        } else if (f.get('text')) {
-          tbody特定初動調査.appendChild(create明細行(tab特定初動調査, f));
-        }
-      });
-    }, () => { });
-  }
-  // プルダウン変更/書記表示時に読み込み
-  sel初動調査ルート.addEventListener('change', load初動調査ルート);
-  load初動調査ルート();
-  // -------------------------------------
-  // 調査予定ルートとして公開
-  // -------------------------------------
-  tab特定初動調査.querySelector('button[name="btn初動調査登録"]').addEventListener('click', (e) => {
-    showAlert('工事中', '調査ルートとして公開する処理は工事中です。');
-  })
 }
 
 // ==========================================================================================================================
