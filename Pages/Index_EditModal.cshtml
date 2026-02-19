@@ -52,7 +52,13 @@
         </div>
       </div>
     </div>
+    <div id="row特定初動調査Comment" class="row condRow">
+      <div class="col">
+        ※東京23区内で震度6強以上を観測
+      </div>
+    </div>
 
+    @*
     <div id="row初動調査ルート" class="condRow d-flex align-items-center">
       <label asp-for="Input.初動調査ルートid" class="col-form-label mb-0"></label>
       @foreach (var rec in Model.特定初動調査区分Records)
@@ -67,7 +73,9 @@
         </select>
       }
     </div>
+    *@
 
+    @*
     @if (!Model.Is新規)
     {
       <div class="row condRow">
@@ -83,6 +91,7 @@
         </div>
       </div>
     }
+    *@
     <div class="row condRow">
       <label asp-for="Input.created_at" class="col-auto col-form-label"></label>
       <div class="col">

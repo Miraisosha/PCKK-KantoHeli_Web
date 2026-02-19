@@ -186,12 +186,6 @@ if (settings.ForceHttps接続)
 {
     app.UseHttpsRedirection();
 }
-// 2026/02/09 Add
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseDeveloperExceptionPage();
-//}
-
 
 app.UseMiddleware<BasicAuthMiddleware>(); // 自前で書いたBasic認証モジュールでアクセス制限できるようにする
 

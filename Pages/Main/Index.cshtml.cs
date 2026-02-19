@@ -135,7 +135,12 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             if (threadRec is not null)
             {
                 jishinId = threadRec.地震id.Value;
+            } else
+            {
+                return new EmptyResult();
             }
+        } else {
+            return new EmptyResult();
         }
 
         while (!HttpContext.RequestAborted.IsCancellationRequested && !AppSettings.IsApplicationStopping)

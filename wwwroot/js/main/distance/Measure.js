@@ -43,7 +43,6 @@ export function initDistanceMeasure(ctx) {
   // クリック処理
   // ======================
   map.on("singleclick", async function (evt) {
-
     if (!isMeasuring) return;
 
     const coord = evt.coordinate;
@@ -104,58 +103,58 @@ export function initDistanceMeasure(ctx) {
   // ======================
   // 住所取得
   // ======================
-  async function getAddressFromCoord(coord) {
-
-    const lonlat = ol.proj.toLonLat(coord);
-    const lat = lonlat[1];
-    const lon = lonlat[0];
-
-    const url = `https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=${lat}&lon=${lon}`;
-
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.results) {
-        return data.results.lv01Nm;
-      }
-    } catch (err) {
-      console.error(err);
-    }
-
-    return `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-  }
-
-  async function getDisplayName(coord) {
-
-    let name = "";
-
-    map.forEachFeatureAtPixel(
-      map.getPixelFromCoordinate(coord),
-      (feature) => {
-        name =
-          feature.get("name") ||
-          feature.get("名称") ||
-          "";
-      }
-    );
-
-    if (name) return name;
-
-    return await getAddressFromCoord(coord);
-  }
+//  async function getAddressFromCoord(coord) {
+//
+//    const lonlat = ol.proj.toLonLat(coord);
+//    const lat = lonlat[1];
+//    const lon = lonlat[0];
+//
+//    const url = `https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=${lat}&lon=${lon}`;
+//
+//    try {
+//      const res = await fetch(url);
+//      const data = await res.json();
+//
+//      if (data.results) {
+//        return data.results.lv01Nm;
+//      }
+//    } catch (err) {
+//      console.error(err);
+//    }
+//
+//    return `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+//  }
+//
+//  async function getDisplayName(coord) {
+//
+//    let name = "";
+//
+//    map.forEachFeatureAtPixel(
+//      map.getPixelFromCoordinate(coord),
+//      (feature) => {
+//        name =
+//          feature.get("name") ||
+//          feature.get("名称") ||
+//          "";
+//      }
+//    );
+//
+//    if (name) return name;
+//
+//    return await getAddressFromCoord(coord);
+//  }
 
   function addMeasureRow(name, distance) {
-    const tbody = document.getElementById("measureList");
-
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${name}</td>
-      <td>${(distance / 1000).toFixed(2)} km</td>
-    `;
-
-    tbody.appendChild(tr);
+//    const tbody = document.getElementById("measureList");
+//
+//    const tr = document.createElement("tr");
+//
+//    tr.innerHTML = `
+//      <td>${name}</td>
+//      <td>${(distance / 1000).toFixed(2)} km</td>
+//    `;
+//
+//    tbody.appendChild(tr);
   }
 
   // ======================

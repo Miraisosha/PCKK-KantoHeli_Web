@@ -31,10 +31,10 @@ public class Index_EditModalModel(ILogger<Index_EditModalModel> logger, DbConnec
         [Display(Name = "災害区分"), Required] public int? 災害区分id { get; set; }
         [MaxLength(50), Required] public string? スレッド名 { get; set; }
         [Display(Name = "首都直下地震非常体制発令基準")] public int? 特定初動調査区分id { get; set; }
-        [Display(Name = "初動調査ルート")] public int? 初動調査ルートid { get; set; }
-        public 調査状況Enum? 初動調査状況 { get; set; }
-        public string? 調査ルート名 { get; set; }
-        public string? 調査状況 { get; set; }
+//        [Display(Name = "初動調査ルート")] public int? 初動調査ルートid { get; set; }
+//        public 調査状況Enum? 初動調査状況 { get; set; }
+//        public string? 調査ルート名 { get; set; }
+//        public string? 調査状況 { get; set; }
         [MaxLength(100)] public string? 備考 { get; set; }
         [Display(Name = "作成日時", Prompt = "登録完了時に設定"), Accept("dt")] public string? created_at { get; set; }
         [Display(Name = "最終更新日時", Prompt = "登録完了時に設定"), Accept("dt")] public string? updated_at { get; set; }
@@ -75,13 +75,13 @@ public class Index_EditModalModel(ILogger<Index_EditModalModel> logger, DbConnec
         vf.Set(rec.災害区分id, () => Input.災害区分id);
         vf.Set(rec.スレッド名, () => Input.スレッド名);
         vf.Set(rec.特定初動調査区分id, () => Input.特定初動調査区分id);
-        vf.Set(rec.初動調査ルートid, () => Input.初動調査ルートid);
+//        vf.Set(rec.初動調査ルートid, () => Input.初動調査ルートid);
         vf.Set(rec.備考, () => Input.備考);
         if (!Is新規)
         {
-            vf.Set(rec.初動調査状況, () => Input.初動調査状況);
-            vf.Set(rec.調査ルート名, () => Input.調査ルート名);
-            vf.Set(rec.調査状況, () => Input.調査状況);
+//            vf.Set(rec.初動調査状況, () => Input.初動調査状況);
+//            vf.Set(rec.調査ルート名, () => Input.調査ルート名);
+//            vf.Set(rec.調査状況, () => Input.調査状況);
             vf.Set(rec.created_at, () => Input.created_at);
             vf.Set(rec.updated_at, () => Input.updated_at);
         }
@@ -122,19 +122,19 @@ public class Index_EditModalModel(ILogger<Index_EditModalModel> logger, DbConnec
         rec.災害区分id = iv.ValidateNotNull(() => Input.災害区分id);
         rec.スレッド名 = iv.Parse<string>(() => Input.スレッド名);
         rec.特定初動調査区分id = iv.Validate(() => Input.特定初動調査区分id);
-        rec.初動調査ルートid = await iv.ValidateAsync(() => Input.初動調査ルートid,
+//        rec.初動調査ルートid = await iv.ValidateAsync(() => Input.初動調査ルートid,
             // 特定初動調査区分指定有なら必須チェック＆コード値存在チェック
-            additionalValidations: rec.特定初動調査区分id is null ? [] : [new RequiredAttribute()],
-            customValidation: async (id) =>
-            {
-                t初動調査ルートRec = await con.SelectFirstOrDefaultAsync<T_初動調査ルート>(r => r.初動調査ルートid == id && r.deleted_at == null);
-                if (t初動調査ルートRec is null)
-                {
-                    logger.ZLogWarning($"初動調査ルートid指定不正を検出：id={id}");
-                    return "{0} の指定が正しくありません。";
-                }
-                return null;
-            });
+//            additionalValidations: rec.特定初動調査区分id is null ? [] : [new RequiredAttribute()],
+//            customValidation: async (id) =>
+//            {
+//                t初動調査ルートRec = await con.SelectFirstOrDefaultAsync<T_初動調査ルート>(r => r.初動調査ルートid == id && r.deleted_at == null);
+//                if (t初動調査ルートRec is null)
+//                {
+//                    logger.ZLogWarning($"初動調査ルートid指定不正を検出：id={id}");
+//                    return "{0} の指定が正しくありません。";
+//                }
+//                return null;
+//            });
         rec.備考 = iv.Parse<string>(() => Input.備考);
         // エラー有ならエラーメッセージを返して終了
         if (iv.Errors.Count > 0)
