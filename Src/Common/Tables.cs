@@ -203,6 +203,7 @@ public partial class T_スレッド
     public string? 調査ルート名 { get; set; }
     public 調査状況Enum? 調査状況 { get; set; }
     public string? 備考 { get; set; }
+    public int? 地震id { get; set; }
     [InsertValue("CURRENT_TIMESTAMP"), UpdateValue(false)]
     public DateTime created_at { get; set; }
     [InsertValue("CURRENT_TIMESTAMP"), UpdateValue("CURRENT_TIMESTAMP")]

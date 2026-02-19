@@ -107,13 +107,11 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         return partial ? Partial("Index_SurveysPartial", this) : Page();
     }
-
-    /// <summary>
-    /// event-stream(get) : リアルタイム情報
-    /// </summary>
-    /// <returns>text/event-stream(リアルタイム情報が更新されたときにdataを送出)</returns>
-    public async Task<IActionResult> OnGetRealTimeInfoStreamAsync()
+    public async Task<IActionResult> OnGetRealTimeInfoStreamAsync([FromRoute] int? threadId = null, [FromQuery(Name = "id")] int? id = null)
     {
+        // ルート/クエリどちらかで指定されたスレッドIDを採用
+        threadId = threadId ?? id;
+
         // ContentTypeをSSE用に設定
         Response.ContentType = "text/event-stream";
         Response.Headers.Append("Cache-Control", "no-cache");
@@ -127,12 +125,36 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // ※リアルタイム情報の送出内容が変化したときに送信（リクエスト初回は必ず送信される）
         string? prevJsonText = null;
 
+        // スレッド指定がある場合はそのスレッドの災害発生日時で絞り込むためスレッド情報を取得しておく
+        int? jishinId = null;
+        if (threadId is not null)
+        {
+            T_スレッド? threadRec = null;
+            threadRec = await con.SelectFirstOrDefaultAsync<T_スレッド>(
+                r => r.スレッドid == threadId.Value && r.地震id != null && r.deleted_at == null);
+            if (threadRec is not null)
+            {
+                jishinId = threadRec.地震id.Value;
+            }
+        }
+
         while (!HttpContext.RequestAborted.IsCancellationRequested && !AppSettings.IsApplicationStopping)
         {
             var from = provider.GetNow().AddMinutes(-_settings.リアルタイム情報有効時間_分);
-            var earthquaks = await con.SelectAsync<T_地震サマリ>(
-                r => r.deleted_at == null && r.updated_at > from,
-                otherClauses: $"ORDER BY {nameof(T_地震サマリ.updated_at)} DESC");
+
+            IReadOnlyList<T_地震サマリ> earthquaks;
+            if (jishinId is not null)
+            {
+
+                earthquaks = await con.SelectAsync<T_地震サマリ>( r => r.地震id == jishinId.GetValueOrDefault(0));
+            }
+            else
+            {
+                // 全件（最近更新分のみ）
+                earthquaks = await con.SelectAsync<T_地震サマリ>(
+                    r => r.deleted_at == null && r.updated_at > from,
+                    otherClauses: $"ORDER BY {nameof(T_地震サマリ.updated_at)} DESC");
+            }
 
             var jsonData = new
             {
@@ -165,7 +187,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
         return new EmptyResult();
     }
-
     /// <summary>
     /// ajax(get): 表示対象featureを返す
     /// </summary>

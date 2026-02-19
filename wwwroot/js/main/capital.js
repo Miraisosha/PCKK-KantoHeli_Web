@@ -1,5 +1,6 @@
 export function initCapital(ctx) {
   const {
+    base_url,
     tabElement,
     set調査地点Source,
     create明細行,
@@ -29,7 +30,7 @@ export function initCapital(ctx) {
     }
     if (tbody) tbody.innerHTML = '';
 
-    ajaxExecute('?Handler=InitialRoute&route=' + encodeURIComponent(sel初動調査ルート.value), {}, { title: '初動調査ルート読み込み' })
+    ajaxExecute(base_url + '?Handler=InitialRoute&route=' + encodeURIComponent(sel初動調査ルート.value), {}, { title: '初動調査ルート読み込み' })
       .then((json) => {
         // 地図へ描画
         const features = geojsonFormatter.readFeatures(json.routes);

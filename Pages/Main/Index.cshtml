@@ -74,8 +74,10 @@
       </li>
     </ul>
     <div class="tab-content mt-1 p-1">
+      @* 災害関連情報 ------------------------------------- *@
       <div id="tab災害関連情報" class="tab-pane show active" role="tabpanel" tabindex="0">
         <h4>災害関連情報</h4>
+        @* リアルタイム情報 *@
         <div data-bs-toggle="collapse" data-bs-target="#leftリアルタイム情報" aria-expanded="true">リアルタイム情報</div>
         <section class="indent collapse show" id="leftリアルタイム情報">
           <div class="striped2" data-bs-toggle="collapse" data-bs-target="#left市区町村震度" aria-expanded="true">市区町村震度</div>
@@ -84,6 +86,7 @@
           </section>
           <div class="striped2" data-bs-toggle="collapse" data-bs-target="#leftCCTV映像">CCTV映像（準備中）</div>
         </section>
+        @* 事前情報 *@
         <div data-bs-toggle="collapse" data-bs-target="#left事前情報" aria-expanded="true">事前情報</div>
         <section class="indent collapse show" id="left事前情報">
           <div>
@@ -102,9 +105,11 @@
           </div>
         </section>
       </div>
+      @* 防災ヘリ関連情報 ------------------------------------- *@
       <div id="tab防災ヘリ関連情報" class="tab-pane" role="tabpanel" tabindex="0">
         @await Html.PartialAsync("Index_SurveysPartial", this.Model)
       </div>
+      @* 背景地図選択 ------------------------------------- *@
       <div id="tab背景地図選択" class="tab-pane" role="tabpanel" tabindex="0">
         <h4>背景地図選択</h4>
         <div>
@@ -115,6 +120,7 @@
           </select>
         </div>
       </div>
+      @* 距離計測 ------------------------------------- *@
       <div id="tab距離計測" class="tab-pane" role="tabpanel" tabindex="0">
         <h4>距離計測</h4>
         <div class="d-flex gap-2 mb-2">
@@ -137,6 +143,7 @@
           </table>
         </div>
       </div>
+      @* マニュアル ------------------------------------- *@
       <div id="tabマニュアル類" class="tab-pane" role="tabpanel" tabindex="0">
         <h4>マニュアル・問い合わせ先</h4>
         <div class="mt-2">

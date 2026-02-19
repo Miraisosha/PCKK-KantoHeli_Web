@@ -2,6 +2,11 @@
 import { initKPManager } from './kp/kpManager.js';
 import { initDistanceMeasure } from './distance/Measure.js';
 import { initCapital } from './capital.js';
+import { leftMenuManager } from './leftMenuManager.js';
+
+const base_url = location.origin + location.pathname;
+const segments = location.pathname.split("/").filter(Boolean);
+const threadId = segments[segments.length - 1];
 
 
 // タブ・ないしタブ間での相互連携があるelement定義
@@ -20,14 +25,9 @@ const map = window.app.map;
 // 選択中状態で表示すべきfeatureのidの一覧
 let selectedFeatureIds = [];
 
-// 災害関連情報
-init市区町村震度Layer();
-init事前情報Layers();
-
 // 防災ヘリ関連情報
 const layer調査地点 = createSpotLayer(map);
 const layer調査ルート = createRouteLayer(map);
-init防災ヘリ関連情報Layers();
 
 // 調査依頼　距離標選択
 const layerKPLine河川         = createKPLineRiver(map);           // 距離標　河川 Line
@@ -91,6 +91,7 @@ const kpManager = initKPManager({
 });
 // 首都直下初動
 const capital = initCapital({
+  base_url,
   tabElement: tab特定初動調査,
   set調査地点Source,
   create明細行,
@@ -105,6 +106,17 @@ if (tab特定初動調査) {
 }
 // 距離計測
 const distance = initDistanceMeasure({ map });
+const leftMenu = leftMenuManager({
+  base_url,
+  threadId,
+  map,
+  layer調査地点,
+  layer調査ルート
+});
+leftMenu.init市区町村震度Layer();
+leftMenu.init事前情報Layers();
+
+init防災ヘリ関連情報Layers();
 
 // 共通：地図上をマウスクリックした際の制御
 map.on('click', (e) => {
@@ -132,87 +144,6 @@ map.getViewport().addEventListener('contextmenu', (e) => {
     mapDraw.removeLastPoint();
   }
 });
-
-// ====================================================================
-// リアルタイム情報表示
-// ====================================================================
-function init市区町村震度Layer() {
-  const left市区町村震度Element = document.getElementById('left市区町村震度');
-  // レイヤ作成
-  const layer市区町村震度 = new ol.layer.Vector({
-    source: new ol.source.Vector(),
-    style: (feature, resolution) => {
-      const rgb = feature.get('rgb');
-      return new ol.style.Style({
-        fill: new ol.style.Fill({ color: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)` }),
-        stroke: new ol.style.Stroke({ color: '#00008888', width: 1 }),
-      });
-    },
-  });
-  map.addLayer(layer市区町村震度);
-  // EventStreamで更新情報を受け取り
-  const realtimeEventSource = new EventSource('?Handler=RealTimeInfoStream');
-  realtimeEventSource.onmessage = (e) => {
-    const json = JSON.parse(e.data);
-    // html表示内容を差し替え
-    left市区町村震度Element.innerHTML = !json.earthquaks.length
-      ? `<div>　直近の地震情報がありません。</div>`
-      : json.earthquaks.map((item) => {
-        // （現在選択中なら選択中状態を維持）
-        const oldChecked = !!left市区町村震度Element.querySelector(`input[type="checkbox"][name="quake"][value="${item.id}"]:checked`);
-        return `<div><label class="form-check">`
-          + `<input class="form-check-input" type="checkbox" name="quake" value="${item.id}" ${oldChecked ? ' checked' : ''}>`
-          + ` <span class="form-check-label">${item.text}</span>`
-          + `</label></div>`;
-      }).join('');
-    // チェック状態変更時にタイル読み込み
-    left市区町村震度Element.querySelectorAll(`input[type="checkbox"][name="quake"]`).forEach((chk) => {
-      chk.addEventListener('change', (e) => {
-        let sourceUrl = BASE_URL + 'api/mapdata/EarthquakePolygon?'
-          + Array.from(left市区町村震度Element.querySelectorAll(`input[type="checkbox"][name="quake"]:checked`)).map((chk) => `quake=${chk.value}`).join('&');
-        layer市区町村震度.setSource(new ol.source.Vector({ url: sourceUrl, format: new ol.format.GeoJSON() }));
-      });
-    });
-  };
-}
-
-// ====================================================================
-// 事前情報表示
-// ====================================================================
-function init事前情報Layers() {
-  const left事前情報Element = document.getElementById('left事前情報');
-  left事前情報Element.querySelectorAll(`input[type="checkbox"][data-geojsonurl]`).forEach((chk) => {
-    // レイヤ作成
-    const infoType = chk.value;
-    const style = (infoType == 'heliport')
-      ? new ol.style.Style({
-        text: new ol.style.Text({
-          font: 'bold 18px bootstrap-icons',
-          text: '\uF7FB',
-          fill: new ol.style.Fill({ color: '#00F' }),
-          stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
-        })
-      })
-      : new ol.style.Style({
-        text: new ol.style.Text({
-          font: 'bold 18px bootstrap-icons',
-          text: '\uF627',
-          fill: new ol.style.Fill({ color: '#800' }),
-          stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
-        })
-      });
-    const layer事前情報 = new ol.layer.Vector({
-      source: new ol.source.Vector({ url: chk.dataset.geojsonurl, format: new ol.format.GeoJSON() }),
-      style: style,
-      visible: false,
-    });
-    map.addLayer(layer事前情報);
-    // チェック状態変更時に表示ON/Off切り替え
-    chk.addEventListener('change', (e) => {
-      layer事前情報.setVisible(chk.checked);
-    });
-  });
-}
 
 // ====================================================================
 // 防災ヘリ関連情報
@@ -271,7 +202,7 @@ function init防災ヘリ関連情報Layers() {
   const show表示対象Features = () => {
     const formData = new FormData(form防災ヘリ関連情報);
     // 調査依頼、および調査予定データをまとめて取得
-    ajaxGetJson('?Handler=Features&' + new URLSearchParams(formData).toString())
+    ajaxGetJson(base_url + '?Handler=Features&' + new URLSearchParams(formData).toString())
       .then((json) => {
         const spots = geojsonFormatter.readFeatures(json.spots);
         layer調査地点.getSource().clear();
@@ -323,9 +254,8 @@ function init防災ヘリ関連情報Layers() {
   }
   document.getElementById("btnKMLOK").addEventListener("click", function () {
     const id = this.dataset.id;
-        console.log("KML OK!!:");
     console.log("KML出力実行:", id);
-    ajaxGetJson('?Handler=Features&irai=' + id)
+    ajaxGetJson(base_url + '?Handler=Features&irai=' + id)
       .then((json) => {
         const spots = geojsonFormatter.readFeatures(json.spots);
         console.log("KML出力:", id);
@@ -355,7 +285,7 @@ function init防災ヘリ関連情報Layers() {
   document.getElementById("btnSendOK").addEventListener("click", function () {
     const id = this.dataset.id;
     console.log("差し戻し実行:", id);
-    ajaxGetJson('?Handler=UpdateStatus&id=' + id + '&status=101')
+    ajaxGetJson(base_url + '?Handler=UpdateStatus&id=' + id + '&status=101')
       .then((json) => {
         console.log(json);
         console.log("OK!!:", json.id);
@@ -671,7 +601,7 @@ function init調査依頼タブ() {
     source調査地点.clear();
     tbody調査依頼.innerHTML = '';
     if (tempid) {
-      ajaxExecute(`?Handler=SurveyRequest&id=${tempid}&status=0`, {},
+      ajaxExecute(base_url + `?Handler=SurveyRequest&id=${tempid}&status=0`, {},
         { title: '一時保存ルート呼出・削除' }
       ).then((json) => {
         form調査依頼.querySelector('input[name="tempid"]').value = tempid;
@@ -870,7 +800,7 @@ function init依頼状況タブ() {
     if (!sel調査依頼.value) { return; }
     // プルダウンで指定された調査依頼の調査箇所を取得（ステータス＝チェック指定があれば依頼中のみ）
     const statusQuery = chk依頼状況_依頼中のみ表示.checked ? '&status=10' : '';
-    ajaxExecute('?Handler=SurveyRequest&id=' + sel調査依頼.value + statusQuery, {},
+    ajaxExecute(base_url + '?Handler=SurveyRequest&id=' + sel調査依頼.value + statusQuery, {},
       { title: '調査依頼状況' },
     ).then((json) => {
       const features = geojsonFormatter.readFeatures(json.features);
@@ -903,7 +833,7 @@ function init依頼状況タブ() {
       const formData = new FormData();
       checkboxes.forEach((cb) => formData.append('id', cb.value));
 
-      ajaxExecute('?Handler=DeleteSpot',
+      ajaxExecute(base_url + '?Handler=DeleteSpot',
         { method: 'POST', body: formData },
         { title: '依頼取消', progress: '取消処理中...' }
       ).then((json) => {
@@ -951,7 +881,7 @@ function initルート作成タブ() {
   const initルート作成 = (tempid) => {
     console.log("initルート作成!!!!!");
     // 画面初期状態を読み込み（一時保存id指定時はその保存内容を読み出し）
-    ajaxExecute(`?Handler=Plan&tempid=${tempid || ''}`, {},
+    ajaxExecute(base_url + `?Handler=Plan&tempid=${tempid || ''}`, {},
       { title: tempid ? '一時保存ルート呼出・削除' : '調査ルート作成' }
     ).then((json) => {
       console.log("Handler!!!!!");
@@ -1162,7 +1092,7 @@ function initルート作成タブ() {
     }
     const title = calc ? 'ルート自動作成' : 'ルート作成';
     const formData = create調査予定FormData(calc ? 'calc' : '');
-    ajaxExecute('?Handler=Plan',
+    ajaxExecute(base_url + '?Handler=Plan',
       { method: 'POST', body: formData },
       { title: title, form: tabルート作成, progress: calc ? '最短ルート自動作成中' : null },
     ).then((json) => {
@@ -1279,7 +1209,7 @@ function initルート作成タブ() {
   });
   btn調査予定登録実行.addEventListener('click', async (e) => {
     const formData = create調査予定FormData(btn調査予定登録実行.value);
-    ajaxExecute('?Handler=Plan',
+    ajaxExecute(base_url + '?Handler=Plan',
       { method: 'POST', body: formData },
       { title: modal調査予定登録Element.querySelector('.modal-title').innerHTML, form: modal調査予定登録Element }
     ).then(async (response) => {
