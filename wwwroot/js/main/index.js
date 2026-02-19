@@ -1,8 +1,10 @@
 'use strict';
 import { initKPManager } from './kp/kpManager.js';
 import { initDistanceMeasure } from './distance/Measure.js';
-import { initCapital } from './capital.js';
+import { Capital } from './tabs/Capital.js';
 import { leftMenuManager } from './leftMenuManager.js';
+import { InvestigationRequestStatus } from './tabs/InvestigationRequestStatus.js';
+
 
 const base_url = location.origin + location.pathname;
 const segments = location.pathname.split("/").filter(Boolean);
@@ -53,7 +55,7 @@ const /** @type{Map<string, ol.source.Vector>} */ map調査地点Source = {};
 const /** @type{Map<string, ol.source.Vector>} */ map調査ルートSource = {};
 
 const 調査依頼タブ = init調査依頼タブ();
-init依頼状況タブ();
+//init依頼状況タブ();
 if (tabルート作成) {
   initルート作成タブ();
 }
@@ -89,21 +91,8 @@ const kpManager = initKPManager({
     調査依頼タブ.create調査依頼行FromKP(kpResult);
   }
 });
-// 首都直下初動
-const capital = initCapital({
-  base_url,
-  tabElement: tab特定初動調査,
-  set調査地点Source,
-  create明細行,
-  ajaxExecute,
-  geojsonFormatter,
-  createDetailRecord: (tab, feature) => {
-    create明細行(ta, feature);
-  }
-})
-if (tab特定初動調査) {
-  capital.load初動調査ルート();
-}
+// ====================================================================
+// 左メニュー
 // 距離計測
 const distance = initDistanceMeasure({ map });
 const leftMenu = leftMenuManager({
@@ -118,6 +107,44 @@ leftMenu.init事前情報Layers();
 
 init防災ヘリ関連情報Layers();
 
+// ====================================================================
+// タブ　調査依頼状況
+if (tab依頼状況) {
+  const reload防災ヘリ関連情報 = () => {
+    return new Promise((resolve, reject) => {
+      return resolve();
+    });
+  }
+  InvestigationRequestStatus({
+    base_url,
+    tab依頼状況,
+    set調査地点Source,
+    geojsonFormatter,
+    create明細行,
+    ajaxExecute,
+    reload防災ヘリ関連情報,
+    showAlert,
+    showConfirm
+  });
+}
+// ====================================================================
+// 首都直下初動
+const capital = Capital({
+  base_url,
+  tabElement: tab特定初動調査,
+  set調査地点Source,
+  create明細行,
+  ajaxExecute,
+  geojsonFormatter,
+  createDetailRecord: (tab, feature) => {
+    create明細行(ta, feature);
+  }
+})
+if (tab特定初動調査) {
+  capital.initialize();
+}
+
+// ====================================================================
 // 共通：地図上をマウスクリックした際の制御
 map.on('click', (e) => {
   if (mapDraw != null) { return; } // ただし描画操作中は除く
@@ -136,7 +163,6 @@ map.on('click', (e) => {
     }
   });
 });
-
 // 共通：右クリックでLineString等描画のundo
 map.getViewport().addEventListener('contextmenu', (e) => {
   e.preventDefault();
@@ -148,20 +174,6 @@ map.getViewport().addEventListener('contextmenu', (e) => {
 // ====================================================================
 // 防災ヘリ関連情報
 // ====================================================================
-/**
- * 防災ヘリ関連情報（調査依頼一覧・調査ルート一覧）の表示を更新します。
- * @returns {Promise}
- */
-const reload防災ヘリ関連情報 = () => {
-  //TODO 以下の処理を実装
-  // (1) 防災ヘリ関連情報のチェック状態を把握退避
-  // (2) Partial取得、反映、チェック状態復元
-  // (3) init防災ヘリ関連情報を実行
-  return new Promise((resolve, reject) => {
-    return resolve();
-  });
-
-}
 // ※防災ヘリ関連情報部の再読み込み時にも設定を行う
 function init防災ヘリ関連情報Layers() {
   const form防災ヘリ関連情報 = document.getElementById('form防災ヘリ関連情報');
@@ -457,7 +469,7 @@ function create明細行(tab, feature) {
   // 調査手法・搭乗人数・登録方法・備考
   innerHTML += `<td class="text-center">${survey}</td>`;
   innerHTML += `<td class="text-center">${persons === 0 ? 'なし' : persons ? persons + '名' : ''}</td>`;
-  innerHTML += `<td class="text-center">${spottype}</td>`;
+  innerHTML += `<td class="text-center">${getSpotTypeDisplay(spottype)}</td>`;
   innerHTML += `<td><input type="text" readonly class="py-0 my-0 form-control-plaintext" value="${htmlEncode(remarks)}"></td>`;
   if (tab == tab依頼状況) {
     innerHTML += `<td>${status}</td>`;
@@ -494,6 +506,13 @@ document.querySelectorAll('#bottomArea table>tbody').forEach((tbody) => {
 });
 
 
+// 登録方法　表示用
+const getSpotTypeDisplay = (spottype) => {
+  let text = spottype;
+  text = text.replace('河川KP', 'KPデータ（河川）');
+  text = text.replace('道路KP', 'KPデータ（道路）');
+  return text;
+};
 // ====================================================
 // 調査依頼タブ
 // ====================================================
@@ -502,13 +521,6 @@ function init調査依頼タブ() {
   set調査地点Source(tab調査依頼, source調査地点, new ol.source.Vector());
   const tbody調査依頼 = document.querySelector('#table調査依頼>tbody');
 
-  // 登録方法　表示用
-  const getSpotTypeDisplay = (spottype) => {
-    let text = spottype;
-    text = text.replace('河川KP', 'KPデータ（河川）');
-    text = text.replace('道路KP', 'KPデータ（道路）');
-    return text;
-  };
   /**
    * 調査依頼共通：調査依頼一覧の行に指定されたfeatureを追加します
    * @param {ol.Feature} feature 調査箇所のFeature
@@ -781,81 +793,81 @@ function init調査依頼タブ() {
   }
 }
 
-// ====================================================
-// 依頼状況タブ
-// ====================================================
-function init依頼状況タブ() {
-  const source調査地点 = new ol.source.Vector();
-  set調査地点Source(tab依頼状況, source調査地点, new ol.source.Vector());
-  const sel調査依頼 = tab依頼状況.querySelector('select[name="sel調査依頼"]');
-  const tbody依頼状況 = tab依頼状況.querySelector('#table依頼状況>tbody');
-  const chk依頼状況_依頼中のみ表示 = document.getElementById('chk依頼状況_依頼中のみ表示');
-
-  /**
-   * 現在プルダウンで選択されている調査依頼の地点一覧を表示します。
-   */
-  const load依頼状況 = () => {
-    source調査地点.clear();
-    tbody依頼状況.innerHTML = '';
-    if (!sel調査依頼.value) { return; }
-    // プルダウンで指定された調査依頼の調査箇所を取得（ステータス＝チェック指定があれば依頼中のみ）
-    const statusQuery = chk依頼状況_依頼中のみ表示.checked ? '&status=10' : '';
-    ajaxExecute(base_url + '?Handler=SurveyRequest&id=' + sel調査依頼.value + statusQuery, {},
-      { title: '調査依頼状況' },
-    ).then((json) => {
-      const features = geojsonFormatter.readFeatures(json.features);
-      features.forEach((f) => {
-        const trElement = create明細行(tab依頼状況, f);
-        tbody依頼状況.appendChild(trElement);
-      });
-      source調査地点.addFeatures(features);
-    }, showAlert);
-  };
-  sel調査依頼.addEventListener('change', load依頼状況);
-  chk依頼状況_依頼中のみ表示.addEventListener('change', load依頼状況);
-  load依頼状況();
-
-
-  //TODO 依頼取消処理実装
-  // 実装：選択された調査箇所(id)をサーバのDeleteSpotハンドラへPOSTし、成功時に関連情報を再読込して表示を更新する
-  const btn依頼取消 = tab依頼状況.querySelector('button[name="btn調査依頼取消"]');
-  if (btn依頼取消) {
-    btn依頼取消.addEventListener('click', async (e) => {
-      const checkboxes = tbody依頼状況.querySelectorAll('input[type="checkbox"][name="id"]:checked');
-      if (!checkboxes.length) {
-        showAlert('依頼取消', '取消したい地点をチェック選択してください。');
-        return;
-      }
-      const ok = await showConfirm('依頼取消', 'チェックしている地点の依頼を取消します。よろしいですか？', { okButtonName: '取消' });
-      if (!ok) { return; }
-
-      // form data 作成（id を複数 append）
-      const formData = new FormData();
-      checkboxes.forEach((cb) => formData.append('id', cb.value));
-
-      ajaxExecute(base_url + '?Handler=DeleteSpot',
-        { method: 'POST', body: formData },
-        { title: '依頼取消', progress: '取消処理中...' }
-      ).then((json) => {
-        // サーバ側応答を確認してUI更新
-        // (成功メッセージ等はサーバ実装に依存)
-        // 防災ヘリ関連情報を再読み込みし、その完了後に依頼状況を再読込
-        reload防災ヘリ関連情報()
-          .then(() => {
-            load依頼状況();
-            showAlert('依頼取消', json.success || '依頼を取消しました。');
-          }, (err) => {
-            // reload が失敗しても一覧は再読込する
-            load依頼状況();
-            showAlert('依頼取消', json.success || '依頼を取消しました。');
-          });
-      }, showAlert);
-    });
-  }
-
-  //TODO 調査依頼取消後、reload防災ヘリ関連情報()をawaitなどでよびだし、thenのタイミングでload依頼状況を再呼出
-
-}
+//// ====================================================
+//// 依頼状況タブ
+//// ====================================================
+//function init依頼状況タブ() {
+//  const source調査地点 = new ol.source.Vector();
+//  set調査地点Source(tab依頼状況, source調査地点, new ol.source.Vector());
+//  const sel調査依頼 = tab依頼状況.querySelector('select[name="sel調査依頼"]');
+//  const tbody依頼状況 = tab依頼状況.querySelector('#table依頼状況>tbody');
+//  const chk依頼状況_依頼中のみ表示 = document.getElementById('chk依頼状況_依頼中のみ表示');
+//
+//  /**
+//   * 現在プルダウンで選択されている調査依頼の地点一覧を表示します。
+//   */
+//  const load依頼状況 = () => {
+//    source調査地点.clear();
+//    tbody依頼状況.innerHTML = '';
+//    if (!sel調査依頼.value) { return; }
+//    // プルダウンで指定された調査依頼の調査箇所を取得（ステータス＝チェック指定があれば依頼中のみ）
+//    const statusQuery = chk依頼状況_依頼中のみ表示.checked ? '&status=10' : '';
+//    ajaxExecute(base_url + '?Handler=SurveyRequest&id=' + sel調査依頼.value + statusQuery, {},
+//      { title: '調査依頼状況' },
+//    ).then((json) => {
+//      const features = geojsonFormatter.readFeatures(json.features);
+//      features.forEach((f) => {
+//        const trElement = create明細行(tab依頼状況, f);
+//        tbody依頼状況.appendChild(trElement);
+//      });
+//      source調査地点.addFeatures(features);
+//    }, showAlert);
+//  };
+//  sel調査依頼.addEventListener('change', load依頼状況);
+//  chk依頼状況_依頼中のみ表示.addEventListener('change', load依頼状況);
+//  load依頼状況();
+//
+//
+//  //TODO 依頼取消処理実装
+//  // 実装：選択された調査箇所(id)をサーバのDeleteSpotハンドラへPOSTし、成功時に関連情報を再読込して表示を更新する
+//  const btn依頼取消 = tab依頼状況.querySelector('button[name="btn調査依頼取消"]');
+//  if (btn依頼取消) {
+//    btn依頼取消.addEventListener('click', async (e) => {
+//      const checkboxes = tbody依頼状況.querySelectorAll('input[type="checkbox"][name="id"]:checked');
+//      if (!checkboxes.length) {
+//        showAlert('依頼取消', '取消したい地点をチェック選択してください。');
+//        return;
+//      }
+//      const ok = await showConfirm('依頼取消', 'チェックしている地点の依頼を取消します。よろしいですか？', { okButtonName: '取消' });
+//      if (!ok) { return; }
+//
+//      // form data 作成（id を複数 append）
+//      const formData = new FormData();
+//      checkboxes.forEach((cb) => formData.append('id', cb.value));
+//
+//      ajaxExecute(base_url + '?Handler=DeleteSpot',
+//        { method: 'POST', body: formData },
+//        { title: '依頼取消', progress: '取消処理中...' }
+//      ).then((json) => {
+//        // サーバ側応答を確認してUI更新
+//        // (成功メッセージ等はサーバ実装に依存)
+//        // 防災ヘリ関連情報を再読み込みし、その完了後に依頼状況を再読込
+//        reload防災ヘリ関連情報()
+//          .then(() => {
+//            load依頼状況();
+//            showAlert('依頼取消', json.success || '依頼を取消しました。');
+//          }, (err) => {
+//            // reload が失敗しても一覧は再読込する
+//            load依頼状況();
+//            showAlert('依頼取消', json.success || '依頼を取消しました。');
+//          });
+//      }, showAlert);
+//    });
+//  }
+//
+//  //TODO 調査依頼取消後、reload防災ヘリ関連情報()をawaitなどでよびだし、thenのタイミングでload依頼状況を再呼出
+//
+//}
 
 // ==========================================================================================================================
 // ==========================================================================================================================

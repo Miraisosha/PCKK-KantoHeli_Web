@@ -187,6 +187,7 @@ public partial class T_初動調査地点
     [InsertValue("CURRENT_TIMESTAMP"), UpdateValue("CURRENT_TIMESTAMP")]
     public DateTime updated_at { get; set; }
     public DateTime? deleted_at { get; set; }
+    public Geometry? geometry { get; set; }
 }
 [Table("t_スレッド")]
 public partial class T_スレッド
@@ -220,6 +221,7 @@ public partial class T_調査依頼
     public string 調査依頼名 { get; set; }
     public int 組織id { get; set; }
     public 調査ステータスEnum ステータス { get; set; }
+    public int? 初動調査ルートid { get; set; }
     public string? 備考 { get; set; }
     [InsertValue("CURRENT_TIMESTAMP"), UpdateValue(false)]
     public DateTime created_at { get; set; }
@@ -265,6 +267,8 @@ public partial class T_調査予定
     public int? 起点id { get; set; }
     public int? 終点id { get; set; }
     public string? 備考 { get; set; }
+    public int スレッドid { get; set; }
+    public int? 初動調査ルートid { get; set; }
     [InsertValue("CURRENT_TIMESTAMP"), UpdateValue(false)]
     public DateTime created_at { get; set; }
     [InsertValue("CURRENT_TIMESTAMP"), UpdateValue("CURRENT_TIMESTAMP")]
@@ -293,4 +297,22 @@ public partial class T_ヘリ飛行設定
     public string? 表示名 { get; set; }
     public string? 備考 { get; set; }
 }
+[Table("t_スコア")]
+public partial class T_スコア
+{
+    [Key]
+    public int 地震id { get; set; }
+    [Key]
+    [MaxLength(1)]
+    public int 初動調査ルートid { get; set; }
+    [Key]
+    [MaxLength(2)]
+    public string 震度 { get; set; }
+
+    public int 重み { get; set; }
+    public decimal? 距離 { get; set; }
+    public decimal? 時間 { get; set; }
+    public int スコア { get; set; }
+}
+
 

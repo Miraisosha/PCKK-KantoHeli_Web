@@ -81,9 +81,7 @@
         <div data-bs-toggle="collapse" data-bs-target="#leftリアルタイム情報" aria-expanded="true">リアルタイム情報</div>
         <section class="indent collapse show" id="leftリアルタイム情報">
           <div class="striped2" data-bs-toggle="collapse" data-bs-target="#left市区町村震度" aria-expanded="true">市区町村震度</div>
-          <section class="collapse show" id="left市区町村震度">
-            <div>（読み込み中）</div>
-          </section>
+          <section class="collapse show" id="left市区町村震度"></section>
           <div class="striped2" data-bs-toggle="collapse" data-bs-target="#leftCCTV映像">CCTV映像（準備中）</div>
         </section>
         @* 事前情報 *@
@@ -128,19 +126,8 @@
           <button id="btnMeasureClear" class="btn btn-secondary">クリア</button>
         </div>
 
-        <div class="fw-bold">
-          合計　<span id="measureTotal">0 km</span>
-        </div>
-        <div class="mt-2" style="height:350px; overflow-y:auto;">
-          <table class="table table-sm table-bordered">
-            <thead class="table-light">
-              <tr>
-                <th>地点名</th>
-                <th style="width:120px;">区間距離</th>
-              </tr>
-            </thead>
-            <tbody id="measureList"></tbody>
-          </table>
+        <div class="fw-bold" style="font-size:20px;border-bottom: 1px solid gray;text-align:right;margin:20px;">
+          <span style="width:100px;">合計　</span><span id="measureTotal" style="paddint-left:50px;padding-right:20px;text-align:right;">0 km</span>
         </div>
       </div>
       @* マニュアル ------------------------------------- *@
@@ -343,26 +330,31 @@
     {
       var disabled = !(Model.スレッドRec.初動調査状況 is null or 調査状況Enum.ルート作成中);
       <div id="tab特定初動調査">
-        <div class="row align-items-end m-1 g-1" style="margin-top:-6px !important;">
+        <div class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>調査予定ルート選択※（推奨）は震度の大きい箇所を最も優先的に飛行するルート</div>
+        <div class="row align-items-center m-1 g-2" style="margin-top:-6px !important;">
           <div class="col-auto">
-            <label class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>初動調査ルート選択</label>
-            <select name="routeid" class="form-select form-select-sm" asp-for="@Model.スレッドRec.初動調査ルートid"
-                    disabled="@disabled">
-              @foreach (var rec in Model.初動調査ルートRecords)
-              {
-                var text = rec.初動調査ルート名 + (Model.スレッドRec.初動調査ルートid == rec.初動調査ルートid && !disabled ? "（推奨ルート）" : "");
-                <option value="@rec.初動調査ルートid">@text</option>
-              }
+            <select name="routeid" class="form-select"  disabled="@disabled">
             </select>
           </div>
-          <div class="col-auto ms-2 mb-1">始点</div>
-          <div class="col-auto">
-            <input type="text" name="txt始点" class="form-control form-control-sm" readonly style="width:15rem" value="">
+          <div class="col-auto d-flex align-items-center">
+            <label class="me-2 mb-0 text-nowrap">始点</label>
+            <input type="text"
+                   name="txt始点"
+                   class="form-control form-control-sm"
+                   style="width:12rem"
+                   readonly>
           </div>
-          <div class="col-auto ms-2 mb-1">終点</div>
-          <div class="col-auto">
-            <input type="text" name="txt終点" class="form-control form-control-sm" readonly style="width:15rem" value="">
+
+          <div class="col-auto d-flex align-items-center">
+            <label class="me-2 mb-0 text-nowrap">終点</label>
+            <input type="text"
+                   name="txt終点"
+                   class="form-control form-control-sm"
+                   style="width:12rem"
+                   readonly>
           </div>
+
+
           <div class="col-auto ms-auto">
             <button type="button" name="btn初動調査登録" class="btn btn-warning px-2"
                     data-modaltitle="調査予定ルートとして公開" data-modalcaption="調査ルート名を入力して公開してください。" data-modalbutton="公開"

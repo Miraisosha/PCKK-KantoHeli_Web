@@ -20,6 +20,16 @@ export function initDistanceMeasure(ctx) {
   let totalDistance = 0;
   let isMeasuring = false;
 
+  // ヘルパ：Featureから距離を計算して表示
+  function updateTotalFromGeometry(geom) {
+    if (!geom) return;
+    // LineString 全長を計算
+    const length = ol.sphere.getLength(geom) || 0;
+    totalDistance = length;
+    document.getElementById("measureTotal").innerText =
+      (totalDistance / 1000).toFixed(2) + " km";
+  }
+
   // ======================
   // 計測開始
   // ======================
@@ -36,6 +46,23 @@ export function initDistanceMeasure(ctx) {
       type: "LineString"
     });
 
+    // drawend: ダブルクリック等で描画終了したときに最終結果を確定する
+    measureDraw.on('drawend', (evt) => {
+      const feature = evt.feature;
+      const geom = feature.getGeometry();
+      updateTotalFromGeometry(geom);
+      feature.setStyle(finalMeasureStyle);
+      // 座標を保持しておく
+      measureCoords = geom.getCoordinates ? geom.getCoordinates() : [];
+      // 描画終了後は計測状態を解除してインタラクションを外す
+      isMeasuring = false;
+      if (measureDraw) {
+        map.removeInteraction(measureDraw);
+        measureDraw = null;
+      }
+    });
+
+    console.log("BTN Click! -----");
     map.addInteraction(measureDraw);
   });
 
@@ -44,24 +71,32 @@ export function initDistanceMeasure(ctx) {
   // ======================
   map.on("singleclick", async function (evt) {
     if (!isMeasuring) return;
+    console.log("singleclick! -----");
 
     const coord = evt.coordinate;
 
-    if (measureCoords.length > 0) {
-
-      const prevCoord = measureCoords[measureCoords.length - 1];
-      const line = new ol.geom.LineString([prevCoord, coord]);
-      const distance = ol.sphere.getLength(line);
-
-      totalDistance += distance;
-
-      const name = await getDisplayName(coord);
-
-      addMeasureRow(name, distance);
-
+    // 前点が無ければ距離計算をせずに最初の点として追加する
+    if (measureCoords.length === 0) {
+      measureCoords.push(coord);
       document.getElementById("measureTotal").innerText =
         (totalDistance / 1000).toFixed(2) + " km";
+      return;
     }
+
+    const prevCoord = measureCoords[measureCoords.length - 1];
+    if (!prevCoord || !Array.isArray(prevCoord) || prevCoord.length !== 2) {
+      // 安全策：prevCoord が正しい座標でないときは追加のみ
+      measureCoords.push(coord);
+      return;
+    }
+
+    const line = new ol.geom.LineString([prevCoord, coord]);
+    const distance = ol.sphere.getLength(line) || 0;
+
+    totalDistance += distance;
+
+    document.getElementById("measureTotal").innerText =
+      (totalDistance / 1000).toFixed(2) + " km";
 
     measureCoords.push(coord);
   });
@@ -70,20 +105,28 @@ export function initDistanceMeasure(ctx) {
   // ダブルクリック終了
   // ======================
   map.on("dblclick", function (evt) {
+    console.log("dbclick! -----");
 
     if (!isMeasuring) return;
 
     evt.preventDefault();
 
     isMeasuring = false;
-    map.removeInteraction(measureDraw);
+    // drawend ハンドラで既に remove されている可能性があるのでガード
+    if (measureDraw) {
+      map.removeInteraction(measureDraw);
+      measureDraw = null;
+    }
 
-    // 最後に描かれた線を取得
+    // 最後に描かれた線を取得してスタイルを設定（保険）
     const features = measureSource.getFeatures();
     const lastFeature = features[features.length - 1];
 
     if (lastFeature) {
       lastFeature.setStyle(finalMeasureStyle);
+      // 最終フィーチャから改めて合計を計算して表示（drawend が動作しない環境向けの保険）
+      updateTotalFromGeometry(lastFeature.getGeometry());
+      measureCoords = lastFeature.getGeometry().getCoordinates ? lastFeature.getGeometry().getCoordinates() : [];
     }
   });
 
@@ -92,6 +135,7 @@ export function initDistanceMeasure(ctx) {
   // 右クリックUndo
   // ======================
   map.getViewport().addEventListener("contextmenu", (e) => {
+    console.log("Undo!  -----");
     e.preventDefault();
 
     if (!isMeasuring || measureCoords.length === 0) return;
@@ -101,70 +145,12 @@ export function initDistanceMeasure(ctx) {
   });
 
   // ======================
-  // 住所取得
-  // ======================
-//  async function getAddressFromCoord(coord) {
-//
-//    const lonlat = ol.proj.toLonLat(coord);
-//    const lat = lonlat[1];
-//    const lon = lonlat[0];
-//
-//    const url = `https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=${lat}&lon=${lon}`;
-//
-//    try {
-//      const res = await fetch(url);
-//      const data = await res.json();
-//
-//      if (data.results) {
-//        return data.results.lv01Nm;
-//      }
-//    } catch (err) {
-//      console.error(err);
-//    }
-//
-//    return `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-//  }
-//
-//  async function getDisplayName(coord) {
-//
-//    let name = "";
-//
-//    map.forEachFeatureAtPixel(
-//      map.getPixelFromCoordinate(coord),
-//      (feature) => {
-//        name =
-//          feature.get("name") ||
-//          feature.get("名称") ||
-//          "";
-//      }
-//    );
-//
-//    if (name) return name;
-//
-//    return await getAddressFromCoord(coord);
-//  }
-
-  function addMeasureRow(name, distance) {
-//    const tbody = document.getElementById("measureList");
-//
-//    const tr = document.createElement("tr");
-//
-//    tr.innerHTML = `
-//      <td>${name}</td>
-//      <td>${(distance / 1000).toFixed(2)} km</td>
-//    `;
-//
-//    tbody.appendChild(tr);
-  }
-
-  // ======================
   // クリア
   // ======================
   document.getElementById("btnMeasureClear").addEventListener("click", clearMeasure);
 
   function clearMeasure() {
     measureSource.clear();
-    document.getElementById("measureList").innerHTML = "";
     document.getElementById("measureTotal").innerText = "0 km";
     totalDistance = 0;
     measureCoords = [];
@@ -172,6 +158,7 @@ export function initDistanceMeasure(ctx) {
 
     if (measureDraw) {
       map.removeInteraction(measureDraw);
+      measureDraw = null;
     }
   }
 }

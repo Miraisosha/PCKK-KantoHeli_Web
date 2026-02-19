@@ -424,6 +424,97 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
     #region 特定初動調査タブ --------------------------------------------------
     /// <summary>
+    /// 初動調査ルート　スコア付き　
+    /// </summary>
+    /// <param name="スレッドid"></param>
+    /// <returns></returns>
+    public async Task<IActionResult> OnGetSurveyRouteListAsync([FromRoute] int? thread = null)
+    {
+        var routes = new List<object>();
+        int? recommendRouteId = null;
+        if (thread is null) {
+            return new JsonResult(new {
+                success = new {
+                    routes,
+                    recommendRouteId
+                }
+            });
+        }
+
+        // スレッドを取得（地震id と 初動調査ルートid を使う）
+        var threadRec = await con.SelectFirstOrDefaultAsync<T_スレッド>( r => r.スレッドid == thread.Value && r.deleted_at == null);
+        if (threadRec is null) {
+            return new JsonResult(new {
+                success = new {
+                    routes,
+                    recommendRouteId
+                }
+            });
+        }
+        recommendRouteId = threadRec.初動調査ルートid;
+
+        // 地震id が無ければスコアは取得できないので空を返す
+        if (threadRec.地震id is null) {
+            return new JsonResult(new {
+                success = new {
+                    routes,
+                    recommendRouteId
+                }
+            });
+        }
+
+        // t_スコア を地震idで取得し、初動調査ルートidで group by してスコア合計を作る
+        var scores = await con.SelectAsync<T_スコア>(r => r.地震id == threadRec.地震id.Value);
+
+        // 初動調査ルートを基準に取得（特定初動調査区分で絞るのが妥当）
+        List<T_初動調査ルート> routeRecs;
+        if (threadRec.特定初動調査区分id is not null) {
+            routeRecs = (await con.SelectAsync<T_初動調査ルート>(
+                r => r.特定初動調査区分id == threadRec.特定初動調査区分id && r.deleted_at == null,
+                otherClauses: $"ORDER BY {nameof(T_初動調査ルート.表示順)}")).ToList();
+        } else {
+            // 区分が無い場合は空リスト（必要なら全件取得に変更可）
+            routeRecs = new List<T_初動調査ルート>();
+        }
+
+        // 同一初動調査ルートid が複数行ある場合に備え、group by してスコアの合計を代表値とする
+        var scoreDict = scores
+            .GroupBy(s => s.初動調査ルートid)
+            .ToDictionary(g => g.Key, g => g.Sum(s => s.スコア));
+
+        // routeRecs を基準に、該当ルートに紐づくスコア合計群から最小値を求める
+        var scoresForRoutes = routeRecs
+            .Select(rr => scoreDict.TryGetValue(rr.初動調査ルートid, out var sc) ? (int?)sc : null)
+            .Where(s => s.HasValue)
+            .Select(s => s!.Value)
+            .ToList();
+
+        int? minScore = scoresForRoutes.Any() ? (int?)scoresForRoutes.Min() : null;
+
+        // routeRecs を基準に出力配列を作成。スコアがなければ null、最小スコアならフラグ true を設定
+        foreach (var rr in routeRecs)
+        {
+            int? scVal = scoreDict.TryGetValue(rr.初動調査ルートid, out var sc) ? (int?)sc : null;
+            routes.Add(new
+            {
+                value = rr.初動調査ルートid,
+                name = rr.初動調査ルート名,
+                score = scVal, // スコア合計（存在しなければ null）
+                isLowest = (minScore.HasValue && scVal.HasValue && scVal.Value == minScore.Value)
+            });
+        }
+
+
+        return new JsonResult(new
+        {
+            success = new
+            {
+                routes,
+                recommendRouteId
+            }
+        });
+    }
+    /// <summary>
     /// ajax(get): 初動調査ルートを返す
     /// </summary>
     /// <param name="route">初動調査ルートid</param>
@@ -454,7 +545,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 { "priority", "高" },
                 { "survey", "通過" },
                 { "persons", 0 },
-                { "spottype", "点" },
+                { "spottype", "線" },
                 { "remarks", $"{rec.備考}" },
                 { "spotColor", "#FF0000" },
             }));

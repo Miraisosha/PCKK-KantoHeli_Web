@@ -11,7 +11,9 @@ public enum 調査状況Enum : short
     調査済 = 80
 }
 
-
+// t_調査箇所の調査状況
+// t_調査依頼のステータス
+// t_調査予定のステータス
 public enum 調査ステータスEnum : short
 {
     一時保存 = 0,
