@@ -13,6 +13,19 @@ export function Capital(ctx) {
   // 初動調査ルート　プルダウン
   const sel初動調査ルート = tabElement.querySelector('select[name="routeid"]');
 
+  // 選択状態　ルート情報
+  const selectedRoute = {
+    startid:      11,
+    endid:        11,
+    auto:         false,
+    startx:       null,
+    starty:       null,
+    endx:         null,
+    endy:         null,
+    firstRouteId: null,
+    ids:          [],
+  };
+
   // ---------------------------------------------------------------------------------
   // 初期設定
   function initialize() {
@@ -25,9 +38,23 @@ export function Capital(ctx) {
     ).then((res) => {
       const routes = res.routes;
       const recommendRouteId = res.recommendRouteId
-      sel初動調査ルート.innerHTML = routes.map((r) =>
-        `<option value="${r.value}" ${(r.isLowest) ? "selected" : "" }>${r.name}：${(r.isLowest) ? "（推奨）" : "" }評価スコア${r.score}</option>`
-      ).join('');
+      const isRequested = res.isRequested;    // t_調査依頼に該当あり（t_スレッド の 初動調査ルートid を基準）
+      const isPlanned = res.isPlanned;      // t_調査予定に該当あり（t_スレッド の 初動調査ルートid を基準）
+      const isScheduled = res.isScheduled;     // 両方存在する場合は調査予定済みとして扱う
+
+      if (isScheduled) {
+        routes.forEach(function (r) {
+          if (r.value == recommendRouteId) {
+            sel初動調査ルート.innerHTML = `<option value="${r.value}" ${(r.isLowest) ? "selected" : ""}>${r.name}：評価スコア${r.score}</option>`
+          }
+        });
+      } else {
+        sel初動調査ルート.innerHTML = routes.map((r) =>
+          `<option value="${r.value}" ${(r.isLowest) ? "selected" : "" }>${r.name}：評価スコア${r.score}${(r.isLowest) ? "（推奨）" : "" }</option>`
+        ).join('');
+        //sel初動調査ルート.addEventListener('change', loadInitialSurveyRoute);
+      }
+
       // 初動調査地点一覧
       loadInitialSurveyRoute();
     }).catch((err) => {
@@ -38,10 +65,13 @@ export function Capital(ctx) {
   // ---------------------------------------------------------------------------------
   // 初動調査ルート　読み込み
   function loadInitialSurveyRoute() {
+    var 初動調査ルートid = sel初動調査ルート.value
+    console.log("loadInitialSurveyRoute:" + 初動調査ルートid);
     if (!sel初動調査ルート) {
       console.warn('initCapital: select[name="routeid"] が見つかりません。load初動調査ルート を中止します。');
       return;
     }
+    if (!初動調査ルートid) return;
 
     const tbody = tabElement.querySelector('#table特定初動調査 tbody');
     const source = new ol.source.Vector();
@@ -54,10 +84,11 @@ export function Capital(ctx) {
     if (tbody) tbody.innerHTML = '';
 
     ajaxExecute(
-      base_url + '?Handler=InitialRoute&route=' + encodeURIComponent(sel初動調査ルート.value),
+      base_url + '?Handler=InitialRoute&route=' + 初動調査ルートid,
       {},
       { title: '初動調査地点読み込み' }
     ).then((json) => {
+      console.log("Handler InitialRoute:");
       // 地図へ描画
       const features = geojsonFormatter.readFeatures(json.routes);
       source.addFeatures(features);
@@ -68,9 +99,15 @@ export function Capital(ctx) {
         if (text === '始') {
           const el = tabElement.querySelector('input[name="txt始点"]');
           if (el) el.value = f.get('name');
+          selectedRoute.endid = f.get('start_end_point_id');
+          selectedRoute.endx = f.get('lng');
+          selectedRoute.endy = f.get('lat');
         } else if (text === '終') {
           const el = tabElement.querySelector('input[name="txt終点"]');
           if (el) el.value = f.get('name');
+          selectedRoute.startid = f.get('start_end_point_id');
+          selectedRoute.startx = f.get('lng');
+          selectedRoute.starty = f.get('lat');
         } else if (f.get('text')) {
           if (typeof create明細行 === 'function' && tbody) {
             try {
@@ -83,6 +120,10 @@ export function Capital(ctx) {
           }
         }
       });
+      console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+      selectedRoute.firstRouteId = 初動調査ルートid;
+      selectedRoute.ids = [];
+      console.log(selectedRoute);
     }).catch((err) => {
       console.warn('初動調査地点読み込み失敗', err);
     });
@@ -98,10 +139,38 @@ export function Capital(ctx) {
   // 調査予定ルート　公開登録
   const btn公開 = tabElement.querySelector('button[name="btn初動調査登録"]');
   if (btn公開) {
-    btn公開.addEventListener('click', () => {
-      showAlert('工事中', '調査ルートとして公開する処理は工事中です。');
+    btn公開.addEventListener('click', async(e) => {
+      const msg = "調査予定ルートとして公開します。\nよろしいですか？";
+      if(await showConfirm('首都直下初動ルート公開',msg)) {
+        const formData = create調査予定FormData('capital_register');
+        ajaxExecute(base_url + '?Handler=Plan',
+          { method: 'POST', body: formData }, { }
+        ).then((res) => {
+          console.log(res);
+//          location.href = `?`;
+        }, () => { });
+      }
     });
   }
+
+  // ---------------------------------------------------------------
+  // 距離算出関連
+  const create調査予定FormData = (mode) => {
+    const modal調査予定登録Element = document.getElementById('modal調査予定登録');
+    modal調査予定登録Element.querySelector('input[name="mode"]').value = mode;
+    const formData = new FormData(modal調査予定登録Element);
+    formData.append('mode',  mode);
+    formData.append('input.startid',  selectedRoute.startid);
+    formData.append('input.endid',    selectedRoute.endid);
+    formData.append('auto', false);
+    formData.append('startx', selectedRoute.startx);
+    formData.append('starty', selectedRoute.starty); 
+    formData.append('endx',   selectedRoute.endx); 
+    formData.append('endy',   selectedRoute.endy);
+    formData.append('firstRouteId',  selectedRoute.firstRouteId);
+    selectedRoute.ids.map(m => formData.append('id', m) );
+    return formData;
+  };
 
   return {
     initialize

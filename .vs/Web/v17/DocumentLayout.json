@@ -3,28 +3,32 @@
   "WorkspaceRootPath": "D:\\01-Development\\PCKK-KantoHeli\\Web\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\wwwroot\\js\\main\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:wwwroot\\js\\main\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\src\\common\\tables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:src\\common\\tables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\src\\common\\enums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:src\\common\\enums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\wwwroot\\js\\main\\tabs\\capital.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
       "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:wwwroot\\js\\main\\tabs\\capital.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\main\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\src\\common\\tables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:src\\common\\tables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\wwwroot\\js\\main\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:wwwroot\\js\\main\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\pages\\main\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:pages\\main\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\src\\common\\enums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:src\\common\\enums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\wwwroot\\js\\main\\tabs\\createroute.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|solutionrelative:wwwroot\\js\\main\\tabs\\createroute.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{FF74822C-94CA-6E2D-E208-AAF412850416}|Web.csproj|d:\\01-development\\pckk-kantoheli\\web\\wwwroot\\js\\main\\tabs\\investigationrequeststatus.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
@@ -61,12 +65,12 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 184,
-          "SelectedChildIndex": 1,
+          "DockedWidth": 193,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 5,
               "Title": "Enums.cs",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\Enums.cs",
               "RelativeDocumentMoniker": "Src\\Common\\Enums.cs",
@@ -79,20 +83,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Tables.cs",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\Tables.cs",
               "RelativeDocumentMoniker": "Src\\Common\\Tables.cs",
               "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\Common\\Tables.cs",
               "RelativeToolTip": "Src\\Common\\Tables.cs",
-              "ViewState": "AgIAAMoAAAAAAAAAAAAAAN8AAAAEAAAAAAAAAA==",
+              "ViewState": "AgIAANIAAAAAAAAAAAAgwN8AAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-02-19T00:07:13.202Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "MapDataAPI.cs",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Src\\WebAPI\\MapDataAPI.cs",
               "RelativeDocumentMoniker": "Src\\WebAPI\\MapDataAPI.cs",
@@ -100,24 +104,25 @@
               "RelativeToolTip": "Src\\WebAPI\\MapDataAPI.cs",
               "ViewState": "AgIAAFcAAAAAAAAAAAAAAH0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-12T20:12:55.011Z"
+              "WhenOpened": "2026-02-12T20:12:55.011Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 4,
               "Title": "Index.cshtml",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml",
               "RelativeDocumentMoniker": "Pages\\Main\\Index.cshtml",
               "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml",
               "RelativeToolTip": "Pages\\Main\\Index.cshtml",
-              "ViewState": "AgIAACkBAAAAAAAAAAAAAGQBAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAIwCAAAAAAAAAAAAALsBAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-02-05T08:38:02.677Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "Index_SurveysPartial.cshtml",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index_SurveysPartial.cshtml",
               "RelativeDocumentMoniker": "Pages\\Main\\Index_SurveysPartial.cshtml",
@@ -129,7 +134,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "index.css",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\css\\main\\index.css",
               "RelativeDocumentMoniker": "wwwroot\\css\\main\\index.css",
@@ -141,13 +146,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 0,
               "Title": "Index.cshtml.cs",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml.cs",
               "RelativeDocumentMoniker": "Pages\\Main\\Index.cshtml.cs",
               "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\Pages\\Main\\Index.cshtml.cs",
               "RelativeToolTip": "Pages\\Main\\Index.cshtml.cs",
-              "ViewState": "AgIAAJ0BAAAAAAAAAAAcwM4BAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAAGsEAAAAAAAAAAAkwL0EAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-02-05T08:38:03.252Z",
               "EditorCaption": ""
@@ -155,12 +160,12 @@
           ]
         },
         {
-          "DockedWidth": 209,
+          "DockedWidth": 200,
           "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "leftMenuManager.js",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\leftMenuManager.js",
               "RelativeDocumentMoniker": "wwwroot\\js\\main\\leftMenuManager.js",
@@ -168,12 +173,11 @@
               "RelativeToolTip": "wwwroot\\js\\main\\leftMenuManager.js",
               "ViewState": "AgIAAAAAAAAAAAAAAAAqwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2026-02-18T19:40:32.886Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-18T19:40:32.886Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "kpManager.js",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\kp\\kpManager.js",
               "RelativeDocumentMoniker": "wwwroot\\js\\main\\kp\\kpManager.js",
@@ -185,7 +189,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "InvestigationRequestStatus.js",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\tabs\\InvestigationRequestStatus.js",
               "RelativeDocumentMoniker": "wwwroot\\js\\main\\tabs\\InvestigationRequestStatus.js",
@@ -193,20 +197,32 @@
               "RelativeToolTip": "wwwroot\\js\\main\\tabs\\InvestigationRequestStatus.js",
               "ViewState": "AgIAAAAAAAAAAAAAAAAqwEYAAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2026-02-19T06:01:30.609Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-19T06:01:30.609Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 1,
               "Title": "Capital.js",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\tabs\\Capital.js",
               "RelativeDocumentMoniker": "wwwroot\\js\\main\\tabs\\Capital.js",
               "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\tabs\\Capital.js",
               "RelativeToolTip": "wwwroot\\js\\main\\tabs\\Capital.js",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAABHAAAAAAAAAA==",
+              "ViewState": "AgIAABsAAAAAAAAAAAAYwHwAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2026-02-19T08:23:09.122Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "CreateRoute.js",
+              "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\tabs\\CreateRoute.js",
+              "RelativeDocumentMoniker": "wwwroot\\js\\main\\tabs\\CreateRoute.js",
+              "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\tabs\\CreateRoute.js",
+              "RelativeToolTip": "wwwroot\\js\\main\\tabs\\CreateRoute.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-02-19T20:14:54.392Z",
               "EditorCaption": ""
             }
           ]
@@ -217,7 +233,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "_map.js",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\_map.js",
               "RelativeDocumentMoniker": "wwwroot\\js\\_map.js",
@@ -229,13 +245,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
               "Title": "index.js",
               "DocumentMoniker": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\index.js",
               "RelativeDocumentMoniker": "wwwroot\\js\\main\\index.js",
               "ToolTip": "D:\\01-Development\\PCKK-KantoHeli\\Web\\wwwroot\\js\\main\\index.js",
               "RelativeToolTip": "wwwroot\\js\\main\\index.js",
-              "ViewState": "AgIAAA0CAAAAAAAAAAAkwC8CAAAUAAAAAAAAAA==",
+              "ViewState": "AgIAAPsDAAAAAAAAAAAkwDYEAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2026-02-05T08:38:03.267Z",
               "EditorCaption": ""

@@ -1,7 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.Data.Common;
 using System.Text.Json;
+using Dapper;
 using DapperAid;
+using GeoCoordinatePortable;
+using Google.OrTools.ConstraintSolver;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NetTopologySuite.Features;
@@ -11,8 +14,6 @@ using Src.Common;
 using Src.Services;
 using Src.Validation.CustomValidators;
 using ZLogger;
-using GeoCoordinatePortable;
-using Google.OrTools.ConstraintSolver;
 
 namespace Pages.Main;
 
@@ -424,6 +425,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
     #region 特定初動調査タブ --------------------------------------------------
     /// <summary>
+    /// 首都直下　初期設定取得
     /// 初動調査ルート　スコア付き　
     /// </summary>
     /// <param name="スレッドid"></param>
@@ -434,15 +436,12 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         int? recommendRouteId = null;
         if (thread is null) {
             return new JsonResult(new {
-                success = new {
-                    routes,
-                    recommendRouteId
-                }
+                success = new { routes, recommendRouteId }
             });
         }
 
         // スレッドを取得（地震id と 初動調査ルートid を使う）
-        var threadRec = await con.SelectFirstOrDefaultAsync<T_スレッド>( r => r.スレッドid == thread.Value && r.deleted_at == null);
+        var threadRec = await con.SelectFirstOrDefaultAsync<T_スレッド>(r => r.スレッドid == thread.Value && r.deleted_at == null);
         if (threadRec is null) {
             return new JsonResult(new {
                 success = new {
@@ -491,16 +490,31 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         int? minScore = scoresForRoutes.Any() ? (int?)scoresForRoutes.Min() : null;
 
-        // routeRecs を基準に出力配列を作成。スコアがなければ null、最小スコアならフラグ true を設定
-        foreach (var rr in routeRecs)
+        // --- 変更: t_スレッド の 初動調査ルートid を使って存在チェック ---
+        bool isRequested = false;
+        bool isPlanned = false;
+        bool isScheduled = false;
+        if (threadRec.初動調査ルートid is not null)
         {
+            var rId = threadRec.初動調査ルートid.Value;
+            var iraiRec = await con.SelectFirstOrDefaultAsync<T_調査依頼>(
+                r => r.スレッドid == thread.Value && r.初動調査ルートid == rId && r.deleted_at == null);
+            var yoteiRec = await con.SelectFirstOrDefaultAsync<T_調査予定>(
+                r => r.スレッドid == thread.Value && r.初動調査ルートid == rId && r.deleted_at == null);
+
+            isRequested = iraiRec is not null;
+            isPlanned = yoteiRec is not null;
+            isScheduled = isRequested && isPlanned;
+        }
+
+        // routeRecs を基準に出力配列を作成。スコアがなければ null、最小スコアならフラグ true を設定
+        foreach (var rr in routeRecs) {
             int? scVal = scoreDict.TryGetValue(rr.初動調査ルートid, out var sc) ? (int?)sc : null;
-            routes.Add(new
-            {
+            routes.Add(new {
                 value = rr.初動調査ルートid,
                 name = rr.初動調査ルート名,
                 score = scVal, // スコア合計（存在しなければ null）
-                isLowest = (minScore.HasValue && scVal.HasValue && scVal.Value == minScore.Value)
+                isLowest = (minScore.HasValue && scVal.HasValue && scVal.Value == minScore.Value),
             });
         }
 
@@ -510,10 +524,69 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             success = new
             {
                 routes,
-                recommendRouteId
+                recommendRouteId,
+                isRequested,    // t_調査依頼に該当あり（t_スレッド の 初動調査ルートid を基準）
+                isPlanned,      // t_調査予定に該当あり（t_スレッド の 初動調査ルートid を基準）
+                isScheduled     // 両方存在する場合は調査予定済みとして扱う
             }
         });
     }
+    /// <summary>
+    /// 貯砂予定ルートとして公開されているか
+    /// </summary>
+    /// <param name="thread"></param>
+    /// <returns></returns>
+//    public async Task<IActionResult> OnGetIsPlannedRoutePublishedAsync([FromRoute] int? thread = null)
+//    {
+//        var routes = new List<object>();
+//        int? recommendRouteId = null;
+//        if (thread is null) {
+//            return new JsonResult(new {
+//                success = new {
+//                    routes,
+//                    recommendRouteId
+//                }
+//            });
+//        }
+//
+//        // スレッドを取得（地震id と 初動調査ルートid を使う）
+//        var threadRec = await con.SelectFirstOrDefaultAsync<T_スレッド>( r => r.スレッドid == thread.Value && r.deleted_at == null);
+//        if (threadRec is null) {
+//            return new JsonResult(new {
+//                success = new {
+//                    routes,
+//                    recommendRouteId
+//                }
+//            });
+//        }
+//
+//        // --- 変更: t_スレッド の 初動調査ルートid を使って存在チェック ---
+//        bool isRequested = false;
+//        bool isPlanned = false;
+//        bool isScheduled = false;
+//        if (threadRec.初動調査ルートid is not null)
+//        {
+//            var rId = threadRec.初動調査ルートid.Value;
+//            var iraiRec = await con.SelectFirstOrDefaultAsync<T_調査依頼>(
+//                r => r.スレッドid == thread.Value && r.初動調査ルートid == rId && r.deleted_at == null);
+//            var yoteiRec = await con.SelectFirstOrDefaultAsync<T_調査予定>(
+//                r => r.スレッドid == thread.Value && r.初動調査ルートid == rId && r.deleted_at == null);
+//
+//            isRequested = iraiRec is not null;
+//            isPlanned = yoteiRec is not null;
+//            isScheduled = isRequested && isPlanned;
+//        }
+//
+//        return new JsonResult(new
+//        {
+//            success = new
+//            {
+//                isRequested,    // t_調査依頼に該当あり（t_スレッド の 初動調査ルートid を基準）
+//                isPlanned,      // t_調査予定に該当あり（t_スレッド の 初動調査ルートid を基準）
+//                isScheduled     // 両方存在する場合は調査予定済みとして扱う
+//            }
+//        });
+//    }
     /// <summary>
     /// ajax(get): 初動調査ルートを返す
     /// </summary>
@@ -555,6 +628,9 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             features.Add(new Feature(new Point(rec終点.経度, rec終点.緯度), new AttributesTable {
                 { "text", "終" },
                 { "name", $"{rec終点.起点終点名}" },
+                { "start_end_point_id", $"{rec終点.起点終点id}" },
+                { "lat", $"{ rec終点.緯度}" },
+                { "lng", $"{ rec終点.経度}" },
             }));
         }
         if (t起点終点Records.FirstOrDefault(r => r.起点終点id == rec初動調査ルート.起点id) is T_起点終点 rec起点)
@@ -562,6 +638,9 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             features.Add(new Feature(new Point(rec起点.経度, rec起点.緯度), new AttributesTable {
                 { "text", "始" },
                 { "name", $"{rec起点.起点終点名}" },
+                { "start_end_point_id", $"{rec起点.起点終点id}" },
+                { "lat", $"{ rec起点.緯度}" },
+                { "lng", $"{ rec起点.経度}" },
             }));
         }
 
@@ -911,9 +990,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         });
     }
 
-
-
-
     public class Input調査予定
     {
 #pragma warning disable IDE1006 // 命名スタイル
@@ -947,33 +1023,71 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     /// <param name="drawroute">調査ルートを手動描画した場合、そのジオメトリ情報</param>
     /// <param name="tempid">一時保存からの登録の場合、一時保存時の調査予定id</param>
     /// <returns></returns>
-    public async Task<IActionResult> OnPostPlanAsync([FromForm] string? mode, [FromForm] Input調査予定 input,
+    public async Task<IActionResult> OnPostPlanAsync(
+        [FromRoute] int? thread,
+        [FromForm] string? mode,
+        [FromForm] Input調査予定 input,
         [FromForm] double? startx,
         [FromForm] double? starty,
         [FromForm] double? endx,
         [FromForm] double? endy,
         [FromForm] int[] id,
         [FromForm] string? drawroute,
-        [FromForm] int? tempid)
+        [FromForm] int? tempid,
+        [FromForm] int? firstRouteId)
     {
+        var iv = provider.CreateValidator();
+        IReadOnlyList<T_調査箇所> t調査箇所Records = [];
+
+        // ---------------------------------------------
+        // スレッドid　チェック
+        if (thread is null) {
+            iv.AddError("調査ルート作成", "スレッドidが取得できません。");
+            return new JsonResult(iv.GetErrorJson());
+        }
+
+        // ---------------------------------------------
+        // 初動調査地点を事前取得    2026/02/20
+        IReadOnlyList<T_初動調査地点> t初動調査地点Records = [];
+        string? firstRouteName = null;
+        if (firstRouteId is not null)
+        {
+            // 初動調査ルートからルート名を取得
+            var routeRec = await con.SelectFirstOrDefaultAsync<T_初動調査ルート>(
+                r => r.初動調査ルートid == firstRouteId.Value && r.deleted_at == null);
+            if (routeRec is not null)
+            {
+                firstRouteName = routeRec.初動調査ルート名;
+                // 入力のタイトルが未設定なら初動ルート名をセット
+                if (string.IsNullOrWhiteSpace(input.title))
+                {
+                    input.title = firstRouteName;
+                }
+            }
+
+            t初動調査地点Records = await con.SelectAsync<T_初動調査地点>(
+                r => r.初動調査ルートid == firstRouteId.Value && r.deleted_at == null,
+                otherClauses: $"ORDER BY {nameof(T_初動調査地点.連番)}");
+        }
+
         // ---------------------------------------------
         // 入力値取得検証
-        // ---------------------------------------------
         調査ステータスEnum? status = mode switch
         {
             "tempsave" => 調査ステータスEnum.一時保存,
             "register" => 調査ステータスEnum.調査予定,
             "check" => (調査ステータスEnum)(-1), // 登録前の入力値チェックのみ
             "calc" => (調査ステータスEnum)(-2), // ルート自動作成→ルート表示
+            "capital_register" => (調査ステータスEnum)(-3),    // 2026/02/20 ADD 首都直下初動　ルート公開
             _ => null, // それ以外は単純なルート表示のみであるとみなす（この際には始点・終点・調査地点の未指定をエラーにはしない）
         };
 
 
         // 調査予定ルートの構築を試みる
-        var iv = provider.CreateValidator();
         List<T_調査予定ルート> tルートRecords = [];
         T_調査予定ルート? t始点Rec = null;
         T_調査予定ルート? t終点Rec = null;
+        List<T_調査箇所> t調査箇所 = [];
 
         LineString? line手動描画ルート = null;
         if (!string.IsNullOrEmpty(drawroute))
@@ -982,6 +1096,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             line手動描画ルート = geojsonReader.Read<LineString>(drawroute);
         }
 
+        // ---------------------------------------------
         // 始点が指定されていれば経路に追加
         if (startx is not null && starty is not null)
         {
@@ -999,7 +1114,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
         // 経路のステータスをチェックしながら追加
         int no = 1;
-        IReadOnlyList<T_調査箇所> t調査箇所Records = [];
         if (id.Length > 0)
         {
             t調査箇所Records = await con.SelectAsync<T_調査箇所>(r => r.調査箇所id == SqlExpr.In(id));
@@ -1029,6 +1143,72 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                     });
                     no++;
                 }
+            }
+        }
+        else if (firstRouteId is not null && t初動調査地点Records is not null && t初動調査地点Records.Any())
+        {
+            foreach (var p in t初動調査地点Records)
+            {
+                Geometry geomSrc = p.geometry;
+                Geometry geom;
+                if (geomSrc is null)
+                {
+                    geom = new Point(p.経度, p.緯度) { SRID = 4326 };
+                }
+                else
+                {
+                    if (geomSrc.SRID == 0) geomSrc.SRID = 4326;
+
+                    // MultiLineString が来た場合は代表的な LineString（先頭要素）を使う
+                    if (geomSrc is MultiLineString mls && mls.NumGeometries > 0)
+                    {
+                        var g0 = mls.GetGeometryN(0);
+                        if (g0 is LineString ls0)
+                        {
+                            geom = ls0;
+                        }
+                        else if (g0 is Point pt0)
+                        {
+                            geom = pt0;
+                        }
+                        else
+                        {
+                            // 想定外タイプのときは経度/緯度から Point にフォールバック
+                            geom = new Point(p.経度, p.緯度) { SRID = 4326 };
+                        }
+                    }
+                    else if (geomSrc is LineString || geomSrc is Point)
+                    {
+                        geom = geomSrc;
+                    }
+                    else
+                    {
+                        // その他の予期せぬジオメトリは Point にフォールバック（安全策）
+                        geom = new Point(p.経度, p.緯度) { SRID = 4326 };
+                    }
+                }
+                tルートRecords.Add(new T_調査予定ルート
+                {
+                    調査予定id      = 0,
+                    連番            = p.連番,
+                    ジオメトリ      = geom,
+                    is後ろから経路追加 = null,
+                    備考            = null,
+                });
+                // 同時に表示／一時利用用の調査箇所レコードを作成して保持しておく
+                t調査箇所.Add(new T_調査箇所
+                {
+                    調査依頼id      = 0,
+                    地点名          = p.初動調査地点名,
+                    優先度          = 調査優先度Enum.中,
+                    調査手法        = 調査手法Enum.通過,
+                    搭乗希望人数    = 0,
+                    登録方法        = 調査箇所登録方法Enum.線,
+                    ジオメトリ      = geom,
+                    組織id          = 101,
+                    調査状況        = 調査ステータスEnum.依頼中,
+                    備考            = p.備考,
+                });
             }
         }
         else if (status is not null)

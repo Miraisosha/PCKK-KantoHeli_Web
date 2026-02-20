@@ -4,6 +4,7 @@ import { initDistanceMeasure } from './distance/Measure.js';
 import { Capital } from './tabs/Capital.js';
 import { leftMenuManager } from './leftMenuManager.js';
 import { InvestigationRequestStatus } from './tabs/InvestigationRequestStatus.js';
+import { CreateRoute } from './tabs/CreateRoute.js';
 
 
 const base_url = location.origin + location.pathname;
@@ -56,15 +57,16 @@ const /** @type{Map<string, ol.source.Vector>} */ map調査ルートSource = {};
 
 const 調査依頼タブ = init調査依頼タブ();
 //init依頼状況タブ();
-if (tabルート作成) {
-  initルート作成タブ();
-}
+//if (tabルート作成) {
+//  initルート作成タブ();
+//}
 
 // 地図に対する描画操作（地点追加等）
 let /** @type{ol.interaction.Draw?} */ mapDraw = null;
 // 何らかの表示中のtoast
 let /** @type{bootstrap.Toast?} */ displayingToast = null;
 
+// ====================================================================
 // 調査依頼　距離標入力
 const kpManager = initKPManager({
   map,
@@ -142,6 +144,24 @@ const capital = Capital({
 })
 if (tab特定初動調査) {
   capital.initialize();
+}
+// ====================================================================
+// 調査ルート作成
+if (tabルート作成) {
+  CreateRoute({
+    base_url,
+    tabElement: tabルート作成,
+    map,
+    layer調査ルート,
+    set調査地点Source,
+    create明細行,
+    ajaxExecute,
+    geojsonFormatter,
+    showAlert,
+    showConfirm,
+    proj3857,
+    proj4326
+  });
 }
 
 // ====================================================================
@@ -425,6 +445,14 @@ document.querySelectorAll('button[name="btnタブ選択"]').forEach((button) => 
   });
 });
 
+// 登録方法　表示用
+const getSpotTypeDisplay = (spottype) => {
+  let text = spottype;
+  text = text.replace('河川KP', 'KPデータ（河川）');
+  text = text.replace('道路KP', 'KPデータ（道路）');
+  return text;
+};
+
 /**
  * featureをもとに一覧明細行を作成します。featureのcheckboxプロパティには明細行のcheckboxオブジェクトを設定します。
  * @param {HTMLDivElement} tab 画面下部の表示対象タブ
@@ -506,13 +534,6 @@ document.querySelectorAll('#bottomArea table>tbody').forEach((tbody) => {
 });
 
 
-// 登録方法　表示用
-const getSpotTypeDisplay = (spottype) => {
-  let text = spottype;
-  text = text.replace('河川KP', 'KPデータ（河川）');
-  text = text.replace('道路KP', 'KPデータ（道路）');
-  return text;
-};
 // ====================================================
 // 調査依頼タブ
 // ====================================================
@@ -793,82 +814,6 @@ function init調査依頼タブ() {
   }
 }
 
-//// ====================================================
-//// 依頼状況タブ
-//// ====================================================
-//function init依頼状況タブ() {
-//  const source調査地点 = new ol.source.Vector();
-//  set調査地点Source(tab依頼状況, source調査地点, new ol.source.Vector());
-//  const sel調査依頼 = tab依頼状況.querySelector('select[name="sel調査依頼"]');
-//  const tbody依頼状況 = tab依頼状況.querySelector('#table依頼状況>tbody');
-//  const chk依頼状況_依頼中のみ表示 = document.getElementById('chk依頼状況_依頼中のみ表示');
-//
-//  /**
-//   * 現在プルダウンで選択されている調査依頼の地点一覧を表示します。
-//   */
-//  const load依頼状況 = () => {
-//    source調査地点.clear();
-//    tbody依頼状況.innerHTML = '';
-//    if (!sel調査依頼.value) { return; }
-//    // プルダウンで指定された調査依頼の調査箇所を取得（ステータス＝チェック指定があれば依頼中のみ）
-//    const statusQuery = chk依頼状況_依頼中のみ表示.checked ? '&status=10' : '';
-//    ajaxExecute(base_url + '?Handler=SurveyRequest&id=' + sel調査依頼.value + statusQuery, {},
-//      { title: '調査依頼状況' },
-//    ).then((json) => {
-//      const features = geojsonFormatter.readFeatures(json.features);
-//      features.forEach((f) => {
-//        const trElement = create明細行(tab依頼状況, f);
-//        tbody依頼状況.appendChild(trElement);
-//      });
-//      source調査地点.addFeatures(features);
-//    }, showAlert);
-//  };
-//  sel調査依頼.addEventListener('change', load依頼状況);
-//  chk依頼状況_依頼中のみ表示.addEventListener('change', load依頼状況);
-//  load依頼状況();
-//
-//
-//  //TODO 依頼取消処理実装
-//  // 実装：選択された調査箇所(id)をサーバのDeleteSpotハンドラへPOSTし、成功時に関連情報を再読込して表示を更新する
-//  const btn依頼取消 = tab依頼状況.querySelector('button[name="btn調査依頼取消"]');
-//  if (btn依頼取消) {
-//    btn依頼取消.addEventListener('click', async (e) => {
-//      const checkboxes = tbody依頼状況.querySelectorAll('input[type="checkbox"][name="id"]:checked');
-//      if (!checkboxes.length) {
-//        showAlert('依頼取消', '取消したい地点をチェック選択してください。');
-//        return;
-//      }
-//      const ok = await showConfirm('依頼取消', 'チェックしている地点の依頼を取消します。よろしいですか？', { okButtonName: '取消' });
-//      if (!ok) { return; }
-//
-//      // form data 作成（id を複数 append）
-//      const formData = new FormData();
-//      checkboxes.forEach((cb) => formData.append('id', cb.value));
-//
-//      ajaxExecute(base_url + '?Handler=DeleteSpot',
-//        { method: 'POST', body: formData },
-//        { title: '依頼取消', progress: '取消処理中...' }
-//      ).then((json) => {
-//        // サーバ側応答を確認してUI更新
-//        // (成功メッセージ等はサーバ実装に依存)
-//        // 防災ヘリ関連情報を再読み込みし、その完了後に依頼状況を再読込
-//        reload防災ヘリ関連情報()
-//          .then(() => {
-//            load依頼状況();
-//            showAlert('依頼取消', json.success || '依頼を取消しました。');
-//          }, (err) => {
-//            // reload が失敗しても一覧は再読込する
-//            load依頼状況();
-//            showAlert('依頼取消', json.success || '依頼を取消しました。');
-//          });
-//      }, showAlert);
-//    });
-//  }
-//
-//  //TODO 調査依頼取消後、reload防災ヘリ関連情報()をawaitなどでよびだし、thenのタイミングでload依頼状況を再呼出
-//
-//}
-
 // ==========================================================================================================================
 // ==========================================================================================================================
 // ==========================================================================================================================
@@ -890,6 +835,7 @@ function initルート作成タブ() {
   const source調査地点 = new ol.source.Vector();
   set調査地点Source(tabルート作成, source調査地点, new ol.source.Vector());
 
+  // ---------------------------------------------------------------
   const initルート作成 = (tempid) => {
     console.log("initルート作成!!!!!");
     // 画面初期状態を読み込み（一時保存id指定時はその保存内容を読み出し）
@@ -937,6 +883,7 @@ function initルート作成タブ() {
   };
 
 
+  // ---------------------------------------------------------------
   // 一時保存調査依頼に対する操作各種
   const modal調査予定呼び出しElement = document.getElementById('modal調査予定呼び出し');
   document.getElementById('btn一時保存調査予定呼出').addEventListener('click', async (e) => {
@@ -964,6 +911,7 @@ function initルート作成タブ() {
   });
 
 
+  // ---------------------------------------------------------------
   // 「調査依頼絞込」フィルタ処理
   const /** @type{HTMLSelectElement} */ sel調査依頼Filter = tabルート作成.querySelector('select[name="irai"]');
   const /** @type{HTMLSelectElement} */ sel優先度Filter = tabルート作成.querySelector('select[name="priority"]');
@@ -988,6 +936,7 @@ function initルート作成タブ() {
   initMultiSelect(sel優先度Filter, filterルート作成対象, '優先度');
   sel搭乗人数Filter.addEventListener('change', filterルート作成対象);
 
+  // ---------------------------------------------------------------
   // 起点終点関係操作
   const toast起点終点設定Element = document.getElementById('toast起点終点設定');
   toast起点終点設定Element.addEventListener('hidden.bs.toast', (e) => {
@@ -1000,6 +949,7 @@ function initルート作成タブ() {
   const /** @type{HTMLSelectElement} */ selルート作成起点 = tabルート作成.querySelector('select[name="selルート作成起点"]');
   const /** @type{HTMLSelectElement} */ selルート作成終点 = tabルート作成.querySelector('select[name="selルート作成終点"]');
 
+  // ---------------------------------------------------------------
   /**
    * 起点終点のプルダウンに対し、指定された緯度経度の選択肢がなければこれを追加します
    * @param {*} lon 経度
@@ -1029,6 +979,7 @@ function initルート作成タブ() {
     return optionValue;
   };
 
+  // ---------------------------------------------------------------
   const initルート作成起点終点 = (sel, name) => {
     let prevVal = sel.value;
     sel.addEventListener('change', (e) => {
@@ -1065,6 +1016,8 @@ function initルート作成タブ() {
   };
   initルート作成起点終点(selルート作成起点, '起点');
   initルート作成起点終点(selルート作成終点, '終点');
+
+  // ---------------------------------------------------------------
   tabルート作成.querySelector('button[name="btnルート起点終点反転"]').addEventListener('click', (e) => {
     // 始点と終点を反転（選択経路も反転）
     const old起点Value = selルート作成起点.value;
@@ -1076,6 +1029,7 @@ function initルート作成タブ() {
     exec距離等算出(false);
   });
 
+  // ---------------------------------------------------------------
   // 距離算出関連
   const create調査予定FormData = (mode) => {
     modal調査予定登録Element.querySelector('input[name="mode"]').value = mode;
@@ -1093,6 +1047,7 @@ function initルート作成タブ() {
     return formData;
   };
 
+  // ---------------------------------------------------------------
   /**
    * サーバ側の距離算出処理を呼び出し、得られた計算結果や調査ルートを表示します
    * @param {*} calc 自動ルート作成(最短経路算出)を行う場合true、経路ラジオボタンを手動に戻さない(自動であれば自動のままにしておく)場合false
@@ -1137,20 +1092,25 @@ function initルート作成タブ() {
       });
     }, () => { });
   }
+
+  // ---------------------------------------------------------------
   // 地点選択状態変更時(全選択変更時含む)に距離等算出をやり直し
   document.querySelector('#tableルート作成 input[name="chk全選択"]').addEventListener('change', () => {
     exec距離等算出();
   });
+  // ---------------------------------------------------------------
   tbodyルート作成.addEventListener('change', (e) => {
     const cb = (e.target.type == 'checkbox' && e.target.name == 'id') ? e.target : e.target.closest('input[type="checkbox"][name="id"]');
     if (cb) {
       exec距離等算出();
     }
   });
+  // ---------------------------------------------------------------
   // 自動作成実行
   document.getElementById('radioルート自動作成').addEventListener('click', async (e) => {
     exec距離等算出(true);
   });
+  // ---------------------------------------------------------------
   // アンドゥボタンクリックで直前に追加した地点を削除
   document.getElementById('btnルート作成Undo').addEventListener('click', (e) => {
     //TODO アンドゥ機能の不足を指摘されたら（削除したのを元に戻せない、全選択に対応していないetc）アンドゥバッファを用意して正式な対応を行うこと。
@@ -1162,7 +1122,7 @@ function initルート作成タブ() {
       });
     }
   });
-
+  // ---------------------------------------------------------------
   // 調査ルート手動描画関連
   const toast調査ルート手動描画Element = document.getElementById('toast調査ルート手動描画');
   toast調査ルート手動描画Element.addEventListener('hidden.bs.toast', (e) => {
@@ -1172,6 +1132,7 @@ function initルート作成タブ() {
       mapDraw = null;
     }
   });
+  // ---------------------------------------------------------------
   const btn調査ルート手動描画削除 = toast調査ルート手動描画Element.querySelector('button[name="btn調査ルート手動描画削除"]');
   btn調査ルート手動描画削除.addEventListener('click', (e) => {
     // 手動描画ルートを削除
@@ -1200,6 +1161,7 @@ function initルート作成タブ() {
     displayingToast.show();
   });
 
+  // ---------------------------------------------------------------
   // 調査予定登録(一時保存ボタンも同一処理、モーダルの文言等の情報はボタンのdata項目等より取得)
   const btn調査予定登録実行 = modal調査予定登録Element.querySelector('button[value="register"]');
   document.querySelectorAll('button[name="btn調査予定登録"]').forEach((button) => {
@@ -1219,6 +1181,7 @@ function initルート作成タブ() {
       }, () => { });
     });
   });
+  // ---------------------------------------------------------------
   btn調査予定登録実行.addEventListener('click', async (e) => {
     const formData = create調査予定FormData(btn調査予定登録実行.value);
     ajaxExecute(base_url + '?Handler=Plan',
