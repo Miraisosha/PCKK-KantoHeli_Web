@@ -1024,7 +1024,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     /// <param name="tempid">一時保存からの登録の場合、一時保存時の調査予定id</param>
     /// <returns></returns>
     public async Task<IActionResult> OnPostPlanAsync(
-        [FromRoute] int? thread,
+        [FromRoute(Name = "thread")] int? threadId,
         [FromForm] string? mode,
         [FromForm] Input調査予定 input,
         [FromForm] double? startx,
@@ -1037,12 +1037,24 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         [FromForm] int? firstRouteId)
     {
         var iv = provider.CreateValidator();
-        IReadOnlyList<T_調査箇所> t調査箇所Records = [];
 
         // ---------------------------------------------
-        // スレッドid　チェック
-        if (thread is null) {
-            iv.AddError("調査ルート作成", "スレッドidが取得できません。");
+        // スレッド存在チェック
+        if (threadId is not null)
+        {
+            var threadRec = await con.SelectFirstOrDefaultAsync<T_スレッド>(r => r.スレッドid == threadId.Value && r.deleted_at == null);
+            if (threadRec is null)
+            {
+                iv.AddError("threadId", "指定されたスレッドが存在しません。");
+                logger.ZLogWarning($"スレッド不存在：{threadId}");
+                return new JsonResult(iv.GetErrorJson());
+            }
+            スレッドRec = threadRec;
+        }
+        else
+        {
+            iv.AddError("threadId", "指定されたスレッドが存在しません。");
+            logger.ZLogWarning($"スレッド不存在：{threadId}");
             return new JsonResult(iv.GetErrorJson());
         }
 
@@ -1083,12 +1095,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         };
 
 
-        // 調査予定ルートの構築を試みる
-        List<T_調査予定ルート> tルートRecords = [];
-        T_調査予定ルート? t始点Rec = null;
-        T_調査予定ルート? t終点Rec = null;
-        List<T_調査箇所> t調査箇所 = [];
-
         LineString? line手動描画ルート = null;
         if (!string.IsNullOrEmpty(drawroute))
         {
@@ -1096,7 +1102,17 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             line手動描画ルート = geojsonReader.Read<LineString>(drawroute);
         }
 
-        // ---------------------------------------------
+        // ========================================================================================
+        // ========================================================================================
+        // 調査ルートの組み立て
+        // ========================================================================================
+        // ========================================================================================
+        List<T_調査予定ルート> tルートRecords = [];
+        T_調査予定ルート? t始点Rec = null;
+        T_調査予定ルート? t終点Rec = null;
+        IReadOnlyList<T_調査箇所> t調査箇所Records = [];
+
+        // ---------------------------------------------------------------------
         // 始点が指定されていれば経路に追加
         if (startx is not null && starty is not null)
         {
@@ -1112,10 +1128,12 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         {
             iv.AddError("selルート作成起点", "ルート起点を指定してください。");
         }
-        // 経路のステータスをチェックしながら追加
+        // ---------------------------------------------------------------------
+        // 経路追加
         int no = 1;
         if (id.Length > 0)
         {
+            // 経路のステータスをチェックしながら追加
             t調査箇所Records = await con.SelectAsync<T_調査箇所>(r => r.調査箇所id == SqlExpr.In(id));
             for (int i = 0; i < id.Length; i++)
             {
@@ -1147,69 +1165,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
         else if (firstRouteId is not null && t初動調査地点Records is not null && t初動調査地点Records.Any())
         {
-            foreach (var p in t初動調査地点Records)
-            {
-                Geometry geomSrc = p.geometry;
-                Geometry geom;
-                if (geomSrc is null)
-                {
-                    geom = new Point(p.経度, p.緯度) { SRID = 4326 };
-                }
-                else
-                {
-                    if (geomSrc.SRID == 0) geomSrc.SRID = 4326;
-
-                    // MultiLineString が来た場合は代表的な LineString（先頭要素）を使う
-                    if (geomSrc is MultiLineString mls && mls.NumGeometries > 0)
-                    {
-                        var g0 = mls.GetGeometryN(0);
-                        if (g0 is LineString ls0)
-                        {
-                            geom = ls0;
-                        }
-                        else if (g0 is Point pt0)
-                        {
-                            geom = pt0;
-                        }
-                        else
-                        {
-                            // 想定外タイプのときは経度/緯度から Point にフォールバック
-                            geom = new Point(p.経度, p.緯度) { SRID = 4326 };
-                        }
-                    }
-                    else if (geomSrc is LineString || geomSrc is Point)
-                    {
-                        geom = geomSrc;
-                    }
-                    else
-                    {
-                        // その他の予期せぬジオメトリは Point にフォールバック（安全策）
-                        geom = new Point(p.経度, p.緯度) { SRID = 4326 };
-                    }
-                }
-                tルートRecords.Add(new T_調査予定ルート
-                {
-                    調査予定id      = 0,
-                    連番            = p.連番,
-                    ジオメトリ      = geom,
-                    is後ろから経路追加 = null,
-                    備考            = null,
-                });
-                // 同時に表示／一時利用用の調査箇所レコードを作成して保持しておく
-                t調査箇所.Add(new T_調査箇所
-                {
-                    調査依頼id      = 0,
-                    地点名          = p.初動調査地点名,
-                    優先度          = 調査優先度Enum.中,
-                    調査手法        = 調査手法Enum.通過,
-                    搭乗希望人数    = 0,
-                    登録方法        = 調査箇所登録方法Enum.線,
-                    ジオメトリ      = geom,
-                    組織id          = 101,
-                    調査状況        = 調査ステータスEnum.依頼中,
-                    備考            = p.備考,
-                });
-            }
+            // 何もしない
         }
         else if (status is not null)
         {
@@ -1232,6 +1188,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
 
 
+        // ---------------------------------------------------------------------
         // ルート自動作成であれば、ルート一覧を最短経路通りに並べ直す
         if (mode == "calc" && iv.Errors.Count == 0)
         {
@@ -1239,6 +1196,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
 
 
+        // ---------------------------------------------------------------------
         // 調査ルートのfeatureを生成(ただし手動描画ルートがあるならそれを優先)
         LineString? route = line手動描画ルート ?? Get調査ルートLineString(tルートRecords);
         // 距離や飛行情報を把握
@@ -1288,6 +1246,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             });
         }
 
+        // ---------------------------------------------------------------------
         if (iv.Errors.Count > 0)
         {   // 明細入力項目エラー有、エラーを返す
             return new JsonResult(iv.GetErrorJson());
@@ -1298,11 +1257,12 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
 
 
+        // ---------------------------------------------------------------------
         // DB登録時、名称入力チェック
         var t予定Rec = new T_調査予定
         {
             調査予定名 = iv.Parse<string>(() => input.title),
-            ステータス = status.Value,
+            ステータス = (mode == "capital_register") ? 調査ステータスEnum.調査予定 : status.Value,
             is自動作成ルート = iv.Validate(() => input.auto),
             起点id = iv.Validate(() => input.startid),
             終点id = iv.Validate(() => input.endid),
@@ -1310,8 +1270,9 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         };
         if (iv.Errors.Count == 0)
         {
+            // スレッド内に同名の調査予定が存在しないかチェック（ステータスが依頼中以上のものに対して）
             var dupe = await con.SelectFirstOrDefaultAsync<T_調査予定>(
-                r => r.調査予定名 == t予定Rec.調査予定名 && t予定Rec.ステータス >= 調査ステータスEnum.依頼中 && r.deleted_at == null);
+                r => r.スレッドid == threadId.Value && r.調査予定名 == t予定Rec.調査予定名 && t予定Rec.ステータス >= 調査ステータスEnum.依頼中 && r.deleted_at == null);
             if (dupe is not null)
             {
                 iv.AddError("input.title", "同じ調査ルート名が既に存在します。調査ルート名を変更してください。");
@@ -1322,58 +1283,227 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             return new JsonResult(iv.GetErrorJson());
         }
 
-        //TODO 一時保存の場合、同名の一時保存依頼の存在チェック(warning扱い)
-
         // ---------------------------------------------
         // DB更新
-        // ---------------------------------------------
         con.Open();
         using var tran = await con.BeginTransactionAsync();
-        if (tempid is not null)
-        {
-            // 一時保存データに対する更新の場合、更新元一時保存データの存在チェック
-            var oldRec = await tran.SelectFirstOrDefaultAsync<T_調査予定>(r => r.調査予定id == tempid && r.deleted_at == null,
-                otherClauses: "FOR UPDATE");
-            if (oldRec is null)
-            {
-                return new JsonResult(new { error = "編集した一時保存データは他ユーザが既に操作済です。更新できません。" });
-            }
-            else if (oldRec.ステータス != 調査ステータスEnum.一時保存)
-            {
-                logger.ZLogWarning($"一次保存調査予定のステータス不正を検出：調査予定id={tempid},ステータス={oldRec.ステータス}");
-                return new JsonResult(new { error = "編集した一時保存データは他ユーザが既に更新済です。更新できません。" });
-            }
-            // 更新元一時保存データを削除
-            await tran.UpdateAsync(() => new T_調査予定 { deleted_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP") }, r => r.調査予定id == tempid);
-            await tran.DeleteAsync<T_調査予定ルート>(r => r.調査予定id == tempid);
-        }
-        await tran.InsertAndRetrieveIdAsync(t予定Rec);
-        foreach (var rec in tルートRecords)
-        {
-            rec.調査予定id = t予定Rec.調査予定id;
-        }
-        await tran.InsertRowsAsync(tルートRecords);
 
-        if (t予定Rec.ステータス == 調査ステータスEnum.調査予定)
+        // ---------------------------------------------------------------------
+        // 初動調査　ルート公開  2026/02/20 Add
+        // --- 初動ルート指定または首都直下公開モードの場合
+        // 調査依頼 + 調査箇所を作成して挿入する ---
+        if (firstRouteId is not null && mode == "capital_register")
         {
-            // 調査箇所データ側のステータスも更新する
-            foreach (var rec in tルートRecords.Where(r => r.調査箇所id is not null))
+            // ---------------------------------------------
+            // 初動調査の調査依頼を削除
+            // 該当調査依頼をロックして取得（FOR UPDATE）
+            var existingIrai = await tran.SelectAsync<T_調査依頼>(
+                r => r.スレッドid == threadId.Value && r.初動調査ルートid != null && r.deleted_at == null,
+                otherClauses: "FOR UPDATE");
+
+            // 初動調査の調査依頼箇所を削除
+            var existingIds = existingIrai.Select(r => r.調査依頼id).ToArray();
+            if (existingIds.Length > 0)
             {
-                var updated = await tran.UpdateAsync(() => new T_調査箇所
-                {
-                    調査予定id = rec.調査予定id,
-                    調査状況 = 調査ステータスEnum.調査予定,
-                    updated_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP"),
-                }, r => r.調査箇所id == rec.調査箇所id && r.調査状況 == 調査ステータスEnum.依頼中 && r.deleted_at == null);
-                if (updated != 1)
-                {
-                    // ※厳密に考えるとデータ同時更新時にここのロジックに落ちる可能性はある・・・いちおうログを出す形で対策としておく
-                    logger.ZLogError($"調査箇所レコード更新失敗：調査箇所id={rec.調査箇所id}");
-                    return BadRequest("システムエラー（調査箇所データ不正）が発生しました。登録できません。");
-                }
+                // まず関連する調査箇所を論理削除
+                await tran.UpdateAsync(
+                    () => new T_調査箇所 { deleted_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP") },
+                    r => r.調査依頼id == SqlExpr.In(existingIds));
+
+                // 続いて該当調査依頼を論理削除
+                await tran.UpdateAsync(
+                    () => new T_調査依頼 { deleted_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP") },
+                    r => r.調査依頼id == SqlExpr.In(existingIds));
             }
-            // 調査依頼データのステータスも更新する
-            await Update調査依頼Status(tran, [.. t調査箇所Records.Select(r => r.調査依頼id).Distinct()]);
+
+            // 初動調査の調査予定を削除
+            var existingYotei = await tran.SelectAsync<T_調査予定>(
+                r => r.スレッドid == threadId.Value && r.初動調査ルートid != null && r.deleted_at == null,
+                otherClauses: "FOR UPDATE");
+
+            // ---------------------------------------------
+            // 調査依頼レコード作成
+            var t依頼ForRoute = new T_調査依頼
+            {
+                スレッドid = threadId.Value,
+                調査依頼名 = string.IsNullOrWhiteSpace(input.title) ? firstRouteName ?? "初動調査依頼" : input.title,
+                組織id = 201, // 道路班 固定
+                ステータス = 調査ステータスEnum.調査予定,
+                初動調査ルートid = firstRouteId,
+            };
+            // 挿入して自動採番された調査依頼id を取得
+            await tran.InsertAndRetrieveIdAsync(t依頼ForRoute);
+            var newIraiId = t依頼ForRoute.調査依頼id;
+
+            // ---------------------------------------------
+            // 調査予定レコード作成
+            // t_調査予定に初動調査ルートidを登録
+            t予定Rec.初動調査ルートid = firstRouteId;
+            t予定Rec.スレッドid = threadId.Value;
+            await tran.InsertAndRetrieveIdAsync(t予定Rec);
+            var newYoteiId = t予定Rec.調査予定id;
+
+            // ---------------------------------------------
+            // スレッド　初動調査ルートidを更新
+            await tran.UpdateAsync(
+                () => new T_スレッド
+                {
+                    初動調査ルートid = firstRouteId,
+                    updated_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP"),
+                },
+                r => r.スレッドid == threadId.Value && r.deleted_at == null);
+            // メモリ上のスレッド情報も同期しておく
+            スレッドRec.初動調査ルートid = firstRouteId;
+            スレッドRec.updated_at = provider.GetNow();
+
+            // ---------------------------------------------
+            // 調査予定ルート クリア
+            tルートRecords.Clear();
+
+            // ---------------------------------------------
+            // 調査予定ルート（起点）　レコード作成
+            no = 0;
+            if(startx is not null && starty is not null)
+            {
+                tルートRecords.Add(new T_調査予定ルート
+                {
+                    調査予定id = newYoteiId,
+                    連番 = no,
+                    調査箇所id = null,
+                    ジオメトリ = new Point(startx.Value, starty.Value) { SRID = 4326 },
+                    is後ろから経路追加 = null,
+                    備考 = null,
+                });
+            }
+            no++;
+
+            // ---------------------------------------------
+            // t_調査箇所/t_調査予定ルート レコード作成
+            foreach (var p in t初動調査地点Records)
+            {
+                // ジオメトリ
+                Geometry geomSrc = p.geometry;
+                Geometry geom;
+                if (geomSrc is null) {
+                    geom = new Point(p.経度, p.緯度) { SRID = 4326 };
+                } else {
+                    if (geomSrc.SRID == 0) geomSrc.SRID = 4326;
+                    // MultiLineString が来た場合は代表的な LineString（先頭要素）を使う
+                    if (geomSrc is MultiLineString mls && mls.NumGeometries > 0) {
+                        var g0 = mls.GetGeometryN(0);
+                        if (g0 is LineString ls0) {
+                            geom = ls0;
+                        } else if (g0 is Point pt0) {
+                            geom = pt0;
+                        } else {
+                            // 想定外タイプのときは経度/緯度から Point にフォールバック
+                            geom = new Point(p.経度, p.緯度) { SRID = 4326 };
+                        }
+                    } else if (geomSrc is LineString || geomSrc is Point) {
+                        geom = geomSrc;
+                    } else {
+                        // その他の予期せぬジオメトリは Point にフォールバック（安全策）
+                        geom = new Point(p.経度, p.緯度) { SRID = 4326 };
+                    }
+                }
+                // ---------------------------------------------
+                // 調査依頼箇所　レコード作成
+                // 同時に表示／一時利用用の調査箇所レコードを作成して保持しておく
+                T_調査箇所 t調査箇所 = new T_調査箇所
+                {
+                    調査依頼id = newIraiId,
+                    地点名 = p.初動調査地点名,
+                    優先度 = 調査優先度Enum.高,
+                    調査手法 = 調査手法Enum.通過,
+                    搭乗希望人数 = 0,
+                    登録方法 = 調査箇所登録方法Enum.線,
+                    ジオメトリ = geom,
+                    組織id = 201,        // 道路班　固定
+                    調査状況 = 調査ステータスEnum.調査予定,
+                    調査予定id = no,
+                    備考 = p.備考,
+                    updated_at = provider.GetNow()
+                };
+                await tran.InsertAndRetrieveIdAsync(t調査箇所);
+                var newIraiSpotId = t調査箇所.調査箇所id;
+
+                // ---------------------------------------------
+                // 調査予定ルート　レコード作成
+                tルートRecords.Add(new T_調査予定ルート
+                {
+                    調査予定id = newYoteiId,
+                    連番 = no,
+                    調査箇所id = newIraiSpotId,
+                    ジオメトリ = geom,
+                    is後ろから経路追加 = null,
+                    備考 = null,
+                });
+                no++;
+            }
+
+            // ---------------------------------------------
+            // 調査予定ルート（終点）　レコード作成
+            if(endx is not null && endy is not null)
+            {
+                tルートRecords.Add(new T_調査予定ルート
+                {
+                    調査予定id = newYoteiId,
+                    連番 = no,
+                    調査箇所id = null,
+                    ジオメトリ = new Point(endx.Value, endy.Value) { SRID = 4326 },
+                    is後ろから経路追加 = null,
+                    備考 = null,
+                });
+            }
+            await tran.InsertRowsAsync(tルートRecords);
+
+        } else {
+            if (tempid is not null)
+            {
+                // 一時保存データに対する更新の場合、更新元一時保存データの存在チェック
+                var oldRec = await tran.SelectFirstOrDefaultAsync<T_調査予定>(r => r.調査予定id == tempid && r.deleted_at == null,
+                    otherClauses: "FOR UPDATE");
+                if (oldRec is null)
+                {
+                    return new JsonResult(new { error = "編集した一時保存データは他ユーザが既に操作済です。更新できません。" });
+                }
+                else if (oldRec.ステータス != 調査ステータスEnum.一時保存)
+                {
+                    logger.ZLogWarning($"一次保存調査予定のステータス不正を検出：調査予定id={tempid},ステータス={oldRec.ステータス}");
+                    return new JsonResult(new { error = "編集した一時保存データは他ユーザが既に更新済です。更新できません。" });
+                }
+                // 更新元一時保存データを削除
+                await tran.UpdateAsync(() => new T_調査予定 { deleted_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP") }, r => r.調査予定id == tempid);
+                await tran.DeleteAsync<T_調査予定ルート>(r => r.調査予定id == tempid);
+            }
+            await tran.InsertAndRetrieveIdAsync(t予定Rec);
+            foreach (var rec in tルートRecords)
+            {
+                rec.調査予定id = t予定Rec.調査予定id;
+            }
+            await tran.InsertRowsAsync(tルートRecords);
+
+            if (t予定Rec.ステータス == 調査ステータスEnum.調査予定)
+            {
+                // 調査箇所データ側のステータスも更新する
+                foreach (var rec in tルートRecords.Where(r => r.調査箇所id is not null))
+                {
+                    var updated = await tran.UpdateAsync(() => new T_調査箇所
+                    {
+                        調査予定id = rec.調査予定id,
+                        調査状況 = 調査ステータスEnum.調査予定,
+                        updated_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP"),
+                    }, r => r.調査箇所id == rec.調査箇所id && r.調査状況 == 調査ステータスEnum.依頼中 && r.deleted_at == null);
+                    if (updated != 1)
+                    {
+                        // ※厳密に考えるとデータ同時更新時にここのロジックに落ちる可能性はある・・・いちおうログを出す形で対策としておく
+                        logger.ZLogError($"調査箇所レコード更新失敗：調査箇所id={rec.調査箇所id}");
+                        return BadRequest("システムエラー（調査箇所データ不正）が発生しました。登録できません。");
+                    }
+                }
+                // 調査依頼データのステータスも更新する
+                await Update調査依頼Status(tran, [.. t調査箇所Records.Select(r => r.調査依頼id).Distinct()]);
+            }
         }
 
         await tran.CommitAsync();

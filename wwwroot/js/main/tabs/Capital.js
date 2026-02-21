@@ -120,7 +120,6 @@ export function Capital(ctx) {
           }
         }
       });
-      console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
       selectedRoute.firstRouteId = 初動調査ルートid;
       selectedRoute.ids = [];
       console.log(selectedRoute);
