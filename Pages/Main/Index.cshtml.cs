@@ -41,7 +41,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     public T_組織? 所属組織Rec { get; set; }
 
     public IReadOnlyList<T_調査依頼> 調査依頼Records { get; set; } = [];
-    //public IReadOnlyList<T_調査予定> 調査予定Records { get; set; } = [];
+    public IReadOnlyList<T_調査予定> 調査予定Records { get; set; } = [];
 
     // 以下、特定初動調査で参照するテーブル
     public T_特定初動調査区分? 特定初動調査区分Rec { get; set; }
@@ -83,8 +83,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // 表示対象データを取得（当該スレッドのもの全件。表示時に振り分けフィルタする）
         調査依頼Records = await con.SelectAsync<T_調査依頼>(r => r.スレッドid == thread && r.deleted_at == null,
             otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
-        // 調査予定Records = await con.SelectAsync<T_調査予定>(r => r.スレッドid == thread && r.deleted_at == null,
-        //     otherClauses: $"ORDER BY {nameof(T_調査予定.updated_at)} DESC");
+        調査予定Records = await con.SelectAsync<T_調査予定>(r => r.スレッドid == thread && r.deleted_at == null,
+            otherClauses: $"ORDER BY {nameof(T_調査予定.updated_at)} DESC");
 
         // 必要に応じ、特定初動調査タブ/調査ルート作成タブ用の情報も取得
         if (所属組織Rec?.isルート作成可 == true && スレッドRec.特定初動調査区分id is not null)
@@ -108,7 +108,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         return partial ? Partial("Index_SurveysPartial", this) : Page();
     }
-    public async Task<IActionResult> OnGetRealTimeInfoStreamAsync([FromRoute] int? threadId = null, [FromQuery(Name = "id")] int? id = null)
+    public async Task<IActionResult> OnGetRealTimeInfoStreamAsync([FromRoute(Name ="thread")] int? threadId = null, [FromQuery(Name = "id")] int? id = null)
     {
         // ルート/クエリどちらかで指定されたスレッドIDを採用
         threadId = threadId ?? id;
@@ -200,8 +200,15 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     /// <param name="yotei">調査予定idの一覧</param>
     /// <returns></returns>
     public async Task<IActionResult> OnGetFeaturesAsync(
-        int[]? irai = null, int[]? yotei = null)
+        [FromRoute(Name = "thread")] int? threadId,
+        int[]? irai = null,
+        int[]? yotei = null)
     {
+        // スレッドidチェック
+        if(threadId is null)
+        {
+            return new JsonResult(new { error = "スレッドidが取得できません。" });
+        }
         // プロットすべき調査箇所を取得
         IReadOnlyList<T_調査箇所> t調査箇所Records = [];
         if (irai is not null || yotei is not null)
@@ -215,28 +222,28 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         // 調査予定ルートがあればFeatureとして取得
         List<Feature> routes = [];
-        // if (yotei is not null)
-        // {
-        //     var t調査予定Records = await con.SelectAsync<T_調査予定>(
-        //         r => r.調査予定id == SqlExpr.In(yotei) && r.deleted_at == null,
-        //         otherClauses: $"ORDER BY {nameof(T_調査予定.調査予定id)}");
-        //     var tルートRecords = await con.SelectAsync<T_調査予定ルート>(
-        //         r => r.調査予定id == SqlExpr.In(yotei),
-        //         otherClauses: $"ORDER BY {nameof(T_調査予定ルート.調査予定id)},{nameof(T_調査予定ルート.連番)}");
+         if (yotei is not null)
+         {
+             var t調査予定Records = await con.SelectAsync<T_調査予定>(
+                 r => r.調査予定id == SqlExpr.In(yotei) && r.deleted_at == null,
+                 otherClauses: $"ORDER BY {nameof(T_調査予定.調査予定id)}");
+             var tルートRecords = await con.SelectAsync<T_調査予定ルート>(
+                 r => r.調査予定id == SqlExpr.In(yotei),
+                 otherClauses: $"ORDER BY {nameof(T_調査予定ルート.調査予定id)},{nameof(T_調査予定ルート.連番)}");
 
-        //     // まず調査ルートの線を格納
-        //     foreach (var rec in t調査予定Records)
-        //     {
-        //         var line = rec.手動描画調査ルート ?? Get調査ルートLineString([.. tルートRecords.Where(r => r.調査予定id == rec.調査予定id)]);
-        //         routes.Add(new Feature(line, new AttributesTable { }));
-        //     }
-        //     // 続いて、手動描画でなければ調査地点を格納
-        //     foreach (var rec in t調査予定Records.Where(r => r.手動描画調査ルート is null))
-        //     {
-        //         var records = tルートRecords.Where(r => r.調査予定id == rec.調査予定id).ToArray();
-        //         routes.AddRange(Get調査ルートPoints(records));
-        //     }
-        // }
+             // まず調査ルートの線を格納
+             foreach (var rec in t調査予定Records)
+             {
+                 var line = rec.手動描画調査ルート ?? Get調査ルートLineString([.. tルートRecords.Where(r => r.調査予定id == rec.調査予定id)]);
+                 routes.Add(new Feature(line, new AttributesTable { }));
+             }
+             // 続いて、手動描画でなければ調査地点を格納
+             foreach (var rec in t調査予定Records.Where(r => r.手動描画調査ルート is null))
+             {
+                 var records = tルートRecords.Where(r => r.調査予定id == rec.調査予定id).ToArray();
+                 routes.AddRange(Get調査ルートPoints(records));
+             }
+         }
 
         // Jsonでまとめて返す
         return new JsonResult(new
@@ -377,48 +384,117 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     }
 
     /// <summary>
-    /// 
+    /// 調査ルート差し戻し
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="status"></param>
+    /// <param name="id">t調査予定.予定id</param>
     /// <returns></returns>
-    public async Task<IActionResult> OnGetUpdateStatusAsync(int id, 調査ステータスEnum? status = null)
+    public async Task<IActionResult> OnGetUpdateStatusAsync(
+        [FromRoute(Name = "thread")] int? threadId,
+        [FromQuery(Name = "id")] int? yoteiId )
     {
         if (!login.Isログイン済)
         {
             return BadRequest("ログインが無効です。調査依頼を編集できません。");
         }
         var userRec = await login.Getユーザー情報Async();
-
         // 編集対象一時保存データの存在チェック
-        var rec = await con.SelectFirstOrDefaultAsync<T_調査依頼>(r => r.調査依頼id == id && r.deleted_at == null);
+        var rec = await con.SelectFirstOrDefaultAsync<T_調査予定>(r => r.調査予定id ==  yoteiId && r.deleted_at == null);
         if (rec is null)
         {
             return new JsonResult(new { error = "データは既に削除済です。編集できません。" });
         }
-        else if (status == 調査ステータスEnum.一時保存 && rec.ステータス != 調査ステータスEnum.一時保存)
+
+        // 必須パラメータチェック
+        if(threadId == null || yoteiId == null)
         {
-            return new JsonResult(new { error = "一時保存データは既に調査依頼済です。編集できません。" });
-        }
-        else if (rec.組織id != userRec.組織id)
-        {
-            //TODO 管理者に全組織のデータ削除権限を与える場合はこのチェックをバイパスさせること
-            logger.ZLogWarning($"調査依頼の組織コード相違を検出：調査依頼id={id},組織id={rec.組織id}、ログインユーザ={userRec.ユーザーid}");
-            return new JsonResult(new { error = "データを編集する権限がありません。" });
+            return new JsonResult(new { error = "スレッドIDまたは調査予定IDが指定されていません。" });
         }
 
-//        var records = await con.SelectAsync<T_調査箇所>(
-//            r => r.調査依頼id == id && (status == null || r.調査状況 == status) && r.deleted_at == null,
-//            otherClauses: $"ORDER BY {nameof(T_調査箇所.調査箇所id)}");
+        con.Open();
+        using var tran = await con.BeginTransactionAsync();
 
-        return new JsonResult(new
+        // 調査予定取得
+        var yoteiRec = await tran.SelectFirstOrDefaultAsync<T_調査予定>(
+            r => r.調査予定id == yoteiId.Value && r.deleted_at == null,
+            otherClauses: "FOR UPDATE");
+        if (yoteiRec is null)
         {
-            success = new
-            {
-                title = rec.調査依頼名,
-//                features = await dataService.ToFearureCollectionAsync(records, "#FF0000"),
-            }
-        });
+            return new JsonResult(new { error = "指定された調査予定が存在しません。" });
+        }
+        string yoteiName = yoteiRec.調査予定名;
+
+        // スレッド整合性チェック
+        if (yoteiRec.スレッドid != threadId.Value)
+        {
+            return new JsonResult(new { error = "指定された調査予定は要求されたスレッドに属していません。" });
+        }
+
+        // --------------------------------------------------
+        // 1. 調査済みは差し戻し不可
+        if (yoteiRec.ステータス == 調査ステータスEnum.調査済)
+        {
+            return new JsonResult(new { error = "調査済みの予定は差し戻せません。" });
+        }
+
+        // --------------------------------------------------
+        // 2. 調査予定ルート取得
+        var tルートRecords = await tran.SelectAsync<T_調査予定ルート>(
+            r => r.調査予定id == yoteiId.Value,
+            otherClauses: $"ORDER BY {nameof(T_調査予定ルート.連番)}");
+
+        // --------------------------------------------------
+        // 3. 調査箇所のステータスを 依頼中 に戻す（該当する調査箇所が存在する場合）
+        var spotIds = tルートRecords
+            .Select(r => r.調査箇所id)
+            .Where(id => id is not null)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToArray();
+
+        if (spotIds.Length > 0)
+        {
+            await tran.UpdateAsync(
+                () => new T_調査箇所
+                {
+                    調査状況 = 調査ステータスEnum.依頼中,
+                    調査予定id = null,
+                    updated_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP"),
+                },
+                r => r.調査箇所id == SqlExpr.In(spotIds) && r.deleted_at == null);
+        }
+
+        // 4. 該当調査箇所の親調査依頼ごとにステータス判定・更新
+        var parentIraiIds = Array.Empty<int>();
+        if (spotIds.Length > 0)
+        {
+            var spots = await tran.SelectAsync<T_調査箇所>(r => r.調査箇所id == SqlExpr.In(spotIds) && r.deleted_at == null);
+            parentIraiIds = spots.Select(s => s.調査依頼id).Where(v => v != 0).Distinct().ToArray();
+        }
+
+        foreach (var iraiId in parentIraiIds)
+        {
+            var relatedSpots = await tran.SelectAsync<T_調査箇所>(r => r.調査依頼id == iraiId && r.deleted_at == null);
+            // 調査予定が1つでもあれば依然として調査予定、なければ依頼中に戻す
+            var hasPlanned = relatedSpots.Any(s => s.調査状況 == 調査ステータスEnum.調査予定);
+            var newStatus = hasPlanned ? 調査ステータスEnum.調査予定 : 調査ステータスEnum.依頼中;
+
+            await tran.UpdateAsync(
+                () => new T_調査依頼
+                {
+                    ステータス = newStatus,
+                    updated_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP"),
+                },
+                r => r.調査依頼id == iraiId && r.deleted_at == null);
+        }
+
+        // 5. 調査予定は削除扱いにする（論理削除）
+        await tran.UpdateAsync(
+            () => new T_調査予定 { deleted_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP") },
+            r => r.調査予定id == yoteiId.Value && r.deleted_at == null);
+
+        await tran.CommitAsync();
+
+        return new JsonResult(new { success = "以下のルートを一時保存に差し戻しました。<br>"});
     }
 
 
@@ -490,7 +566,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         int? minScore = scoresForRoutes.Any() ? (int?)scoresForRoutes.Min() : null;
 
-        // --- 変更: t_スレッド の 初動調査ルートid を使って存在チェック ---
+        // 首都直下初動が効果入れているか
         bool isRequested = false;
         bool isPlanned = false;
         bool isScheduled = false;
@@ -498,9 +574,9 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         {
             var rId = threadRec.初動調査ルートid.Value;
             var iraiRec = await con.SelectFirstOrDefaultAsync<T_調査依頼>(
-                r => r.スレッドid == thread.Value && r.初動調査ルートid == rId && r.deleted_at == null);
+                r => r.スレッドid == thread.Value && r.初動調査ルートid != null && r.ステータス >= 調査ステータスEnum.調査予定 && r.deleted_at == null);
             var yoteiRec = await con.SelectFirstOrDefaultAsync<T_調査予定>(
-                r => r.スレッドid == thread.Value && r.初動調査ルートid == rId && r.deleted_at == null);
+                r => r.スレッドid == thread.Value && r.初動調査ルートid  != null && r.deleted_at == null);
 
             isRequested = iraiRec is not null;
             isPlanned = yoteiRec is not null;

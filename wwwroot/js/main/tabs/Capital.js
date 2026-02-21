@@ -37,22 +37,31 @@ export function Capital(ctx) {
       { title: '初動調査ルート読み込み' }
     ).then((res) => {
       const routes = res.routes;
-      const recommendRouteId = res.recommendRouteId
-      const isRequested = res.isRequested;    // t_調査依頼に該当あり（t_スレッド の 初動調査ルートid を基準）
+      const recommendRouteId    = res.recommendRouteId
+      const isRequested         = res.isRequested;    // t_調査依頼に該当あり（t_スレッド の 初動調査ルートid を基準）
       const isPlanned = res.isPlanned;      // t_調査予定に該当あり（t_スレッド の 初動調査ルートid を基準）
       const isScheduled = res.isScheduled;     // 両方存在する場合は調査予定済みとして扱う
 
+      // 調査予定ルートとして公開
+      const btn公開 = tabElement.querySelector('button[name="btn初動調査登録"]');
       if (isScheduled) {
+        sel初動調査ルート.disabled = true;
+        btn公開.disabled = true;
+        btn公開.setAttribute('aria-disabled', 'true');
+        btn公開.textContent = 'ルート公開済';
         routes.forEach(function (r) {
           if (r.value == recommendRouteId) {
             sel初動調査ルート.innerHTML = `<option value="${r.value}" ${(r.isLowest) ? "selected" : ""}>${r.name}：評価スコア${r.score}</option>`
           }
         });
       } else {
+        sel初動調査ルート.disabled = false;
+        btn公開.disabled = false;
+        btn公開.removeAttribute('aria-disabled');
+        btn公開.textContent = '調査予定ルートとして公開';
         sel初動調査ルート.innerHTML = routes.map((r) =>
           `<option value="${r.value}" ${(r.isLowest) ? "selected" : "" }>${r.name}：評価スコア${r.score}${(r.isLowest) ? "（推奨）" : "" }</option>`
         ).join('');
-        //sel初動調査ルート.addEventListener('change', loadInitialSurveyRoute);
       }
 
       // 初動調査地点一覧
