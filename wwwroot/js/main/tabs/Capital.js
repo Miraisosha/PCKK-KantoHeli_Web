@@ -97,7 +97,6 @@ export function Capital(ctx) {
       {},
       { title: '初動調査地点読み込み' }
     ).then((json) => {
-      console.log("Handler InitialRoute:");
       // 地図へ描画
       const features = geojsonFormatter.readFeatures(json.routes);
       source.addFeatures(features);
@@ -131,7 +130,6 @@ export function Capital(ctx) {
       });
       selectedRoute.firstRouteId = 初動調査ルートid;
       selectedRoute.ids = [];
-      console.log(selectedRoute);
     }).catch((err) => {
       console.warn('初動調査地点読み込み失敗', err);
     });
@@ -154,8 +152,7 @@ export function Capital(ctx) {
         ajaxExecute(base_url + '?Handler=Plan',
           { method: 'POST', body: formData }, { }
         ).then((res) => {
-          console.log(res);
-//          location.href = `?`;
+          location.href = base_url & "&tab=tab特定初動調査";
         }, () => { });
       }
     });

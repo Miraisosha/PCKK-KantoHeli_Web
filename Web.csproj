@@ -15,12 +15,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\js\main\新しいフォルダー1\**" />
     <Compile Remove="wwwroot\js\main\新しいフォルダー\**" />
     <Compile Remove="wwwroot\新しいフォルダー\**" />
+    <Content Remove="wwwroot\js\main\新しいフォルダー1\**" />
     <Content Remove="wwwroot\js\main\新しいフォルダー\**" />
     <Content Remove="wwwroot\新しいフォルダー\**" />
+    <EmbeddedResource Remove="wwwroot\js\main\新しいフォルダー1\**" />
     <EmbeddedResource Remove="wwwroot\js\main\新しいフォルダー\**" />
     <EmbeddedResource Remove="wwwroot\新しいフォルダー\**" />
+    <None Remove="wwwroot\js\main\新しいフォルダー1\**" />
     <None Remove="wwwroot\js\main\新しいフォルダー\**" />
     <None Remove="wwwroot\新しいフォルダー\**" />
   </ItemGroup>
@@ -62,9 +66,5 @@
     <Content Update="wwwroot\files\kp_road.geojson">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\js\main\新しいフォルダー1\" />
   </ItemGroup>
 </Project>

@@ -83,7 +83,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // 表示対象データを取得（当該スレッドのもの全件。表示時に振り分けフィルタする）
         調査依頼Records = await con.SelectAsync<T_調査依頼>(r => r.スレッドid == thread && r.deleted_at == null,
             otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
-        調査予定Records = await con.SelectAsync<T_調査予定>(r => r.スレッドid == thread && r.deleted_at == null,
+        調査予定Records = await con.SelectAsync<T_調査予定>(r => r.スレッドid == thread && r.ステータス == 調査ステータスEnum.調査予定 && r.deleted_at == null,
             otherClauses: $"ORDER BY {nameof(T_調査予定.updated_at)} DESC");
 
         // 必要に応じ、特定初動調査タブ/調査ルート作成タブ用の情報も取得
@@ -95,6 +95,15 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
         if (所属組織Rec?.isルート作成可 == true)
         {
+            起点終点Records = await con.SelectAsync<T_起点終点>(r => r.deleted_at == null, otherClauses: $"ORDER BY {nameof(T_起点終点.表示順)}");
+        }
+
+        // 一時保存ルート　一覧取得
+        if (所属組織Rec?.isルート作成可 == true)
+        {
+            一時保存調査予定Records = await con.SelectAsync<T_調査予定>(
+                r => r.スレッドid == thread && r.ステータス == 調査ステータスEnum.一時保存 && r.deleted_at == null,
+                otherClauses: $"ORDER BY {nameof(T_調査予定.updated_at)} DESC");
             起点終点Records = await con.SelectAsync<T_起点終点>(r => r.deleted_at == null, otherClauses: $"ORDER BY {nameof(T_起点終点.表示順)}");
         }
 
@@ -770,7 +779,11 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     /// <param name="tempid">一時保存済データに関する更新の場合、一時保存時の調査依頼id</param>
     /// <param name="input">入力内容</param>
     /// <returns></returns>
-    public async Task<IActionResult> OnPostSurveyRequestAsync([FromRoute] int thread, [FromForm] string mode, [FromForm] int? tempid, [FromForm] Input調査依頼 input)
+    public async Task<IActionResult> OnPostSurveyRequestAsync(
+        [FromRoute] int thread,
+        [FromForm] string mode,
+        [FromForm] int? tempid,
+        [FromForm] Input調査依頼 input)
     {
         if (!login.Isログイン済)
         {
@@ -1007,7 +1020,9 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     /// </summary>
     /// <param name="tempid">一時保存状態を復元する場合、一時保存された調査予定id</param>
     /// <returns></returns>
-    public async Task<IActionResult> OnGetPlanAsync(int? tempid)
+    public async Task<IActionResult> OnGetInitialPlanAsync(
+        [FromRoute(Name = "thread")] int? threadId,
+        int? tempid)
     {
         if (!login.Isログイン済)
         {
@@ -1015,11 +1030,45 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
         var userRec = await login.Getユーザー情報Async();
 
-        // 選択可能な調査箇所を全取得する
-        var records = await con.SelectAsync<T_調査箇所>(r => r.調査状況 == 調査ステータスEnum.依頼中 && r.deleted_at == null,
-            otherClauses: $"ORDER BY {nameof(T_調査箇所.調査箇所id)}");
+        // ---------------------------------------------
+        // スレッド存在チェック
+        if (threadId is not null)
+        {
+            var threadRec = await con.SelectFirstOrDefaultAsync<T_スレッド>(r => r.スレッドid == threadId.Value && r.deleted_at == null);
+            if (threadRec is null)
+            {
+                return BadRequest("スレッドidが取得できません。");
+            }
+            スレッドRec = threadRec;
+        }
+        else
+        {
+            return BadRequest("スレッドidが取得できません。");
+        }
 
-        // 一時保存の呼び出しの場合、調査予定データを把握
+        // ---------------------------------------------
+        // 選択可能な調査箇所を全取得する
+        //var records = await con.SelectAsync<T_調査箇所>(r => r.調査状況 == 調査ステータスEnum.依頼中 && r.deleted_at == null,
+        //    otherClauses: $"ORDER BY {nameof(T_調査箇所.調査箇所id)}");
+        // スレッドに紐づく調査依頼の調査箇所を取得する（threadId は前で存在チェック済）
+        var iraiIds = (await con.SelectAsync<T_調査依頼>(r => r.スレッドid == threadId.Value && r.deleted_at == null))
+            .Select(r => r.調査依頼id)
+            .ToArray();
+
+        IReadOnlyList<T_調査箇所> records = [];
+        if (iraiIds.Length > 0)
+        {
+            records = await con.SelectAsync<T_調査箇所>(
+                r => r.調査依頼id == SqlExpr.In(iraiIds)
+                     && r.調査状況 == 調査ステータスEnum.依頼中
+                     && r.deleted_at == null,
+                otherClauses: $"ORDER BY {nameof(T_調査箇所.調査箇所id)}");
+        }
+        else
+        {
+            records = Array.Empty<T_調査箇所>();
+        }
+
         T_調査予定? t調査予定Rec = null;
         T_調査予定ルート? t始点Rec = null;
         T_調査予定ルート? t終点Rec = null;
@@ -1343,6 +1392,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             起点id = iv.Validate(() => input.startid),
             終点id = iv.Validate(() => input.endid),
             手動描画調査ルート = line手動描画ルート,
+            スレッドid = threadId.Value,
         };
         if (iv.Errors.Count == 0)
         {
@@ -1724,18 +1774,180 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     /// <param name="tルートRecords">調査予定ルート</param>
     /// <returns>経路。調査予定ルート未設定の場合はnull</returns>
     /// <exception cref="InvalidDataException"></exception>
+//    private LineString? Get調査ルートLineString(IReadOnlyList<T_調査予定ルート> tルートRecords)
+//    {
+//        // まず経路の線を引きつつ、LineStringの経路追加時に前/後ろどちらから経路追加するか決定する
+//        List<Coordinate> lineCoordinates = [];
+//        for (int i = 0; i < tルートRecords.Count; i++)
+//        {
+//            var rec = tルートRecords[i];
+//            if (rec.ジオメトリ is Point p)
+//            {
+//                lineCoordinates.Add(p.Coordinate); // 点であれば単純にその地点を追加
+//            }
+//            else if (rec.ジオメトリ is LineString ls && ls.Coordinates.FirstOrDefault() is Coordinate coord前 && ls.Coordinates.LastOrDefault() is Coordinate coord後ろ)
+//            {
+//                // 前/後ろどちらから経路に追加したほうが距離が短くなるか判断する
+//                double distance前から追加した場合 = 0;
+//                double distance後ろから追加した場合 = 0;
+//                var geo前 = new GeoCoordinate(coord前.Y, coord前.X);
+//                var geo後ろ = new GeoCoordinate(coord後ろ.Y, coord後ろ.X);
+//
+//                // 直前の座標が分かっていれば距離を算出
+//                if (lineCoordinates.LastOrDefault() is Coordinate prev)
+//                {
+//                    var prevGeo = new GeoCoordinate(prev.Y, prev.X);
+//                    distance前から追加した場合 += prevGeo.GetDistanceTo(geo前);
+//                    distance後ろから追加した場合 += prevGeo.GetDistanceTo(geo後ろ);
+//                }
+//                // それより後ろにも座標があるならさらに距離を算出して加算
+//                var nextジオメトリ = (i + 1 < tルートRecords.Count) ? tルートRecords[i + 1].ジオメトリ : null;
+//                if (nextジオメトリ is Point)
+//                {
+//                    var nextGeo = new GeoCoordinate(nextジオメトリ.Coordinate.Y, nextジオメトリ.Coordinate.X);
+//                    distance前から追加した場合 += nextGeo.GetDistanceTo(geo後ろ);
+//                    distance後ろから追加した場合 += nextGeo.GetDistanceTo(geo前);
+//                }
+//                else if (rec.ジオメトリ is LineString ls2 && ls2.Coordinates.FirstOrDefault() is Coordinate coord前2 && ls.Coordinates.LastOrDefault() is Coordinate coord後ろ2)
+//                {
+//                    // 後続のジオメトリも線の場合は、その後続の線の前/後ろどちらに繋げるほうがより短いかをさらに考慮する
+//                    // (厳密にやるのであれば始点～終点までGoogleOrTool等で最短経路を算出する必要があるが、ここでは妥協して直前直後のみを考慮した最短経路を導出する)
+//                    var nextGeo前 = new GeoCoordinate(coord前2.Y, coord前2.X);
+//                    var nextGeo後ろ = new GeoCoordinate(coord後ろ2.Y, coord後ろ2.X);
+//                    distance前から追加した場合 += Math.Min(nextGeo前.GetDistanceTo(geo前), nextGeo後ろ.GetDistanceTo(geo前));
+//                    distance後ろから追加した場合 += Math.Min(nextGeo前.GetDistanceTo(geo後ろ), nextGeo後ろ.GetDistanceTo(geo後ろ));
+//                }
+//
+//                rec.is後ろから経路追加 = distance後ろから追加した場合 < distance前から追加した場合;
+//                if (rec.is後ろから経路追加 == true)
+//                {
+//                    for (int i2 = rec.ジオメトリ.Coordinates.Length - 1; i2 >= 0; i2--)
+//                    {   // 座標の配列の後ろから追加していく
+//                        lineCoordinates.Add(rec.ジオメトリ.Coordinates[i2]);
+//                    }
+//                }
+//                else
+//                {
+//                    lineCoordinates.AddRange(rec.ジオメトリ.Coordinates);
+//                }
+//            }
+//            else
+//            {
+//                logger.ZLogError($"想定外のジオメトリが登録されている。型:{rec.ジオメトリ.GetType()}, 調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
+//                throw new InvalidDataException($"想定外のジオメトリが登録されている。型:{rec.ジオメトリ.GetType()}, 調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
+//            }
+//        }
+//        return lineCoordinates.Count >= 2
+//            ? new LineString([.. lineCoordinates]) { SRID = 4326 }
+//            : null;
+//    }
     private LineString? Get調査ルートLineString(IReadOnlyList<T_調査予定ルート> tルートRecords)
     {
         // まず経路の線を引きつつ、LineStringの経路追加時に前/後ろどちらから経路追加するか決定する
-        List<Coordinate> lineCoordinates = [];
+        List<Coordinate> lineCoordinates = new();
+
+        static Coordinate? GetEndpoint(Geometry? g, bool first)
+        {
+            if (g is null) return null;
+            if (g is Point pt) return pt.Coordinate;
+            if (g is LineString ls && ls.Coordinates.Length > 0)
+                return first ? ls.Coordinates[0] : ls.Coordinates[ls.Coordinates.Length - 1];
+            if (g is MultiLineString mls)
+            {
+                for (int i = 0; i < mls.NumGeometries; i++)
+                {
+                    var g0 = mls.GetGeometryN(i);
+                    if (g0 is LineString ls0 && ls0.Coordinates.Length > 0)
+                        return first ? ls0.Coordinates[0] : ls0.Coordinates[ls0.Coordinates.Length - 1];
+                    if (g0 is Point pt0) return pt0.Coordinate;
+                }
+            }
+            // 最後の手段として Geometry.Coordinate を使う（null の場合は無視）
+            return g.Coordinate;
+        }
+
         for (int i = 0; i < tルートRecords.Count; i++)
         {
             var rec = tルートRecords[i];
-            if (rec.ジオメトリ is Point p)
+            var geom = rec.ジオメトリ;
+            if (geom is null)
             {
-                lineCoordinates.Add(p.Coordinate); // 点であれば単純にその地点を追加
+                logger.ZLogWarning($"ジオメトリが null の調査予定ルートをスキップします：調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
+                continue;
             }
-            else if (rec.ジオメトリ is LineString ls && ls.Coordinates.FirstOrDefault() is Coordinate coord前 && ls.Coordinates.LastOrDefault() is Coordinate coord後ろ)
+
+            // 点の場合は単純に座標追加
+            if (geom is Point p)
+            {
+                lineCoordinates.Add(p.Coordinate);
+                continue;
+            }
+
+            // LineString / MultiLineString / GeometryCollection などを扱う
+            LineString? ls = null;
+            if (geom is LineString lss)
+            {
+                ls = lss;
+            }
+            else if (geom is MultiLineString mls)
+            {
+                // MultiLineString は代表的な LineString（先頭で座標が2以上あるもの）を探す
+                for (int gi = 0; gi < mls.NumGeometries; gi++)
+                {
+                    var g0 = mls.GetGeometryN(gi);
+                    if (g0 is LineString ls0 && ls0.Coordinates.Length >= 2)
+                    {
+                        ls = ls0;
+                        break;
+                    }
+                    if (g0 is Point pt0)
+                    {
+                        lineCoordinates.Add(pt0.Coordinate);
+                        ls = null;
+                        break;
+                    }
+                }
+                // 見つからなければ先頭のジオメトリの代表点を使う（fallback）
+                if (ls == null && mls.NumGeometries > 0)
+                {
+                    var g0 = mls.GetGeometryN(0);
+                    if (g0?.Coordinate != null)
+                    {
+                        lineCoordinates.Add(g0.Coordinate);
+                        continue;
+                    }
+                }
+            }
+            else if (geom is GeometryCollection gc)
+            {
+                // GeometryCollection から最初に見つかる LineString / Point を採用
+                for (int gi = 0; gi < gc.NumGeometries; gi++)
+                {
+                    var g0 = gc.GetGeometryN(gi);
+                    if (g0 is LineString ls0 && ls0.Coordinates.Length >= 2)
+                    {
+                        ls = ls0;
+                        break;
+                    }
+                    if (g0 is Point pt0)
+                    {
+                        lineCoordinates.Add(pt0.Coordinate);
+                        ls = null;
+                        break;
+                    }
+                }
+                if (ls == null)
+                {
+                    var g0 = gc.NumGeometries > 0 ? gc.GetGeometryN(0) : null;
+                    if (g0?.Coordinate != null)
+                    {
+                        lineCoordinates.Add(g0.Coordinate);
+                        continue;
+                    }
+                }
+            }
+
+            if (ls != null && ls.Coordinates.FirstOrDefault() is Coordinate coord前 && ls.Coordinates.LastOrDefault() is Coordinate coord後ろ)
             {
                 // 前/後ろどちらから経路に追加したほうが距離が短くなるか判断する
                 double distance前から追加した場合 = 0;
@@ -1750,43 +1962,53 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                     distance前から追加した場合 += prevGeo.GetDistanceTo(geo前);
                     distance後ろから追加した場合 += prevGeo.GetDistanceTo(geo後ろ);
                 }
-                // それより後ろにも座標があるならさらに距離を算出して加算
+
+                // 後続ジオメトリの代表点を取得して距離を算出（次の要素が存在する場合のみ）
                 var nextジオメトリ = (i + 1 < tルートRecords.Count) ? tルートRecords[i + 1].ジオメトリ : null;
-                if (nextジオメトリ is Point)
+                var next前 = GetEndpoint(nextジオメトリ, true);
+                var next後ろ = GetEndpoint(nextジオメトリ, false);
+                if (next前 is not null)
                 {
-                    var nextGeo = new GeoCoordinate(nextジオメトリ.Coordinate.Y, nextジオメトリ.Coordinate.X);
-                    distance前から追加した場合 += nextGeo.GetDistanceTo(geo後ろ);
-                    distance後ろから追加した場合 += nextGeo.GetDistanceTo(geo前);
+                    var next前Geo = new GeoCoordinate(next前.Y, next前.X);
+                    distance前から追加した場合 += next前Geo.GetDistanceTo(geo後ろ);
+                    distance後ろから追加した場合 += next前Geo.GetDistanceTo(geo前);
                 }
-                else if (rec.ジオメトリ is LineString ls2 && ls2.Coordinates.FirstOrDefault() is Coordinate coord前2 && ls.Coordinates.LastOrDefault() is Coordinate coord後ろ2)
+                else if (next後ろ is not null)
                 {
-                    // 後続のジオメトリも線の場合は、その後続の線の前/後ろどちらに繋げるほうがより短いかをさらに考慮する
-                    // (厳密にやるのであれば始点～終点までGoogleOrTool等で最短経路を算出する必要があるが、ここでは妥協して直前直後のみを考慮した最短経路を導出する)
-                    var nextGeo前 = new GeoCoordinate(coord前2.Y, coord前2.X);
-                    var nextGeo後ろ = new GeoCoordinate(coord後ろ2.Y, coord後ろ2.X);
-                    distance前から追加した場合 += Math.Min(nextGeo前.GetDistanceTo(geo前), nextGeo後ろ.GetDistanceTo(geo前));
-                    distance後ろから追加した場合 += Math.Min(nextGeo前.GetDistanceTo(geo後ろ), nextGeo後ろ.GetDistanceTo(geo後ろ));
+                    var next後ろGeo = new GeoCoordinate(next後ろ.Y, next後ろ.X);
+                    distance前から追加した場合 += next後ろGeo.GetDistanceTo(geo後ろ);
+                    distance後ろから追加した場合 += next後ろGeo.GetDistanceTo(geo前);
                 }
 
                 rec.is後ろから経路追加 = distance後ろから追加した場合 < distance前から追加した場合;
                 if (rec.is後ろから経路追加 == true)
                 {
-                    for (int i2 = rec.ジオメトリ.Coordinates.Length - 1; i2 >= 0; i2--)
+                    for (int i2 = ls.Coordinates.Length - 1; i2 >= 0; i2--)
                     {   // 座標の配列の後ろから追加していく
-                        lineCoordinates.Add(rec.ジオメトリ.Coordinates[i2]);
+                        lineCoordinates.Add(ls.Coordinates[i2]);
                     }
                 }
                 else
                 {
-                    lineCoordinates.AddRange(rec.ジオメトリ.Coordinates);
+                    lineCoordinates.AddRange(ls.Coordinates);
                 }
             }
             else
             {
-                logger.ZLogError($"想定外のジオメトリが登録されている。型:{rec.ジオメトリ.GetType()}, 調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
-                throw new InvalidDataException($"想定外のジオメトリが登録されている。型:{rec.ジオメトリ.GetType()}, 調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
+                // 想定外ジオメトリは警告ログを出して代表点を使う（安全フェールバック）
+                logger.ZLogWarning($"想定外または座標不足のジオメトリを処理します。型:{geom.GetType()}, 調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
+                if (geom.Coordinate != null)
+                {
+                    lineCoordinates.Add(geom.Coordinate);
+                }
+                else
+                {
+                    // 最後の手段としてスキップ
+                    logger.ZLogWarning($"ジオメトリの代表点が取得できないためスキップします：調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
+                }
             }
         }
+
         return lineCoordinates.Count >= 2
             ? new LineString([.. lineCoordinates]) { SRID = 4326 }
             : null;

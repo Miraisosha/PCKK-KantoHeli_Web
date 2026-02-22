@@ -112,16 +112,17 @@
     <div data-bs-toggle="collapse" data-bs-target="#left調査ルート一時保存" aria-expanded="@(show ? "true" : "false")">調査ルート（一時保存）
     </div>
     <div class="indent collapse show" id="left調査ルート一時保存">
-      @foreach (var rec in records)
+      @foreach (var rec in Model.一時保存調査予定Records)
       {
         <div>
-          @* <label class="form-check d-flex align-items-center">
-            <input class="form-check-input" type="checkbox" name="irai" value="@rec.調査ルートid"
-              data-name="@(value: $"{rec.調査ルート名}（{rec.updated_at:yyyy.M.d HH:mm}）")">
-            <span class="form-check-label">@rec.調査ルート名<br>@($"{rec.updated_at:yyyy.M.d HH:mm}")</span>
-          </label> *@
+          <label class="form-check d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" name="yotei" value="@rec.調査予定id"
+              data-name="@(value: $"{rec.調査予定名}（{rec.updated_at:yyyy.M.d HH:mm}）")">
+            <span class="form-check-label">@rec.調査予定名<br>@($"{rec.updated_at:yyyy.M.d HH:mm}")</span>
+          </label>
         </div>
       }
     </div>
+
   }
 </form>

@@ -16,8 +16,7 @@ export function InvestigationRequestStatus(ctx) {
 
   const sel調査依頼 = tab依頼状況.querySelector('select[name="sel調査依頼"]');
   const tbody依頼状況 = tab依頼状況.querySelector('#table依頼状況>tbody');
-  const chk依頼状況_依頼中のみ表示 =
-    document.getElementById('chk依頼状況_依頼中のみ表示');
+  const chk依頼状況_依頼中のみ表示 = document.getElementById('chk依頼状況_依頼中のみ表示');
 
   // -------------------------
   // 一覧読込
