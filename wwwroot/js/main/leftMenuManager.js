@@ -94,8 +94,9 @@ export function leftMenuManager(ctx) {
     });
   }
 
-  // --------------------------------------------------------------------
-  // 調査ルート（予定）吹き出しメニュー　イベント
+  // ====================================================================
+  // 調査ルート（予定）吹き出しメニュー　イベント KML/差し戻し
+  // ====================================================================
   document.querySelectorAll('.dropdown-item').forEach((b) => {
     b.addEventListener("click", function (e) {
       const kmlBtn = e.target.closest(".btnKml");

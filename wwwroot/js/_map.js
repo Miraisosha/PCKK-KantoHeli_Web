@@ -170,7 +170,7 @@ const createRouteLayer = (map) => {
   const layer調査ルート = new ol.layer.Vector({
     source: new ol.source.Vector(),
     style: function (feature, resolution) {
-      const color = feature.get('color') || '#000000';
+      const color = feature.get('color') || '#FF0000';
       const strokeColor = isBrightColor(color) ? '#000000' : '#FFFFFF';
       const spotColor = feature.get('spotColor');
       const text = feature.get('text');
@@ -213,6 +213,60 @@ const createRouteLayer = (map) => {
   });
   map.addLayer(layer調査ルート);
   return layer調査ルート;
+};
+/**
+ * 調査ルート（編集中）レイヤを作成します。
+  * @param {ol.Map} map mapオブジェクト
+ * @remarks レイヤのfeatureとして、線 または 「text」プロパティで表示内容を指定したPointを指定する。
+ * @remarks レイヤのfeatureには「color」プロパティで表示色を指定する。指定なしの場合は黒色表示となる。
+ */
+const createEditRouteLayer = (map) => {
+  const layer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    style: function (feature, resolution) {
+      const color = feature.get('color') || '#0000FF';
+      const strokeColor = isBrightColor(color) ? '#000000' : '#FFFFFF';
+      const spotColor = feature.get('spotColor');
+      const text = feature.get('text');
+      const styles = [];
+      if (feature.getGeometry().getType() == 'Point') {
+        // 地点色が指定されているなら円で塗りつぶす
+        if (spotColor) {
+          styles.push(new ol.style.Style({
+            image: new ol.style.Circle({
+              radius: 10,
+              fill: new ol.style.Fill({ color: spotColor }),
+              //TODO 円の境界色も指定できる必要がありそう？(spotBorderColorが指定されてたときのみ描画、等)
+              stroke: new ol.style.Stroke({ color: color, width: 1 }),
+            }),
+          }));
+        }
+        // テキストが指定されていたらそのテキストを表示
+        if (text) {
+          styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+              offsetX: 0.5,
+              text: text,
+              fill: new ol.style.Fill({ color: color }),
+              stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
+              font: '12px Calibri,sans-serif',
+            }),
+          }));
+        }
+      } else {
+        // 飛行ルートの線を表示
+        styles.push(new ol.style.Style({
+          stroke: new ol.style.Stroke({ color: strokeColor, width: 5, lineDash: [4, 10], }),
+        }));
+        styles.push(new ol.style.Style({
+          stroke: new ol.style.Stroke({ color: color, width: 3, lineDash: [0, 1, 7, 5], }),
+        }));
+      }
+      return styles;
+    },
+  });
+  map.addLayer(layer);
+  return layer;
 };
 
 
@@ -422,4 +476,3 @@ const createKPLineRoad = (map) => {
   map.addLayer(layer);
   return layer;
 }
-

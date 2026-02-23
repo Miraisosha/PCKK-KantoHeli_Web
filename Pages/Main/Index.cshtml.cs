@@ -7,6 +7,7 @@ using GeoCoordinatePortable;
 using Google.OrTools.ConstraintSolver;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
@@ -47,8 +48,12 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     public T_特定初動調査区分? 特定初動調査区分Rec { get; set; }
     public IReadOnlyList<T_初動調査ルート> 初動調査ルートRecords { get; set; } = [];
 
-    // 以下、調査ルート作成で参照するテーブル
+    // 調査依頼状況タブ
+    public IReadOnlyList<T_調査依頼> 依頼状況調査依頼Records { get; set; } = [];
+
+    // ルート作成で参照するテーブル
     public IReadOnlyList<T_起点終点> 起点終点Records { get; set; } = [];
+    public IReadOnlyList<T_調査依頼> ルート作成調査依頼Records { get; set; } = [];
 
 
     public IReadOnlyList<T_調査依頼> 一時保存調査箇所Records { get; set; } = [];
@@ -80,11 +85,28 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         ユーザーRec = login.Isログイン済 ? await login.Getユーザー情報Async() : null;
         所属組織Rec = 組織Records.FirstOrDefault(r => r.組織id == ユーザーRec?.組織id);
 
-        // 表示対象データを取得（当該スレッドのもの全件。表示時に振り分けフィルタする）
+        // 左メニュー調査依頼
         調査依頼Records = await con.SelectAsync<T_調査依頼>(r => r.スレッドid == thread && r.deleted_at == null,
             otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
+        // 左メニュー調査予定ルート
         調査予定Records = await con.SelectAsync<T_調査予定>(r => r.スレッドid == thread && r.ステータス == 調査ステータスEnum.調査予定 && r.deleted_at == null,
             otherClauses: $"ORDER BY {nameof(T_調査予定.updated_at)} DESC");
+
+        // 調査依頼状況タブ　調査依頼　プルダウン
+        if (ユーザーRec?.組織id == 101)
+        {
+            // 総括班は全組織分を表示（組織条件なし）
+            依頼状況調査依頼Records = await con.SelectAsync<T_調査依頼>( r => r.スレッドid == thread && r.deleted_at == null, otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
+        }
+        else
+        {
+            依頼状況調査依頼Records = await con.SelectAsync<T_調査依頼>( r => r.スレッドid == thread && r.組織id == ユーザーRec!.組織id && r.deleted_at == null, otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
+        }
+        // ルート作成タブ　調査依頼絞り込み　プルダウン
+        // 初動調査ルートを除く
+        ルート作成調査依頼Records = await con.SelectAsync<T_調査依頼>(r => r.スレッドid == thread && r.初動調査ルートid == null && r.deleted_at == null,
+            otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
+
 
         // 必要に応じ、特定初動調査タブ/調査ルート作成タブ用の情報も取得
         if (所属組織Rec?.isルート作成可 == true && スレッドRec.特定初動調査区分id is not null)
@@ -244,7 +266,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
              foreach (var rec in t調査予定Records)
              {
                  var line = rec.手動描画調査ルート ?? Get調査ルートLineString([.. tルートRecords.Where(r => r.調査予定id == rec.調査予定id)]);
-                 routes.Add(new Feature(line, new AttributesTable { }));
+                 routes.Add(new Feature(line, new AttributesTable { { "name", rec.調査予定名 }, { "id", rec.調査予定id } } ));
              }
              // 続いて、手動描画でなければ調査地点を格納
              foreach (var rec in t調査予定Records.Where(r => r.手動描画調査ルート is null))
@@ -268,6 +290,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     }
 
     /// <summary>
+    /// 調査依頼状況　調査箇所一覧
     /// ajax(get): 引数で指定された調査依頼データを返す
     /// </summary>
     /// <param name="id">調査依頼id</param>
@@ -290,12 +313,12 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         else if (status == 調査ステータスEnum.一時保存 && rec.ステータス != 調査ステータスEnum.一時保存)
         {
             return new JsonResult(new { error = "一時保存データは既に調査依頼済です。編集できません。" });
-        }
-        else if (rec.組織id != userRec.組織id)
-        {
-            //TODO 管理者に全組織のデータ削除権限を与える場合はこのチェックをバイパスさせること
-            logger.ZLogWarning($"調査依頼の組織コード相違を検出：調査依頼id={id},組織id={rec.組織id}、ログインユーザ={userRec.ユーザーid}");
-            return new JsonResult(new { error = "データを編集する権限がありません。" });
+//        }
+//        else if (rec.組織id != userRec.組織id)
+//        {
+//            //TODO 管理者に全組織のデータ削除権限を与える場合はこのチェックをバイパスさせること
+//            logger.ZLogWarning($"調査依頼の組織コード相違を検出：調査依頼id={id},組織id={rec.組織id}、ログインユーザ={userRec.ユーザーid}");
+//            return new JsonResult(new { error = "データを編集する権限がありません。" });
         }
 
         var records = await con.SelectAsync<T_調査箇所>(
@@ -335,6 +358,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 {"persons", rec.搭乗希望人数 },
                 {"remarks", rec.備考 },
                 {"status", $"{rec.調査状況}" },
+                {"spottype", Enum.GetName(typeof(調査箇所登録方法Enum), rec.登録方法) },
+                {"survey", Enum.GetName(typeof(調査手法Enum), rec.調査手法) },
                 {"updated", $"{rec.updated_at:yyyy.M.d HH:mm}" },
                 {"color", color},
             }));
@@ -616,62 +641,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             }
         });
     }
-    /// <summary>
-    /// 貯砂予定ルートとして公開されているか
-    /// </summary>
-    /// <param name="thread"></param>
-    /// <returns></returns>
-//    public async Task<IActionResult> OnGetIsPlannedRoutePublishedAsync([FromRoute] int? thread = null)
-//    {
-//        var routes = new List<object>();
-//        int? recommendRouteId = null;
-//        if (thread is null) {
-//            return new JsonResult(new {
-//                success = new {
-//                    routes,
-//                    recommendRouteId
-//                }
-//            });
-//        }
-//
-//        // スレッドを取得（地震id と 初動調査ルートid を使う）
-//        var threadRec = await con.SelectFirstOrDefaultAsync<T_スレッド>( r => r.スレッドid == thread.Value && r.deleted_at == null);
-//        if (threadRec is null) {
-//            return new JsonResult(new {
-//                success = new {
-//                    routes,
-//                    recommendRouteId
-//                }
-//            });
-//        }
-//
-//        // --- 変更: t_スレッド の 初動調査ルートid を使って存在チェック ---
-//        bool isRequested = false;
-//        bool isPlanned = false;
-//        bool isScheduled = false;
-//        if (threadRec.初動調査ルートid is not null)
-//        {
-//            var rId = threadRec.初動調査ルートid.Value;
-//            var iraiRec = await con.SelectFirstOrDefaultAsync<T_調査依頼>(
-//                r => r.スレッドid == thread.Value && r.初動調査ルートid == rId && r.deleted_at == null);
-//            var yoteiRec = await con.SelectFirstOrDefaultAsync<T_調査予定>(
-//                r => r.スレッドid == thread.Value && r.初動調査ルートid == rId && r.deleted_at == null);
-//
-//            isRequested = iraiRec is not null;
-//            isPlanned = yoteiRec is not null;
-//            isScheduled = isRequested && isPlanned;
-//        }
-//
-//        return new JsonResult(new
-//        {
-//            success = new
-//            {
-//                isRequested,    // t_調査依頼に該当あり（t_スレッド の 初動調査ルートid を基準）
-//                isPlanned,      // t_調査予定に該当あり（t_スレッド の 初動調査ルートid を基準）
-//                isScheduled     // 両方存在する場合は調査予定済みとして扱う
-//            }
-//        });
-//    }
+
     /// <summary>
     /// ajax(get): 初動調査ルートを返す
     /// </summary>
@@ -989,6 +959,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // 権限チェック：自部署のみ削除可能（必要なら管理者判定を追加）
         foreach (var rec in targets)
         {
+            if (userRec.組織id == 101) continue;
             if (rec.組織id != userRec.組織id)
             {
                 logger.ZLogWarning($"調査箇所削除権限違反: 調査箇所id={rec.調査箇所id}, 組織id={rec.組織id}, ユーザ={userRec.ユーザーid}");
@@ -1048,10 +1019,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         // ---------------------------------------------
         // 選択可能な調査箇所を全取得する
-        //var records = await con.SelectAsync<T_調査箇所>(r => r.調査状況 == 調査ステータスEnum.依頼中 && r.deleted_at == null,
-        //    otherClauses: $"ORDER BY {nameof(T_調査箇所.調査箇所id)}");
-        // スレッドに紐づく調査依頼の調査箇所を取得する（threadId は前で存在チェック済）
-        var iraiIds = (await con.SelectAsync<T_調査依頼>(r => r.スレッドid == threadId.Value && r.deleted_at == null))
+        // 首都直下を除く
+        var iraiIds = (await con.SelectAsync<T_調査依頼>(r => r.スレッドid == threadId.Value && r.初動調査ルートid == null && r.deleted_at == null))
             .Select(r => r.調査依頼id)
             .ToArray();
 
@@ -1322,6 +1291,10 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
 
         // ---------------------------------------------------------------------
+        // 飛行時間
+        var flightTime = calcHeliFlightTime(tルートRecords);
+
+        // ---------------------------------------------------------------------
         // 調査ルートのfeatureを生成(ただし手動描画ルートがあるならそれを優先)
         LineString? route = line手動描画ルート ?? Get調査ルートLineString(tルートRecords);
         // 距離や飛行情報を把握
@@ -1330,6 +1303,40 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         var recヘリ飛行設定 = await con.SelectFirstOrDefaultAsync<T_ヘリ飛行設定>(
             r => r.飛行可能時間_分 >= val飛行時間_分,
             otherClauses: $"ORDER BY {nameof(T_ヘリ飛行設定.搭乗者人数)} DESC LIMIT 1");
+
+        // 調査箇所（線）の距離
+        double lineDistance = CalcAllLineStringsDistance(tルートRecords) / 1000;
+        double linePass = distance.GetValueOrDefault() - lineDistance;
+        var 移動時間 = CalcTimeMinutesAtKnots(linePass, 100);
+        var 線調査時間 =CalcTimeMinutesAtKnots(lineDistance, 70); 
+        // 点の調査時間
+        var 点調査時間 = 0;
+        var 調査箇所数 = 0;
+        foreach(var rec in tルートRecords)
+        {
+            var geom = rec.ジオメトリ;
+            if (geom is null) continue;
+            if (rec.調査箇所id == null) continue;
+            if(geom is Point || geom is LineString || geom is MultiLineString)
+            {
+                調査箇所数++;
+            }
+            if (geom is Point p)
+            {
+                var r = t調査箇所Records.FirstOrDefault(r => r.調査箇所id == rec.調査予定id && r.deleted_at == null);
+                if (r is not null)
+                {
+                    if(r.調査手法 == 調査手法Enum.周回)
+                    {
+                        点調査時間 += 2;
+                    }
+                }
+
+            }
+        }
+        var 飛行時間 = 移動時間 + 線調査時間 + 点調査時間 + (調査箇所数 * 2);
+        logger.LogInformation("飛行時間：" + 飛行時間 + "\t移動時間：" + 移動時間 + "\t調査時間（線）：" + 線調査時間 + "\t調査時間（点）：" + 点調査時間 + "\t調査箇所数" + 調査箇所数);
+
 
         // 調査ルート表示 or 最短経路探索であれば successのjsonを返して終了
         if (status is null || mode == "calc")
@@ -1362,7 +1369,9 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                     },
                     総飛行距離 = distance is not null ? $"{distance:#0.0}Km" : null,
                     調査箇所 = id.Length > 0 ? $"{id.Length}箇所" : null,
-                    飛行時間 = val飛行時間_分 is not null ? $"{Math.Floor(val飛行時間_分.Value / 60):0}時間{val飛行時間_分 % 60:0}分" : null,
+                    //飛行時間 = val飛行時間_分 is not null ? $"{Math.Floor(val飛行時間_分.Value / 60):0}時間{val飛行時間_分 % 60:0}分" : null,
+                    飛行時間 = $"{Math.Floor(飛行時間 / 60):0}時間{飛行時間 % 60:0}分",
+                    飛行時間分 = 飛行時間,
                     同乗可能人数 = val飛行時間_分 is not null && recヘリ飛行設定?.搭乗者人数 > 0 ? $"{recヘリ飛行設定.搭乗者人数}人以下" : null,
                     id = tルートRecords.Select(r => r.調査箇所id).OfType<int>().Select(v => $"{v}"),
                     error,
@@ -1876,13 +1885,15 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 continue;
             }
 
+            // --------------------------------
             // 点の場合は単純に座標追加
             if (geom is Point p)
             {
-                lineCoordinates.Add(p.Coordinate);
+                lineCoordinates.Add(p.Coordinate);  // <<<<--------------
                 continue;
             }
 
+            // --------------------------------
             // LineString / MultiLineString / GeometryCollection などを扱う
             LineString? ls = null;
             if (geom is LineString lss)
@@ -1902,7 +1913,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                     }
                     if (g0 is Point pt0)
                     {
-                        lineCoordinates.Add(pt0.Coordinate);
+                        lineCoordinates.Add(pt0.Coordinate);  // <<<<--------------
                         ls = null;
                         break;
                     }
@@ -1913,7 +1924,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                     var g0 = mls.GetGeometryN(0);
                     if (g0?.Coordinate != null)
                     {
-                        lineCoordinates.Add(g0.Coordinate);
+                        lineCoordinates.Add(g0.Coordinate);  // <<<<--------------
                         continue;
                     }
                 }
@@ -1931,7 +1942,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                     }
                     if (g0 is Point pt0)
                     {
-                        lineCoordinates.Add(pt0.Coordinate);
+                        lineCoordinates.Add(pt0.Coordinate);  // <<<<--------------
                         ls = null;
                         break;
                     }
@@ -1941,7 +1952,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                     var g0 = gc.NumGeometries > 0 ? gc.GetGeometryN(0) : null;
                     if (g0?.Coordinate != null)
                     {
-                        lineCoordinates.Add(g0.Coordinate);
+                        lineCoordinates.Add(g0.Coordinate);  // <<<<--------------
                         continue;
                     }
                 }
@@ -2077,5 +2088,88 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
         return totalDistance;
     }
+    private int calcHeliFlightTime(List<T_調査予定ルート> records)
+    {
+        int time = -1;
+        foreach(var rec in records)
+        {
 
+        }
+        return time;
+    }
+    /// <summary>
+    /// 選択された調査地点（線）の距離合計を取得
+    /// </summary>
+    /// <param name="records"></param>
+    /// <returns></returns>
+    private double CalcAllLineStringsDistance(IReadOnlyList<T_調査予定ルート> records)
+    {
+        if (records == null || records.Count == 0) return 0d;
+        double total = 0d;
+
+        foreach (var rec in records)
+        {
+            var g = rec.ジオメトリ;
+            if (g is null) continue;
+
+            // 単一の LineString
+            if (g is LineString ls)
+            {
+                var d = Calc距離(ls);
+                if (d.HasValue) total += d.Value;
+                continue;
+            }
+
+            // MultiLineString の各 LineString を合算
+            if (g is MultiLineString mls)
+            {
+                for (int i = 0; i < mls.NumGeometries; i++)
+                {
+                    if (mls.GetGeometryN(i) is LineString part)
+                    {
+                        var d = Calc距離(part);
+                        if (d.HasValue) total += d.Value;
+                    }
+                }
+                continue;
+            }
+
+            // GeometryCollection（ネストされた LineString / MultiLineString を処理）
+            if (g is GeometryCollection gc)
+            {
+                for (int i = 0; i < gc.NumGeometries; i++)
+                {
+                    var g0 = gc.GetGeometryN(i);
+                    if (g0 is LineString partLs)
+                    {
+                        var d = Calc距離(partLs);
+                        if (d.HasValue) total += d.Value;
+                    }
+                    else if (g0 is MultiLineString partMls)
+                    {
+                        for (int j = 0; j < partMls.NumGeometries; j++)
+                        {
+                            if (partMls.GetGeometryN(j) is LineString inner)
+                            {
+                                var d2 = Calc距離(inner);
+                                if (d2.HasValue) total += d2.Value;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Point 等は距離対象外（無視）
+        }
+
+        return total;
+    }
+    private static double CalcTimeMinutesAtKnots(double km, double knots = 100.0)
+    {
+        if (km <= 0) return 0.0;
+        const double KnotToKmh = 1.852; // 1kt = 1.852 km/h
+        double speedKmh = knots * KnotToKmh;
+        double hours = km / speedKmh;
+        return hours * 60.0; // 分に変換
+    }
 }

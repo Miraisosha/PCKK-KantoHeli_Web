@@ -93,7 +93,7 @@ export function initKPManager(ctx) {
     const feature = features[0];
     feature.set('drawType', (isRiver) ? 'River' : 'Doro');
     const kpResult = {
-      selRoadRiver: ui.selRoadRiver.value,
+      selRoadRiver: ui.selRoadRiver.options[ui.selRoadRiver.selectedIndex].text,
       startKp: Number(ui.startKp.value),
       endKp: Number(ui.endKp.value),
       feature: feature,
@@ -123,7 +123,7 @@ export function initKPManager(ctx) {
       if (!水系名 || !河川名 || !左右岸) return;
 
       const key = `${水系名}_${河川名}_${左右岸}`;
-      const text = `${水系名} ${河川名} （${左右岸}）`;
+      const text = `${河川名}_${左右岸}`;
 
       if (!mapKP河川.has(key)) {
         mapKP河川.set(key, text);
@@ -147,7 +147,7 @@ export function initKPManager(ctx) {
       const 上下区分 = f.get('上下区分');
 
       const key = `${地方整備局}_${事務所}_${道路種別}_${路線}_${現旧新区分}_${上下区分}`;
-      const text = `${道路種別} ${路線}号線 ${現旧新区分} ${上下区分}`;
+      const text = `${路線}号線 ${現旧新区分} ${上下区分}`;
 
       if (!mapKP道路.has(key)) {
         mapKP道路.set(key, text);

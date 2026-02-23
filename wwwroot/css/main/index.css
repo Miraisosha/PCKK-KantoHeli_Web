@@ -237,3 +237,52 @@
   max-width: 120px; /* kpが大きくなりすぎるのを防ぐ */
 }
 
+/*
+  凡例
+*/
+.map {
+  position: relative;
+}
+
+/* 凡例本体 */
+.map-legend {
+  position: absolute;
+  right: 12px;
+  bottom: 22px;
+  background: #e6e6e6;
+  border: 2px solid #444;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #000;
+  z-index: 1000;
+  min-width: 260px;
+  background: rgba(255,255,255,0.75);
+  border-radius: 8px;
+}
+
+/* 各行 */
+.legend-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+/* 線の共通設定 */
+.legend-line {
+  display: inline-block;
+  width: 40px;
+  margin-right: 8px;
+}
+
+  /* 青破線（編集中） */
+  .legend-line.edit {
+    border-top: 3px dashed blue;
+  }
+
+  /* 赤点線（調査予定） */
+  .legend-line.plan {
+    border-top: 3px dotted red;
+  }
+.map-legend.hidden {
+  display: none;
+}

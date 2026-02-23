@@ -1,12 +1,16 @@
+// ----------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
+// ルート作成　タブ
+// 
 'use strict';
 
 export function CreateRoute({
   base_url,
   tabElement,
   map,
-  layer調査ルート,
+  layer,
   set調査地点Source,
-  create明細行,
   ajaxExecute,
   geojsonFormatter,
   showAlert,
@@ -14,7 +18,8 @@ export function CreateRoute({
   proj3857,
   proj4326,
   getSelectedFeatureIds,
-  setSelectedFeatureIds
+  setSelectedFeatureIds,
+  reverseSelectedFeatureIds
 }) {
 
   // DOM 参照
@@ -38,16 +43,15 @@ export function CreateRoute({
     ajaxExecute(base_url + `?Handler=InitialPlan&tempid=${tempid || ''}`, {},
       { title: tempid ? '一時保存ルート呼出・削除' : '調査ルート作成' }
     ).then((json) => {
-
       // -----------------------
-      // 初期化
+      // 地点名一覧
       tbodyルート作成.innerHTML = '';
       setSelectedFeatureIds(json.id ?? []);
       const features = geojsonFormatter.readFeatures(json.features);
       features.forEach((f) => {
         const id = f.get('id');
         f.setId(`${id}`);
-        const trElement = create明細行(tabElement, f);
+        const trElement = createDetailRecord(tabElement, f);
         if ((getSelectedFeatureIds() || []).indexOf(id) != -1) {
           const cb = trElement.querySelector('input[type="checkbox"][name="id"]');
           if (cb) cb.checked = true;
@@ -78,7 +82,7 @@ export function CreateRoute({
       toast調査ルート手動描画Element.querySelector('button[name="btn調査ルート手動描画削除"]').disabled = !json.drawroute;
 
       // -----------------------
-      // 調査依頼絞り込み フィルタ初期化 ---
+      // 調査依頼絞り込み フィルタ初期化 
       // もしグローバル関数 initMultiSelect があるならそれを使う（既存の index.js と整合）
       if (typeof initMultiSelect === 'function') {
         if (selIrai) initMultiSelect(selIrai, filterルート作成対象, '調査依頼選択', '全依頼');
@@ -96,7 +100,7 @@ export function CreateRoute({
       if (selPersons) selPersons.value = '';
 
       // ルート表示実施（距離算出処理実行、自動ルート作成は解除しない）
-      exec距離等算出(false);
+      autoCalculateDistance(false);
     }, (error) => {
       if (tempid) {
         location.reload(); // エラー（その一時保存データが編集できない）なら画面再読み込み
@@ -163,7 +167,7 @@ export function CreateRoute({
           sel.value = optionValue;
           prevVal = optionValue;
           displayingToast.hide();
-          exec距離等算出();
+          autoCalculateDistance();
         });
         map.addInteraction(mapDraw);
         displayingToast = bootstrap.Toast.getOrCreateInstance(document.getElementById('toast起点終点設定'));
@@ -172,7 +176,7 @@ export function CreateRoute({
         sel.value = prevVal;
       } else {
         prevVal = sel.value;
-        exec距離等算出();
+        autoCalculateDistance();
       }
     });
   };
@@ -180,6 +184,18 @@ export function CreateRoute({
     initルート作成起点終点(selルート作成起点, '起点');
     initルート作成起点終点(selルート作成終点, '終点');
   }
+  // ---------------------------------------------------------------------------------
+  // 起点終点　反転ボタン　イベント
+  tabElement.querySelector('button[name="btnルート起点終点反転"]').addEventListener('click', (e) => {
+    // 始点と終点を反転（選択経路も反転）
+    const old起点Value = selルート作成起点.value;
+    const old終点Value = selルート作成終点.value;
+    reverseSelectedFeatureIds();
+    selルート作成起点.value = old終点Value
+    selルート作成終点.value = old起点Value;
+    // 距離算出処理実行（自動ルート作成は解除しない）
+    autoCalculateDistance(false);
+  });
 
   // ---------------------------------------------------------------------------------
   // create調査予定FormData
@@ -201,7 +217,7 @@ export function CreateRoute({
 
   // ---------------------------------------------------------------------------------
   // 距離算出処理
-  const exec距離等算出 = (calc = null) => {
+  const autoCalculateDistance = (calc = null) => {
     if (calc === null) {
       document.getElementById('radioルート手動作成').checked = true;
     }
@@ -212,10 +228,10 @@ export function CreateRoute({
       { title: title, form: tabElement, progress: calc ? '最短ルート自動作成中' : null },
     ).then((json) => {
       // 得られた調査ルートを表示反映
-      layer調査ルート.getSource().clear();
+      layer.getSource().clear();
       if (json.経路) {
         const features = geojsonFormatter.readFeatures(json.経路);
-        layer調査ルート.getSource().addFeatures(features);
+        layer.getSource().addFeatures(features);
       }
       // 飛行距離等の情報を表示
       document.getElementById('divルート作成_総飛行距離').innerHTML = json.総飛行距離 || '-';
@@ -244,28 +260,10 @@ export function CreateRoute({
   };
 
   // ---------------------------------------------------------------------------------
-  // 各種イベント登録
-  tabElement.querySelector('input[name="chk全選択"]').addEventListener('change', () => {
-    exec距離等算出();
-  });
-  tbody.addEventListener('change', (e) => {
-    const cb = (e.target.type == 'checkbox' && e.target.name == 'id') ? e.target : e.target.closest('input[type="checkbox"][name="id"]');
-    console.log("Change CB:" + cb);
-    if (cb) {
-      // selectedFeatureIds を更新
-      const arr = new Set(getSelectedFeatureIds() || []);
-      if (cb.checked) {
-        arr.add(cb.value);
-      } else {
-        arr.delete(cb.value);
-      }
-      setSelectedFeatureIds(Array.from(arr));
-      exec距離等算出();
-    }
-  });
+  // 経路　手動／自動　ラジオボタンイベント
   const radio自動 = document.getElementById('radioルート自動作成');
   if (radio自動) radio自動.addEventListener('click', async (e) => {
-    exec距離等算出(true);
+    autoCalculateDistance(true);
   });
 
   // ---------------------------------------------------------------------------------
@@ -300,7 +298,7 @@ export function CreateRoute({
       modal調査予定登録Element.querySelector('input[name="drawroute"]').value = '';
       btn調査ルート手動描画削除.disabled = true;
       displayingToast.hide();
-      exec距離等算出();
+      autoCalculateDistance();
     });
   }
   const btn調査ルート手動描画 = document.getElementById('btn調査ルート手動描画');
@@ -314,13 +312,39 @@ export function CreateRoute({
         modal調査予定登録Element.querySelector('input[name="drawroute"]').value = geojsonFormatter.writeGeometry(ev.feature.getGeometry());
         btn調査ルート手動描画削除.disabled = false;
         displayingToast.hide();
-        exec距離等算出();
+        autoCalculateDistance();
       });
       map.addInteraction(mapDraw);
       displayingToast = bootstrap.Toast.getOrCreateInstance(toast調査ルート手動描画Element);
       displayingToast.show();
     });
   }
+  // ---------------------------------------------------------------------------------
+  // 一時保存調査依頼に対する操作各種
+  const modal調査予定呼び出しElement = document.getElementById('modal調査予定呼び出し');
+  document.getElementById('btn一時保存調査予定呼出').addEventListener('click', async (e) => {
+    if (layer.getSource().getFeatures().length
+      && await showConfirm('一時保存ルート呼出・削除',
+        '現在表示されている調査ルートが保存されていません。'
+        + '\n保存前に呼出を実施すると現在表示されている調査ルートが失われますが、呼出を続けてよろしいでしょうか？') != true
+    ) {
+      return;
+    }
+    initialize(document.getElementById('sel一時保存調査予定').value);
+    bootstrap.Modal.getOrCreateInstance(modal調査予定呼び出しElement).hide();
+  });
+  document.getElementById('btn一時保存調査予定削除').addEventListener('click', async (e) => {
+    if (await showConfirm('一時保存ルート呼出・削除', '選択した調査ルートを削除します。\n本当によろしいでしょうか？') != true) {
+      return;
+    }
+    const formData = new FormData(modal調査予定呼び出しElement);
+    ajaxExecute(modal調査予定呼び出しElement.action,
+      { method: 'POST', body: formData },
+      { title: '一時保存ルート呼出・削除' }
+    ).then((response) => {
+      location.href = `?tab=tabルート作成`;
+    }, () => { });
+  });
 
   // ---------------------------------------------------------------------------------
   // 調査予定登録関連イベント
@@ -352,8 +376,62 @@ export function CreateRoute({
       }, () => { });
     });
   }
+  const getSpotTypeDisplay = (spottype) => {
+    let text = spottype;
+    text = text.replace('河川KP', 'KPデータ（河川）');
+    text = text.replace('道路KP', 'KPデータ（道路）');
+    return text;
+  };
+  /**
+   * featureをもとに一覧明細行を作成します。featureのcheckboxプロパティには明細行のcheckboxオブジェクトを設定します。
+   * @param {HTMLDivElement} tab 画面下部の表示対象タブ
+   * @param {ol.Feature} feature 調査箇所のFeature
+   * @returns {HTMLTableRowElement} 明細行
+   */
+  function createDetailRecord(tab, feature) {
+    const /** 調査箇所id */ id = feature.get('id') ?? ''; //
+    const /** 調査地点名 */ name = feature.get('name') ?? '';
+    const /** 依頼者名 */ requester = feature.get('requester') ?? '';
+    const /** 優先度 */ priority = feature.get('priority') ?? '';
+    const /** 調査手法名 */ survey = feature.get('survey') ?? '';
+    const /** 搭乗希望人数(0-8) */ persons = feature.get('persons') ?? '';
+    const /** 登録方法 */ spottype = feature.get('spottype') ?? '';
+    const /** 備考 */ remarks = feature.get('remarks') ?? ''; // ※特定初動調査でid指定有(調査地点相当)なら入力可にするかも？？？
+    const /** 調査状況 */ status = feature.get('status') ?? ''; // 調査依頼状況タブのみ
+    const /** 更新日時 */ updated = feature.get('updated') ?? '';
+
+    const trElement = document.createElement('tr');
+    trElement.classList.add('align-middle');
+    trElement.dataset.irai = feature.get('irai'); // 調査依頼による絞り込みで参照
+    trElement.dataset.priority = priority; // 優先度による絞り込みで参照
+    trElement.dataset.persons = persons; // 搭乗人数による絞り込みで参照
+    let innerHTML = '';
+
+    // 先頭列（チェックボックス、ただし特定初動調査は巡回順テキスト表示）
+    innerHTML += `<td class="text-center"><input type="checkbox" name="id" value="${id}" class="form-check-input chkCreateRoute"></td>`;
+    // 地点名・依頼者
+    innerHTML += `<td><input type="text" readonly class="py-0 my-0 form-control-plaintext" value="${htmlEncode(name)}"></td>`;
+    // 優先度
+    innerHTML += `<td><div class="btn-group" name="input.prioritygroup">`;
+    for (let value of ['高', '中', '低']) {
+      const checked = (priority == value);
+      innerHTML += `<button type="button" name="priority" value="${value}" class="btn btn-sm ${checked ? 'btn-primary' : 'btn-secondary'} ${checked ? '' : 'disabled'}">${value}</button>`;
+    }
+    innerHTML += `</div></td>`;
+    // 調査手法・搭乗人数・登録方法・備考
+    innerHTML += `<td class="text-center">${survey}</td>`;
+    innerHTML += `<td class="text-center">${persons === 0 ? 'なし' : persons ? persons + '名' : ''}</td>`;
+    innerHTML += `<td class="text-center">${getSpotTypeDisplay(spottype)}</td>`;
+    innerHTML += `<td><input type="text" readonly class="py-0 my-0 form-control-plaintext" value="${htmlEncode(remarks)}"></td>`;
+    innerHTML += `<td class="text-center">${updated}</td>`;
+    trElement.innerHTML = innerHTML;
+    const checkbox = trElement.querySelector('input[type="checkbox"]');
+    if (checkbox) { feature.set('checkbox', checkbox); }
+    return trElement;
+  }
 
   return {
-    initialize
+    initialize,
+    autoCalculateDistance
   };
 }

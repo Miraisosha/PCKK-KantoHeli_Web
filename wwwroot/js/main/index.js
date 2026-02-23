@@ -51,9 +51,11 @@ layerSelectionKP.setSource(mapKPSource);
 layerSelectedKPLine.setSource(mapSelectedKPLineSource);
 // タブ
 const layer編集中調査地点 = createSpotLayer(map);
-const layer編集中調査ルート = createRouteLayer(map);
+//const layer編集中調査ルート = createRouteLayer(map);
 const /** @type{Map<string, ol.source.Vector>} */ map調査地点Source = {};
 const /** @type{Map<string, ol.source.Vector>} */ map調査ルートSource = {};
+// 調査ルート作成　（編集中）
+const layer編集調査ルート = createEditRouteLayer(map);
 
 const 調査依頼タブ = init調査依頼タブ();
 //init依頼状況タブ();
@@ -117,17 +119,18 @@ if (tab依頼状況) {
       return resolve();
     });
   }
-  InvestigationRequestStatus({
+  const requestStatus = InvestigationRequestStatus({
     base_url,
     tab依頼状況,
     set調査地点Source,
     geojsonFormatter,
-    create明細行,
     ajaxExecute,
     reload防災ヘリ関連情報,
     showAlert,
     showConfirm
   });
+  requestStatus.initialize();
+  requestStatus.reload();
 }
 // ====================================================================
 // 首都直下初動
@@ -147,14 +150,12 @@ if (tab特定初動調査) {
 }
 // ====================================================================
 // 調査ルート作成
-if (tabルート作成) {
-  const createRoute = CreateRoute({
+const createRoute = CreateRoute({
     base_url,
     tabElement: tabルート作成,
     map,
-    layer調査ルート,
+    layer: layer編集調査ルート,
     set調査地点Source,
-    create明細行,
     ajaxExecute,
     geojsonFormatter,
     showAlert,
@@ -162,8 +163,10 @@ if (tabルート作成) {
     proj3857,
     proj4326,
     getSelectedFeatureIds: () => selectedFeatureIds,
-    setSelectedFeatureIds: (v) => selectedFeatureIds = v
+    setSelectedFeatureIds: (v) => selectedFeatureIds = v,
+    reverseSelectedFeatureIds: () => { selectedFeatureIds.reverse() },
   });
+if (tabルート作成) {
   createRoute.initialize();
 }
 
@@ -195,25 +198,102 @@ map.getViewport().addEventListener('contextmenu', (e) => {
 });
 
 // ====================================================================
+// 全タブ共通：全選択チェック変更⇒一覧のチェック状態に反映
+document.querySelectorAll('#bottomArea table>thead input[name="chk全選択"]').forEach((cb) => {
+  cb.addEventListener('change', (e) => {
+    const checked = cb.checked;
+    const checkboxes = cb.closest('table').querySelectorAll('tbody>tr:not(.d-none) input[type="checkbox"][name="id"]:not(:disabled)');
+    checkboxes.forEach((cb) => {
+      cb.checked = checked;
+      const index = selectedFeatureIds.indexOf(cb.value);
+      console.log("All Change");
+      if (cb.checked && index == -1) {
+        selectedFeatureIds.push(cb.value);
+      } else if (!cb.checked && index != -1) {
+        selectedFeatureIds.splice(index, 1);
+      }
+    });
+    //source調査地点.changed(); // レイヤ再描画
+    if (tabルート作成) createRoute.autoCalculateDistance();
+  });
+});
+// ====================================================================
+// 全タブ共通：一覧チェック変更⇒選択状態を変更し画面に反映
+document.querySelectorAll('#bottomArea table>tbody').forEach((tbody) => {
+  tbody.addEventListener('change', (e) => {
+    const cb = (e.target.type == 'checkbox' && e.target.name == 'id') ? e.target : e.target.closest('input[type="checkbox"][name="id"]');
+    //    if (cb) {
+    //      layer編集中調査地点.getSource().changed();
+    //    }
+    if (cb) {
+      const index = selectedFeatureIds.indexOf(cb.value);
+      console.log("Single Change");
+      if (cb.checked && index == -1) {
+        selectedFeatureIds.push(cb.value);
+      } else if (!cb.checked && index != -1) {
+        selectedFeatureIds.splice(index, 1);
+      }
+      //source調査地点.changed(); // レイヤ再描画
+      if (tabルート作成) createRoute.autoCalculateDistance();
+    }
+  });
+});
+
+// ====================================================================
+// 調査ルート作成　調査ルートツールチップ
+// ツールチップ用の要素を作成
+const tooltipElement = document.createElement('div');
+tooltipElement.className = 'ol-tooltip';
+tooltipElement.style.position = 'absolute';
+tooltipElement.style.backgroundColor = '#FFFCA6';
+tooltipElement.style.padding = '4px 8px';
+tooltipElement.style.border = '1px solid #FFF837';
+tooltipElement.style.borderRadius = '4px';
+tooltipElement.style.whiteSpace = 'nowrap';
+tooltipElement.style.pointerEvents = 'none';
+tooltipElement.style.fontSize = '16px';
+
+const tooltipOverlay = new ol.Overlay({
+  element: tooltipElement,
+  offset: [30, 0],
+  positioning: 'center-left',
+});
+
+map.addOverlay(tooltipOverlay);
+
+// マウス移動イベント
+map.on('pointermove', function (evt) {
+  const feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+    return feature;
+  });
+
+  if (feature) {
+    const name = feature.get('name');
+    if (name) {
+      tooltipElement.innerHTML = name;
+      tooltipOverlay.setPosition(evt.coordinate);
+      tooltipElement.style.display = 'block';
+    }
+  } else {
+    tooltipElement.style.display = 'none';
+  }
+});
+
+
+// 登録方法　表示用
+const getSpotTypeDisplay = (spottype) => {
+  let text = spottype;
+  text = text.replace('河川KP', 'KPデータ（河川）');
+  text = text.replace('道路KP', 'KPデータ（道路）');
+  return text;
+};
+
+// ====================================================================
 // 防災ヘリ関連情報
 // ====================================================================
 // ※防災ヘリ関連情報部の再読み込み時にも設定を行う
 function init防災ヘリ関連情報Layers() {
   const form防災ヘリ関連情報 = document.getElementById('form防災ヘリ関連情報');
-
-  // 一時保存チェックボックス→一時保存調査箇所呼び出しの選択肢
-  const array一時保存Chk = Array.from(form防災ヘリ関連情報.querySelectorAll('#left調査依頼一時保存 input[type="checkbox"][value]'));
-  document.getElementById('sel一時保存調査依頼').innerHTML = array一時保存Chk.map((cb) => `<option value="${cb.value}">${cb.dataset.name}</option>`).join('');
-  document.querySelector('button[data-bs-target="#modal調査依頼呼び出し"]').disabled = array一時保存Chk.length == 0;
-
-  // 自部署の調査依頼（依頼中）チェックボックス→調査依頼状況タブの選択肢
-  const array調査依頼Chk = Array.from(form防災ヘリ関連情報.querySelectorAll('input[type="checkbox"][data-editable]'));
-  document.querySelector('select[name="sel調査依頼"]').innerHTML = array調査依頼Chk.map((cb) => `<option value="${cb.value}">${cb.dataset.name}</option>`).join('');
-  document.querySelector('select[name="sel調査依頼"]').disabled = array調査依頼Chk.length == 0;
-  document.querySelector('button[name="btn調査依頼取消"]').disabled = array調査依頼Chk.length == 0;
-
-  //TODO 一時保存調査ルート→調査ルート作成タブの「一時保存調査ルート呼び出し」ボタンdisabled、一時保存調査ルート呼び出しモーダルのプルダウン
-
 
   // 何らかの値を持っているチェックボックスについては単一項目とみなし、チェック状態変更に応じ表示更新
   form防災ヘリ関連情報.querySelectorAll('input[type="checkbox"]').forEach((check) => {
@@ -233,20 +313,72 @@ function init防災ヘリ関連情報Layers() {
     // 初期状態で全選択チェック有ならばイベント設定時にも実施
     if (cb.checked) { exec全選択(); }
   })
+  const routeColors = [
+    '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
+    '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe',
+    '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000',
+    '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080',
+    '#ff4500', '#2e8b57', '#daa520', '#1e90ff', '#ff1493',
+    '#9400d3', '#00ced1', '#ff69b4', '#7cfc00', '#ffb6c1',
+    '#20b2aa', '#dda0dd', '#cd853f', '#fafad2', '#b22222',
+    '#98fb98', '#6b8e23', '#ffdead', '#191970', '#a9a9a9',
+    '#ff6347', '#228b22', '#b8860b', '#4169e1', '#ff00ff',
+    '#8a2be2', '#00ffff', '#ff1493', '#adff2f', '#ffc0cb',
+    '#008b8b', '#ba55d3', '#d2691e', '#ffffe0', '#8b0000',
+    '#90ee90', '#556b2f', '#ffe4b5', '#000080', '#c0c0c0',
+    '#ff7f50', '#32cd32', '#ffd700', '#6495ed', '#db7093',
+    '#9932cc', '#40e0d0', '#ff00ff', '#7fff00', '#ff69b4',
+    '#48d1cc', '#ee82ee', '#a0522d', '#fffacd', '#dc143c',
+    '#00fa9a', '#808000', '#ffdab9', '#00008b', '#696969',
+    '#ff8c00', '#3cb371', '#f0e68c', '#4682b4', '#ff1493',
+    '#9370db', '#00bfff', '#ff6eb4', '#9acd32', '#ffc1c1',
+    '#008080', '#dda0dd', '#8b4513', '#fff8dc', '#b03060'
+  ];
+  const yoteiColor = new Map();
+  var i = 0;
+  form防災ヘリ関連情報.querySelectorAll('input[name="yotei"]').forEach((r) => {
+    yoteiColor[r.value] = routeColors[i]; 
+    addRouteToLegend(r.dataset.title, routeColors[i]);
+    i++;
+  });
   // チェック状態に応じた（調査依頼中／調査予定などの）対象地点一覧を表示
   const show表示対象Features = () => {
     const formData = new FormData(form防災ヘリ関連情報);
     // 調査依頼、および調査予定データをまとめて取得
-//    console.log("init防災ヘリ関連情報Layers.show表示対象Features")
+    console.log("init防災ヘリ関連情報Layers.show表示対象Features")
     ajaxGetJson(base_url + '?Handler=Features&' + new URLSearchParams(formData).toString())
       .then((json) => {
         const spots = geojsonFormatter.readFeatures(json.spots);
         layer調査地点.getSource().clear();
         layer調査地点.getSource().addFeatures(spots);
         const routes = geojsonFormatter.readFeatures(json.routes);
+        routes.forEach(r => {
+          if (r.get('name') && r.get('id')) {
+            const id = r.get('id');
+            const name = r.get('name');
+            r.set("color", yoteiColor[id]);
+          }
+        })
         layer調査ルート.getSource().clear();
         layer調査ルート.getSource().addFeatures(routes);
+        //rebuildLegendFromLayer(layer調査ルート);
       }, showAlert);
+  }
+
+  // ---------------------------------------
+  // 地図　凡例表示
+  function addRouteToLegend(name, color) {
+    const container = document.querySelector('.legend-section');
+
+    const row = document.createElement('div');
+    row.className = 'legend-route';
+
+    row.innerHTML = `
+      <span class="legend-line" style="border-top:3px dotted ${color};"></span>
+      <span class="legend-label">${name}</span>
+    `;
+
+    container.appendChild(row);
   }
 
   // 初期化時にも読み込み
@@ -273,7 +405,7 @@ function set調査地点Source(tab, source調査地点, source調査ルート) {
   if (dispArea.dataset.bottomtab == tab.id) {
     layer編集中調査地点.setSource(source調査地点);
     source調査地点.changed(); // レイヤ再描画
-    layer編集中調査ルート.setSource(source調査ルート);
+//    layer編集中調査ルート.setSource(source調査ルート);
     source調査ルート.changed(); // レイヤ再描画
   }
 }
@@ -283,7 +415,6 @@ function set調査地点Source(tab, source調査地点, source調査ルート) {
 // --------------------------------
 document.querySelectorAll('button[name="btnタブ選択"]').forEach((button) => {
   button.addEventListener('click', e => {
-    console.log("TAB Change:" + button.value);
     // URL変更
     history.replaceState({}, '', `?tab=${button.value}`);
     // 未ログインならログインモーダル表示、ログイン済なら表示タブ切り替え
@@ -292,28 +423,24 @@ document.querySelectorAll('button[name="btnタブ選択"]').forEach((button) => 
       const modal = bootstrap.Modal.getOrCreateInstance(loginModalElement);
       modal.show();
     } else if (dispArea.dataset.bottomtab != button.value) {
+console.log("TAB Change:" + button.value);
       // ログイン済なら表示タブ切り替え
       dispArea.dataset.bottomtab = button.value;
       const source調査地点 = map調査地点Source[button.value] ?? new ol.source.Vector();
       layer編集中調査地点.setSource(source調査地点);
       source調査地点.changed(); // レイヤ再描画
       const source調査ルート = map調査ルートSource[button.value] ?? new ol.source.Vector();
-      layer編集中調査ルート.setSource(source調査ルート);
+//      layer編集中調査ルート.setSource(source調査ルート);
       source調査ルート.changed(); // レイヤ再描画
       //TODO おそらくはinteraction停止が必要
+
+      console.log("TAB Change:" + button.value);
+      layer編集調査ルート.setVisible(button.value == "tabルート作成");
 
       kpManager.hideAllKPLayers();
     }
   });
 });
-
-// 登録方法　表示用
-const getSpotTypeDisplay = (spottype) => {
-  let text = spottype;
-  text = text.replace('河川KP', 'KPデータ（河川）');
-  text = text.replace('道路KP', 'KPデータ（道路）');
-  return text;
-};
 
 /**
  * featureをもとに一覧明細行を作成します。featureのcheckboxプロパティには明細行のcheckboxオブジェクトを設定します。
@@ -373,43 +500,43 @@ function create明細行(tab, feature) {
 }
 
 // 全タブ共通：全選択チェック変更⇒一覧のチェック状態に反映
-document.querySelectorAll('#bottomArea table>thead input[name="chk全選択"]').forEach((cb) => {
-  cb.addEventListener('change', (e) => {
-    const checked = cb.checked;
-    const checkboxes = cb.closest('table').querySelectorAll('tbody>tr:not(.d-none) input[type="checkbox"][name="id"]:not(:disabled)');
-    checkboxes.forEach((cb) => {
-      cb.checked = checked;
-      const index = selectedFeatureIds.indexOf(cb.value);
-      console.log("All Change");
-      if (cb.checked && index == -1) {
-        selectedFeatureIds.push(cb.value);
-      } else if (!cb.checked && index != -1) {
-        selectedFeatureIds.splice(index, 1);
-      }
-    });
-    source調査地点.changed(); // レイヤ再描画
-  });
-});
-// 全タブ共通：一覧チェック変更⇒選択状態を変更し画面に反映
-document.querySelectorAll('#bottomArea table>tbody').forEach((tbody) => {
-  tbody.addEventListener('change', (e) => {
-    const cb = (e.target.type == 'checkbox' && e.target.name == 'id') ? e.target : e.target.closest('input[type="checkbox"][name="id"]');
+//document.querySelectorAll('#bottomArea table>thead input[name="chk全選択"]').forEach((cb) => {
+//  cb.addEventListener('change', (e) => {
+//    const checked = cb.checked;
+//    const checkboxes = cb.closest('table').querySelectorAll('tbody>tr:not(.d-none) input[type="checkbox"][name="id"]:not(:disabled)');
+//    checkboxes.forEach((cb) => {
+//      cb.checked = checked;
+//      const index = selectedFeatureIds.indexOf(cb.value);
+//      console.log("All Change");
+//      if (cb.checked && index == -1) {
+//        selectedFeatureIds.push(cb.value);
+//      } else if (!cb.checked && index != -1) {
+//        selectedFeatureIds.splice(index, 1);
+//      }
+//    });
+//    //source調査地点.changed(); // レイヤ再描画
+//  });
+//});
+//// 全タブ共通：一覧チェック変更⇒選択状態を変更し画面に反映
+//document.querySelectorAll('#bottomArea table>tbody').forEach((tbody) => {
+//  tbody.addEventListener('change', (e) => {
+//    const cb = (e.target.type == 'checkbox' && e.target.name == 'id') ? e.target : e.target.closest('input[type="checkbox"][name="id"]');
+////    if (cb) {
+////      layer編集中調査地点.getSource().changed();
+////    }
 //    if (cb) {
-//      layer編集中調査地点.getSource().changed();
+//      const index = selectedFeatureIds.indexOf(cb.value);
+//      console.log("Single Change");
+//      if (cb.checked && index == -1) {
+//        selectedFeatureIds.push(cb.value);
+//      } else if (!cb.checked && index != -1) {
+//        selectedFeatureIds.splice(index, 1);
+//      }
+//      //source調査地点.changed(); // レイヤ再描画
 //    }
-    if (cb) {
-      const index = selectedFeatureIds.indexOf(cb.value);
-      console.log("Single Change");
-      if (cb.checked && index == -1) {
-        selectedFeatureIds.push(cb.value);
-      } else if (!cb.checked && index != -1) {
-        selectedFeatureIds.splice(index, 1);
-      }
-      source調査地点.changed(); // レイヤ再描画
-    }
-
-  });
-});
+//
+//  });
+//});
 
 
 // ====================================================
@@ -419,6 +546,12 @@ function init調査依頼タブ() {
   const source調査地点 = new ol.source.Vector();
   set調査地点Source(tab調査依頼, source調査地点, new ol.source.Vector());
   const tbody調査依頼 = document.querySelector('#table調査依頼>tbody');
+
+  // 一時保存チェックボックス→一時保存調査箇所呼び出しの選択肢
+  const form防災ヘリ関連情報 = document.getElementById('form防災ヘリ関連情報');
+  const array一時保存Chk = Array.from(form防災ヘリ関連情報.querySelectorAll('#left調査依頼一時保存 input[type="checkbox"][value]'));
+  document.getElementById('sel一時保存調査依頼').innerHTML = array一時保存Chk.map((cb) => `<option value="${cb.value}">${cb.dataset.name}</option>`).join('');
+  document.querySelector('button[data-bs-target="#modal調査依頼呼び出し"]').disabled = array一時保存Chk.length == 0;
 
   /**
    * 調査依頼共通：調査依頼一覧の行に指定されたfeatureを追加します
@@ -672,6 +805,7 @@ function init調査依頼タブ() {
   function create調査依頼行FromKP(kpResult) {
     const feature = kpResult.feature;
     const toast調査地点追加Element = document.getElementById('toast調査地点追加');
+    feature.set('name', kpResult.selRoadRiver + ' ' + kpResult.startKp + 'Kp - ' + kpResult..endKp + 'Kp');
     feature.set('color', '#FF0000');
     feature.set('requester', toast調査地点追加Element.dataset.requester);
     feature.set('survey', '通過');
@@ -691,383 +825,3 @@ function init調査依頼タブ() {
     create調査依頼行FromKP
   }
 }
-
-// ==========================================================================================================================
-// ==========================================================================================================================
-// ==========================================================================================================================
-// ==========================================================================================================================
-// ==========================================================================================================================
-// ==========================================================================================================================
-// ====================================================================
-// ルート作成タブ
-// ====================================================================
-// ==========================================================================================================================
-// ==========================================================================================================================
-// ==========================================================================================================================
-// ==========================================================================================================================
-// ==========================================================================================================================
-// ==========================================================================================================================
-//function initルート作成タブ() {
-//  const modal調査予定登録Element = document.getElementById('modal調査予定登録');
-//  const tbodyルート作成 = document.querySelector('#tableルート作成>tbody');
-//  const source調査地点 = new ol.source.Vector();
-//  set調査地点Source(tabルート作成, source調査地点, new ol.source.Vector());
-//
-//  // ---------------------------------------------------------------
-//  const initルート作成 = (tempid) => {
-//    console.log("initルート作成!!!!!");
-//    // 画面初期状態を読み込み（一時保存id指定時はその保存内容を読み出し）
-//    ajaxExecute(base_url + `?Handler=Plan&tempid=${tempid || ''}`, {},
-//      { title: tempid ? '一時保存ルート呼出・削除' : '調査ルート作成' }
-//    ).then((json) => {
-//      console.log("Handler!!!!!");
-//      // まずは画面表示内容を初期化
-//      tbodyルート作成.innerHTML = '';
-//      selectedFeatureIds = json.id;
-//      const features = geojsonFormatter.readFeatures(json.features);
-//      features.forEach((f) => {
-//        const id = f.get('id');
-//        f.setId(`${id}`);
-//        const trElement = create明細行(tbodyルート作成, f);
-//        if (selectedFeatureIds.indexOf(id) != -1) {
-//          trElement.querySelector('input[type="checkbox"][name="id"]').checked = true;
-//        }
-//      });
-//      source調査地点.clear();
-//      source調査地点.addFeatures(features);
-//      // 画面左側の制御内容も復元
-//      selルート作成起点.value = add起点終点OptionIfNotExists(json.startx, json.starty);
-//      selルート作成終点.value = add起点終点OptionIfNotExists(json.endx, json.endy);
-//      document.getElementById('radioルート手動作成').checked = !json.auto;
-//      document.getElementById('radioルート自動作成').checked = json.auto;
-//      // 登録時情報も設定
-//      modal調査予定登録Element.querySelector('input[name="tempid"]').value = tempid || '';
-//      modal調査予定登録Element.querySelector('input[name="input.title"]').value = json.title;
-//      modal調査予定登録Element.querySelector('input[name="drawroute"]').value = json.drawroute ? geojsonFormatter.writeGeometry(geojsonFormatter.readGeometry(json.drawroute)) : '';
-//      toast調査ルート手動描画Element.querySelector('button[name="btn調査ルート手動描画削除"]').disabled = !json.drawroute;
-//
-//      // ルート表示実施（距離算出処理実行、自動ルート作成は解除しない）
-//      exec距離等算出(false);
-//    }, (error) => {
-//      if (tempid) {
-//        location.reload(); // エラー（その一時保存データが編集できない）なら画面再読み込み
-//      }
-//    });
-//
-//    // フィルタ指定状態を初期化
-//    $(tabルート作成.querySelector('select[name="irai"]')). ultiselect('selectAll');
-//    $(tabルート作成.querySelector('select[name="priority"]')).multiselect('deselectAll');
-//    tabルート作成.querySelector('select[name="persons"]').value = '';
-//  };
-//
-//
-//  // ---------------------------------------------------------------
-//  // 一時保存調査依頼に対する操作各種
-//  const modal調査予定呼び出しElement = document.getElementById('modal調査予定呼び出し');
-//  document.getElementById('btn一時保存調査予定呼出').addEventListener('click', async (e) => {
-//    if (layer調査ルート.getSource().getFeatures().length
-//      && await showConfirm('一時保存ルート呼出・削除',
-//        '現在表示されている調査ルートが保存されていません。'
-//        + '\n保存前に呼出を実施すると現在表示されている調査ルートが失われますが、呼出を続けてよろしいでしょうか？') != true
-//    ) {
-//      return;
-//    }
-//    initルート作成(document.getElementById('sel一時保存調査予定').value);
-//    bootstrap.Modal.getOrCreateInstance(modal調査予定呼び出しElement).hide();
-//  });
-//  document.getElementById('btn一時保存調査予定削除').addEventListener('click', async (e) => {
-//    if (await showConfirm('一時保存ルート呼出・削除', '選択した調査ルートを削除します。\n本当によろしいでしょうか？') != true) {
-//      return;
-//    }
-//    const formData = new FormData(modal調査予定呼び出しElement);
-//    ajaxExecute(modal調査予定呼び出しElement.action,
-//      { method: 'POST', body: formData },
-//      { title: '一時保存ルート呼出・削除' }
-//    ).then((response) => {
-//      location.href = `?tab=tabルート作成`;
-//    }, () => { });
-//  });
-//
-//
-//  // ---------------------------------------------------------------
-//  // 「調査依頼絞込」フィルタ処理
-//  const /** @type{HTMLSelectElement} */ sel調査依頼Filter = tabルート作成.querySelector('select[name="irai"]');
-//  const /** @type{HTMLSelectElement} */ sel優先度Filter = tabルート作成.querySelector('select[name="priority"]');
-//  const /** @type{HTMLSelectElement} */ sel搭乗人数Filter = tabルート作成.querySelector('select[name="persons"]');
-//  const filterルート作成対象 = () => {
-//    const irai = Array.from(sel調査依頼Filter.selectedOptions).map((o) => o.value);
-//    const priority = Array.from(sel優先度Filter.selectedOptions).map((o) => o.value);
-//    const persons = sel搭乗人数Filter.value;
-//    tbodyルート作成.querySelectorAll('tr').forEach((trElement) => {
-//      const visible = (irai.indexOf(trElement.dataset.irai) != -1)
-//        && (priority.length == 0 || priority.indexOf(trElement.querySelector('.btn-primary[name="priority"]')?.value) != -1)
-//        && (persons == '' || trElement.dataset.persons <= persons);
-//      if (visible) {
-//        trElement.classList.remove('d-none');
-//      } else {
-//        trElement.classList.add('d-none');
-//      }
-//      //TODO 地図表示も不可視にする？
-//    });
-//  };
-//  initMultiSelect(sel調査依頼Filter, filterルート作成対象, '調査依頼選択', '全依頼');
-//  initMultiSelect(sel優先度Filter, filterルート作成対象, '優先度');
-//  sel搭乗人数Filter.addEventListener('change', filterルート作成対象);
-//
-//  // ---------------------------------------------------------------
-//  // 起点終点関係操作
-//  const toast起点終点設定Element = document.getElementById('toast起点終点設定');
-//  toast起点終点設定Element.addEventListener('hidden.bs.toast', (e) => {
-//    // Toastを閉じた時点でdrawが未解除なら解除する
-//    if (mapDraw) {
-//      map.removeInteraction(mapDraw);
-//      mapDraw = null;
-//    }
-//  });
-//  const /** @type{HTMLSelectElement} */ selルート作成起点 = tabルート作成.querySelector('select[name="selルート作成起点"]');
-//  const /** @type{HTMLSelectElement} */ selルート作成終点 = tabルート作成.querySelector('select[name="selルート作成終点"]');
-//
-//  // ---------------------------------------------------------------
-//  /**
-//   * 起点終点のプルダウンに対し、指定された緯度経度の選択肢がなければこれを追加します
-//   * @param {*} lon 経度
-//   * @param {*} lat 緯度
-//   * @returns 追加されたoption多雨のvalue
-//   */
-//  const add起点終点OptionIfNotExists = (lon, lat) => {
-//    if (!lon && !lat) {
-//      return '';
-//    }
-//    const x = lon.toFixed(6);
-//    const y = lat.toFixed(6);
-//    const optionValue = `${x} / ${y}`;
-//    // プルダウン選択肢になければ追加（起点終点の両方に追加）
-//    if (!selルート作成起点.querySelector(`option[value="${optionValue}"]`)) {
-//      const addOption = (sel) => {
-//        const optionlElement = document.createElement('option');
-//        optionlElement.value = optionValue;
-//        optionlElement.innerHTML = optionValue;
-//        optionlElement.dataset.x = x;
-//        optionlElement.dataset.y = y;
-//        sel.appendChild(optionlElement);
-//      }
-//      addOption(selルート作成起点);
-//      addOption(selルート作成終点);
-//    }
-//    return optionValue;
-//  };
-//
-//  // ---------------------------------------------------------------
-//  const initルート作成起点終点 = (sel, name) => {
-//    let prevVal = sel.value;
-//    sel.addEventListener('change', (e) => {
-//      if (sel.value == '*') {
-//        // 描画オブジェクトを初期化して設定
-//        mapDraw = new ol.interaction.Draw({
-//          type: 'Point',
-//          //style: openlayersデフォルトのものとする
-//        });
-//        mapDraw.on('drawend', function (e) {
-//          // この座標のoptionが未追加なら追加する
-//          const point = ol.proj.transform(e.feature.getGeometry().getFirstCoordinate(), proj3857, proj4326);
-//          const optionValue = add起点終点OptionIfNotExists(point[0], point[1]);
-//          // この座標を選択値とする
-//          sel.value = optionValue;
-//          prevVal = optionValue;
-//          // 編集完了
-//          displayingToast.hide();
-//          // 距離算出処理実行
-//          exec距離等算出();
-//        });
-//        // 描画による位置指定開始
-//        map.addInteraction(mapDraw);
-//        displayingToast = bootstrap.Toast.getOrCreateInstance(toast起点終点設定Element);
-//        toast起点終点設定Element.querySelector('div.toast-header').innerHTML = `${name}指定`;
-//        displayingToast.show();
-//        sel.value = prevVal; // 起点終点指定キャンセルを見越して元に戻しておく
-//      } else {
-//        prevVal = sel.value;
-//        // 距離算出処理実行
-//        exec距離等算出();
-//      }
-//    });
-//  };
-//  initルート作成起点終点(selルート作成起点, '起点');
-//  initルート作成起点終点(selルート作成終点, '終点');
-//
-//  // ---------------------------------------------------------------
-//  tabルート作成.querySelector('button[name="btnルート起点終点反転"]').addEventListener('click', (e) => {
-//    // 始点と終点を反転（選択経路も反転）
-//    const old起点Value = selルート作成起点.value;
-//    const old終点Value = selルート作成終点.value;
-//    selectedFeatureIds = selectedFeatureIds.reverse();
-//    selルート作成起点.value = old終点Value
-//    selルート作成終点.value = old起点Value;
-//    // 距離算出処理実行（自動ルート作成は解除しない）
-//    exec距離等算出(false);
-//  });
-//
-//  // ---------------------------------------------------------------
-//  // 距離算出関連
-//  const create調査予定FormData = (mode) => {
-//    modal調査予定登録Element.querySelector('input[name="mode"]').value = mode;
-//    const opt起点 = selルート作成起点.options[selルート作成起点.selectedIndex];
-//    const opt終点 = selルート作成終点.options[selルート作成終点.selectedIndex];
-//    const formData = new FormData(modal調査予定登録Element);
-//    formData.append('input.startid', opt起点.dataset.id || '');
-//    formData.append('input.endid', opt終点.dataset.id || '');
-//    formData.append('auto', tabルート作成.querySelector('input[name="radioルート作成モード"]').value);
-//    formData.append('startx', opt起点.dataset.x || '');
-//    formData.append('starty', opt起点.dataset.y || '');
-//    formData.append('endx', opt終点.dataset.x || '');
-//    formData.append('endy', opt終点.dataset.y || '');
-//    for (let id of selectedFeatureIds) { formData.append('id', id); }
-//    return formData;
-//  };
-//
-//  // ---------------------------------------------------------------
-//  /**
-//   * サーバ側の距離算出処理を呼び出し、得られた計算結果や調査ルートを表示します
-//   * @param {*} calc 自動ルート作成(最短経路算出)を行う場合true、経路ラジオボタンを手動に戻さない(自動であれば自動のままにしておく)場合false
-//   */
-//  const exec距離等算出 = (calc = null) => {
-//    if (calc === null) {
-//      // 引数が指定されていない場合、ルート作成モードを手動に戻す
-//      document.getElementById('radioルート手動作成').checked = true;
-//    }
-//    const title = calc ? 'ルート自動作成' : 'ルート作成';
-//    const formData = create調査予定FormData(calc ? 'calc' : '');
-//    ajaxExecute(base_url + '?Handler=Plan',
-//      { method: 'POST', body: formData },
-//      { title: title, form: tabルート作成, progress: calc ? '最短ルート自動作成中' : null },
-//    ).then((json) => {
-//      // 得られた調査ルートを表示反映
-//      layer調査ルート.getSource().clear();
-//      if (json.経路) {
-//        const features = geojsonFormatter.readFeatures(json.経路);
-//        layer調査ルート.getSource().addFeatures(features);
-//      }
-//      // 飛行距離等の情報を表示
-//      document.getElementById('divルート作成_総飛行距離').innerHTML = json.総飛行距離 || '-';
-//      document.getElementById('divルート作成_調査箇所').innerHTML = json.調査箇所 || '-';
-//      document.getElementById('divルート作成_飛行時間').innerHTML = json.飛行時間 || '-';
-//      document.getElementById('divルート作成_同乗可能人数').innerHTML = json.同乗可能人数 || '-';
-//      // 入力エラーがあればエラーを表示
-//      if (json.error) {
-//        showAlert(title + 'エラー', json.error);
-//        setInvalidStyle(tabルート作成, json.erroritems);
-//      }
-//      // サーバ側で有効とみなされた地点を画面に反映、有効とみなされなかったがチェックされている行があればチェックを外し選択不可とする
-//      selectedFeatureIds = json.id;
-//      source調査地点.changed();
-//      tbodyルート作成.querySelectorAll(`input[type="checkbox"][name="id"]:checked`).forEach((cb) => {
-//        const index = selectedFeatureIds.indexOf(cb.value);
-//        if (index == -1) {
-//          cb.checked = false;
-//          cb.disabled = true;
-//          cb.closest('tr').classList.add('text-secondary');
-//        }
-//      });
-//    }, () => { });
-//  }
-//
-//  // ---------------------------------------------------------------
-//  // 地点選択状態変更時(全選択変更時含む)に距離等算出をやり直し
-//  document.querySelector('#tableルート作成 input[name="chk全選択"]').addEventListener('change', () => {
-//    exec距離等算出();
-//  });
-//  // ---------------------------------------------------------------
-//  tbodyルート作成.addEventListener('change', (e) => {
-//    const cb = (e.target.type == 'checkbox' && e.target.name == 'id') ? e.target : e.target.closest('input[type="checkbox"][name="id"]');
-//    if (cb) {
-//      exec距離等算出();
-//    }
-//  });
-//  // ---------------------------------------------------------------
-//  // 自動作成実行
-//  document.getElementById('radioルート自動作成').addEventListener('click', async (e) => {
-//    exec距離等算出(true);
-//  });
-//  // ---------------------------------------------------------------
-//  // アンドゥボタンクリックで直前に追加した地点を削除
-//  document.getElementById('btnルート作成Undo').addEventListener('click', (e) => {
-//    //TODO アンドゥ機能の不足を指摘されたら（削除したのを元に戻せない、全選択に対応していないetc）アンドゥバッファを用意して正式な対応を行うこと。
-//    if (selectedFeatureIds.length) {
-//      const featureId = selectedFeatureIds.pop(); // 末尾の要素を除去
-//      tbodyルート作成.querySelectorAll(`input[type="checkbox"][name="id"][value="${featureId}"]`).forEach((cb) => {
-//        cb.checked = false;
-//        cb.dispatchEvent(new Event('change', { bubbles: true, cancelable: true })); // いちおうchangeイベントも発火させる
-//      });
-//    }
-//  });
-//  // ---------------------------------------------------------------
-//  // 調査ルート手動描画関連
-//  const toast調査ルート手動描画Element = document.getElementById('toast調査ルート手動描画');
-//  toast調査ルート手動描画Element.addEventListener('hidden.bs.toast', (e) => {
-//    // Toastを閉じた時点でdrawが未解除なら解除する
-//    if (mapDraw) {
-//      map.removeInteraction(mapDraw);
-//      mapDraw = null;
-//    }
-//  });
-//  // ---------------------------------------------------------------
-//  const btn調査ルート手動描画削除 = toast調査ルート手動描画Element.querySelector('button[name="btn調査ルート手動描画削除"]');
-//  btn調査ルート手動描画削除.addEventListener('click', (e) => {
-//    // 手動描画ルートを削除
-//    modal調査予定登録Element.querySelector('input[name="drawroute"]').value = '';
-//    btn調査ルート手動描画削除.disabled = true; // 削除ボタンを押下不可にする
-//    displayingToast.hide();
-//    exec距離等算出();
-//  });
-//  document.getElementById('btn調査ルート手動描画').addEventListener('click', async (e) => {
-//    // 描画オブジェクトを初期化して設定
-//    mapDraw = new ol.interaction.Draw({
-//      type: 'LineString',
-//      condition: (e) => { return e.originalEvent.button !== 2; }// 右クリックは描画進行イベントとはしない
-//      //style: openlayersデフォルトのものとする
-//    });
-//    mapDraw.on('drawend', function (e) {
-//      modal調査予定登録Element.querySelector('input[name="drawroute"]').value = geojsonFormatter.writeGeometry(e.feature.getGeometry());
-//      btn調査ルート手動描画削除.disabled = false; // 削除ボタンを押下可にする
-//      displayingToast.hide();
-//      exec距離等算出();
-//    });
-//    // 描画による位置指定開始
-//    map.addInteraction(mapDraw);
-//    // Toastも表示
-//    displayingToast = bootstrap.Toast.getOrCreateInstance(toast調査ルート手動描画Element);
-//    displayingToast.show();
-//  });
-//
-//  // ---------------------------------------------------------------
-//  // 調査予定登録(一時保存ボタンも同一処理、モーダルの文言等の情報はボタンのdata項目等より取得)
-//  const btn調査予定登録実行 = modal調査予定登録Element.querySelector('button[value="register"]');
-//  document.querySelectorAll('button[name="btn調査予定登録"]').forEach((button) => {
-//    button.addEventListener('click', (e) => {
-//      const formData = create調査予定FormData('check');
-//      ajaxExecute(modal調査予定登録Element.action,
-//        { method: 'POST', body: formData },
-//        { title: button.dataset.modaltitle, form: tabルート作成 }
-//      ).then((response) => {
-//        // 一覧入力内容チェックOKなら依頼名入力モーダルを表示
-//        modal調査予定登録Element.querySelector('.modal-title').innerHTML = button.dataset.modaltitle;
-//        modal調査予定登録Element.querySelector('.modal-body>div:first-child').innerHTML = button.dataset.modalcaption;
-//        btn調査予定登録実行.innerHTML = button.dataset.modalbutton;
-//        const modal = bootstrap.Modal.getOrCreateInstance(modal調査予定登録Element);
-//        modal.show();
-//        btn調査予定登録実行.value = button.value;
-//      }, () => { });
-//    });
-//  });
-//  // ---------------------------------------------------------------
-//  btn調査予定登録実行.addEventListener('click', async (e) => {
-//    const formData = create調査予定FormData(btn調査予定登録実行.value);
-//    ajaxExecute(base_url + '?Handler=Plan',
-//      { method: 'POST', body: formData },
-//      { title: modal調査予定登録Element.querySelector('.modal-title').innerHTML, form: modal調査予定登録Element }
-//    ).then(async (response) => {
-//      // 登録成功で画面リロード
-//      location.href = `?`;
-//    }, () => { });
-//  });
-//}
