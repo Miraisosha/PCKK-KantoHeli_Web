@@ -1,6 +1,6 @@
 'use strict';
 {
-  const rootUrl = window.location.origin;
+  const base_url = location.origin + location.pathname.replace(/\/+$/, '');
 
   // 検索条件変更時に一覧再表示
   document.querySelectorAll('#condForm input, #condForm select').forEach((inputElement) => {
@@ -21,7 +21,7 @@
     document.querySelectorAll('#listTable>tbody .tabCellClick').forEach((elem) => {
       elem.addEventListener('click', (e) => {
         if (elem.id.match(/^td(\d+)-(\d+)$/)) {
-          window.open(rootUrl + '/Main/' + RegExp.$2, "_blank");
+          window.open(base_url + '/Main/' + RegExp.$2, "_blank");
         }
       });
     });

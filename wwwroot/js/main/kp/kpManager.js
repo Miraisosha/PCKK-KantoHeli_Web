@@ -126,7 +126,7 @@ export function initKPManager(ctx) {
       const text = `${河川名}_${左右岸}`;
 
       if (!mapKP河川.has(key)) {
-        mapKP河川.set(key, text);
+        mapKP河川.set(key, text)//;
       }
     });
     createRoadRiverSelect(mapKP河川);

@@ -156,8 +156,8 @@ export function Capital(ctx) {
         const formData = create調査予定FormData('capital_register');
         ajaxExecute(base_url + '?Handler=Plan',
           { method: 'POST', body: formData }, { }
-        ).then((res) => {
-          location.href = base_url & "&tab=tab特定初動調査";
+        ).then(async (response) => {
+          location.reload();
         }, () => { });
       }
     });

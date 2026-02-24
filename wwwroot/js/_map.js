@@ -1,6 +1,12 @@
 'use strict';
 window.app = window.app || {};
 
+const base_url = location.origin + location.pathname.replace(/\/+$/, '');
+const url = new URL(base_url);
+const segments = url.pathname.split('/').filter(Boolean);
+const appName = segments.length > 2 ? `/${segments[0]}` : '';
+const root_url = url.origin + appName;
+
 // ------------------------------------------------------------
 // 地図表示関連(要openlayers)
 // ------------------------------------------------------------
@@ -294,9 +300,9 @@ const createKPRiver = (map) => {
 function setKPSource(drawType) {
   let url = null;
   if (drawType == 'River') {
-    url = '/files/kp_river.json'
+    url = root_url + '/files/kp_river.json'
   } else if (drawType == 'Road') {
-    url = '/files/kp_road.json'
+    url = root_url + '/files/kp_road.json'
   } else {
     return null;
   }
@@ -348,7 +354,7 @@ function onMouseOverKPRiver(feature) {
 const createKPLineRiver = (map) => {
   const layer = new ol.layer.Vector({
     source: new ol.source.Vector({
-      url: 'files/kp_river_line.json',
+      url: root_url + '/files/kp_river_line.json',
       format: new ol.format.GeoJSON({
         dataProjection: 'EPSG:4326',     // GeoJSON の座標系
         featureProjection: 'EPSG:3857'   // 地図表示用
@@ -464,7 +470,7 @@ const createSelectedKPLineLayer = (map) => {
 const createKPLineRoad = (map) => {
   const layer = new ol.layer.Vector({
     source: new ol.source.Vector({
-      url: 'files/kp_road_line.json',
+      url: root_url + '/files/kp_road_line.json',
       format: new ol.format.GeoJSON({
         dataProjection: 'EPSG:4326',     // GeoJSON の座標系
         featureProjection: 'EPSG:3857'   // 地図表示用

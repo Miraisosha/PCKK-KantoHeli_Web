@@ -7,7 +7,7 @@ using GeoCoordinatePortable;
 using Google.OrTools.ConstraintSolver;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+//using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
@@ -93,14 +93,35 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             otherClauses: $"ORDER BY {nameof(T_調査予定.updated_at)} DESC");
 
         // 調査依頼状況タブ　調査依頼　プルダウン
-        if (ユーザーRec?.組織id == 101)
+        //if (ユーザーRec?.組織id == 101)
+        //{
+        //    // 総括班は全組織分を表示（組織条件なし）
+        //    依頼状況調査依頼Records = await con.SelectAsync<T_調査依頼>( r => r.スレッドid == thread && r.deleted_at == null, otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
+        //}
+        //else
+        //{
+        //    依頼状況調査依頼Records = await con.SelectAsync<T_調査依頼>( r => r.スレッドid == thread && r.組織id == ユーザーRec!.組織id && r.deleted_at == null, otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
+        //}
+        // 調査依頼状況タブ　調査依頼　プルダウン
+        var userOrgId = ユーザーRec?.組織id;
+        if (userOrgId == 101)
         {
             // 総括班は全組織分を表示（組織条件なし）
-            依頼状況調査依頼Records = await con.SelectAsync<T_調査依頼>( r => r.スレッドid == thread && r.deleted_at == null, otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
+            依頼状況調査依頼Records = await con.SelectAsync<T_調査依頼>(
+                r => r.スレッドid == thread && r.deleted_at == null,
+                otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
+        }
+        else if (userOrgId is not null)
+        {
+            var orgId = userOrgId.Value; // ローカル変数でキャプチャして式に渡す（null 安全）
+            依頼状況調査依頼Records = await con.SelectAsync<T_調査依頼>(
+                r => r.スレッドid == thread && r.組織id == orgId && r.deleted_at == null,
+                otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
         }
         else
         {
-            依頼状況調査依頼Records = await con.SelectAsync<T_調査依頼>( r => r.スレッドid == thread && r.組織id == ユーザーRec!.組織id && r.deleted_at == null, otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
+            // 未ログイン時などは空一覧を返す（必要なら別の動作に変更）
+            依頼状況調査依頼Records = Array.Empty<T_調査依頼>();
         }
         // ルート作成タブ　調査依頼絞り込み　プルダウン
         // 初動調査ルートを除く
@@ -528,7 +549,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         await tran.CommitAsync();
 
-        return new JsonResult(new { success = "以下のルートを一時保存に差し戻しました。<br>"});
+        return new JsonResult(new { });
     }
 
 

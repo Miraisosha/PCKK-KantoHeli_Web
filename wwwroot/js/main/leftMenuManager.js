@@ -166,15 +166,12 @@ export function leftMenuManager(ctx) {
     console.log("差し戻し実行:", id);
     ajaxExecute(base_url + '?Handler=UpdateStatus&id=' + id,
       {}, {}
-    )
-      .then((json) => {
-        console.log(json);
-        console.log("OK!!:", json.id);
-        modalSend.hide();
-        showSendBackDoneModal(name, id);
-      }).catch((err) => {
-        console.warn('差し戻し失敗', err);
-      });
+    ).then((json) => {
+      modalSend.hide();
+      showSendBackDoneModal(name, id);
+    }).catch((err) => {
+      console.warn('差し戻し失敗', err);
+    });
   });
   // キャンセルボタンクリック
   document.getElementById("btnSendCancel").addEventListener("click", function () {
@@ -193,6 +190,7 @@ export function leftMenuManager(ctx) {
   // 閉じるボタンクリック
   document.getElementById("btnSendDoneCancel").addEventListener("click", function () {
     modalSendDone.hide();
+    location.href = `?`;
   });
 
   // --------------------------------------------------------------------
