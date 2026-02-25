@@ -199,7 +199,7 @@
       </button>
       @if (Model.所属組織Rec?.isルート作成可 == true && Model.特定初動調査区分Rec is not null)
       {
-        <button type="button" name="btnタブ選択" value="@IndexModel.TabName特定初動調査" class="btn btn-dark"
+        <button type="button" name="btnタブ選択" value="@IndexModel.TabName特定初動調査" class="btn btn-secondary"
                 style="width:150px">
           @Model.特定初動調査区分Rec.初動調査タブ名
         </button>
