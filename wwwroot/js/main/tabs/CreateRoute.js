@@ -24,12 +24,9 @@ export function CreateRoute({
 
   // DOM 参照
   const modal調査予定登録Element = document.getElementById('modal調査予定登録');
-  const tbodyルート作成 = tabElement.querySelector('#tableルート作成>tbody');
-  const tbody = tbodyルート作成;
   const source調査地点 = new ol.source.Vector();
-  set調査地点Source(tabElement, source調査地点, new ol.source.Vector());
-  const selルート作成起点 = tabElement.querySelector('select[name="selルート作成起点"]');
-  const selルート作成終点 = tabElement.querySelector('select[name="selルート作成終点"]');
+  const selルート作成起点 = (tabElement) ? tabElement.querySelector('select[name="selルート作成起点"]') : null;
+  const selルート作成終点 = (tabElement) ? tabElement.querySelector('select[name="selルート作成終点"]') : null;
   // フィルタ用 select 要素取得（initialize の外でも使う）
   const selIrai = tabElement.querySelector('select[name="irai"]');
   const selPriority = tabElement.querySelector('select[name="priority"]');
@@ -39,13 +36,15 @@ export function CreateRoute({
   // 初期化関数（公開）
   const initialize = (tempid) => {
     console.log("initルート作成 (CreateRoute)!!!!!");
+    const tbody = tabElement.querySelector('#tableルート作成>tbody');
+    set調査地点Source(tabElement, source調査地点, new ol.source.Vector());
     // 画面初期状態を読み込み（一時保存id指定時はその保存内容を読み出し）
     ajaxExecute(base_url + `?Handler=InitialPlan&tempid=${tempid || ''}`, {},
       { title: tempid ? '一時保存ルート呼出・削除' : '調査ルート作成' }
     ).then((json) => {
       // -----------------------
       // 地点名一覧
-      tbodyルート作成.innerHTML = '';
+      tbody.innerHTML = '';
       setSelectedFeatureIds(json.id ?? []);
       const features = geojsonFormatter.readFeatures(json.features);
       features.forEach((f) => {
@@ -56,7 +55,7 @@ export function CreateRoute({
           const cb = trElement.querySelector('input[type="checkbox"][name="id"]');
           if (cb) cb.checked = true;
         }
-        tbodyルート作成.appendChild(trElement);
+        tbody.appendChild(trElement);
       });
       source調査地点.clear();
       source調査地点.addFeatures(features);
@@ -111,10 +110,11 @@ export function CreateRoute({
   // ---------------------------------------------------------------------------------
   // フィルタ関数（選択肢変更時に一覧の表示/非表示を切り替える）
   const filterルート作成対象 = () => {
+    const tbody = tabElement.querySelector('#tableルート作成>tbody');
     const irai = selIrai ? Array.from(selIrai.selectedOptions).map(o => o.value) : [];
     const priority = selPriority ? Array.from(selPriority.selectedOptions).map(o => o.value) : [];
     const persons = selPersons ? selPersons.value : '';
-    tbodyルート作成.querySelectorAll('tr').forEach((tr) => {
+    tbody.querySelectorAll('tr').forEach((tr) => {
       const visible =
         (irai.length === 0 || irai.indexOf(tr.dataset.irai) !== -1) &&
         (priority.length === 0 || priority.indexOf(tr.dataset.priority) !== -1) &&
@@ -218,6 +218,7 @@ export function CreateRoute({
   // ---------------------------------------------------------------------------------
   // 距離算出処理
   const autoCalculateDistance = (calc = null) => {
+    const tbody = tabElement.querySelector('#tableルート作成>tbody');
     if (calc === null) {
       document.getElementById('radioルート手動作成').checked = true;
     }
@@ -270,6 +271,7 @@ export function CreateRoute({
   // Undo
   const btnUndo = document.getElementById('btnルート作成Undo');
   if (btnUndo) {
+    const tbody = tabElement.querySelector('#tableルート作成>tbody');
     btnUndo.addEventListener('click', (e) => {
       const arr = getSelectedFeatureIds() || [];
       if (arr.length) {

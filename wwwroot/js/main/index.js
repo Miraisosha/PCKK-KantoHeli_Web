@@ -18,6 +18,14 @@ const tab特定初動調査 = document.getElementById("tab特定初動調査");
 const tab調査依頼 = document.getElementById("tab調査依頼");
 const tab依頼状況 = document.getElementById("tab依頼状況");
 const tabルート作成 = document.getElementById('tabルート作成');
+const loginUser = {
+  isLogin :       document.getElementById('btnLogin').dataset.logined,
+  orgId:          document.getElementById('組織id').dataset.value,
+  userName :      document.getElementById('ユーザー名').dataset.value,
+  userdId:        document.getElementById('ユーザーid').dataset.value,
+  isRouteCreate:  document.getElementById('isルート作成可').dataset.value,
+};
+console.log(loginUser);
 
 // =====================================================================
 // 地図表示（以下の順にレイヤを作成・追加する（レイヤ作成処理は後ろで宣言する関係でfunctionとして定義しホイスティング））
@@ -57,16 +65,17 @@ const /** @type{Map<string, ol.source.Vector>} */ map調査ルートSource = {};
 // 調査ルート作成　（編集中）
 const layer編集調査ルート = createEditRouteLayer(map);
 
+// 地図に対する描画操作（地点追加等）
+let /** @type{ol.interaction.Draw?} */ mapDraw = null;
+// 何らかの表示中のtoast
+let /** @type{bootstrap.Toast?} */ displayingToast = null;
+
+// ====================================================================
 const 調査依頼タブ = init調査依頼タブ();
 //init依頼状況タブ();
 //if (tabルート作成) {
 //  initルート作成タブ();
 //}
-
-// 地図に対する描画操作（地点追加等）
-let /** @type{ol.interaction.Draw?} */ mapDraw = null;
-// 何らかの表示中のtoast
-let /** @type{bootstrap.Toast?} */ displayingToast = null;
 
 // ====================================================================
 // 調査依頼　距離標入力
@@ -113,25 +122,23 @@ init防災ヘリ関連情報Layers();
 
 // ====================================================================
 // タブ　調査依頼状況
-if (tab依頼状況) {
-  const reload防災ヘリ関連情報 = () => {
-    return new Promise((resolve, reject) => {
-      return resolve();
-    });
-  }
-  const requestStatus = InvestigationRequestStatus({
-    base_url,
-    tab依頼状況,
-    set調査地点Source,
-    geojsonFormatter,
-    ajaxExecute,
-    reload防災ヘリ関連情報,
-    showAlert,
-    showConfirm
+const reload防災ヘリ関連情報 = () => {
+  return new Promise((resolve, reject) => {
+    return resolve();
   });
-  requestStatus.initialize();
-  requestStatus.reload();
 }
+const requestStatus = InvestigationRequestStatus({
+  base_url,
+  tab依頼状況,
+  set調査地点Source,
+  geojsonFormatter,
+  ajaxExecute,
+  reload防災ヘリ関連情報,
+  showAlert,
+  showConfirm
+});
+requestStatus.initialize();
+requestStatus.reload();
 // ====================================================================
 // 首都直下初動
 const capital = Capital({
@@ -145,7 +152,7 @@ const capital = Capital({
     create明細行(ta, feature);
   }
 })
-if (tab特定初動調査) {
+if (loginUser.isRouteCreate) {
   capital.initialize();
 }
 // ====================================================================
@@ -166,7 +173,7 @@ const createRoute = CreateRoute({
     setSelectedFeatureIds: (v) => selectedFeatureIds = v,
     reverseSelectedFeatureIds: () => { selectedFeatureIds.reverse() },
   });
-if (tabルート作成) {
+if (loginUser.isRouteCreate) {
   createRoute.initialize();
 }
 

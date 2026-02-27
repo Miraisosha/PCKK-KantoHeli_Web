@@ -46,12 +46,27 @@
         <div class="ms-2">
           @if (login.Isログイン済)
           {
-            <a href="~/api/Login?Logout" type="button" class="btn btn-warning p-1" style="width:10rem;">ログアウト</a>
+            <a href="~/api/Login?Logout" type="button" class="btn btn-warning p-1" style="width:10rem;" id="btnLogin" data-logined="0">ログアウト</a>
           }
           else
           {
-            <button type="button" class="btn btn-warning p-1" data-bs-toggle="modal" style="width:10rem;"
+            <button type="button" class="btn btn-warning p-1" data-bs-toggle="modal" style="width:10rem;" id="btnLogin" data-logined="0"
               data-bs-target="#loginModal">ログイン</button>
+          }
+          @if(Model.ユーザーRec != null){
+            <div style="display:none" id="組織id" data-value="@Model.ユーザーRec.組織id"></div>
+            <div style="display:none" id="ユーザー名" data-value="@Model.ユーザーRec.ユーザー名"></div>
+            <div style="display:none" id="ユーザーid" data-value="@Model.ユーザーRec.ユーザーid"></div>
+          } else {
+            <div style="display:none" id="組織id" data-value=""></div>
+            <div style="display:none" id="ユーザー名" data-value=""></div>
+            <div style="display:none" id="ユーザーid" data-value=""></div>
+          }
+          @if (Model.所属組織Rec != null && Model.所属組織Rec.isルート作成可)
+          {
+            <div style="display:none" id="isルート作成可" data-value="1"></div>
+          } else {
+            <div style="display:none" id="isルート作成可" data-value=""></div>
           }
         </div>
       </div>

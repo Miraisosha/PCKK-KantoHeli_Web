@@ -61,6 +61,11 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
     // 初期表示タブ
     public string BottomTab { get; set; } = string.Empty;
+
+    // プルダウン用の簡易 DTO（id / text）
+    public record SelectItem(int Id, string Text);
+    // 市区町村震度
+    public IReadOnlyList<SelectItem> 市区町村震度Records { get; set; } = Array.Empty<SelectItem>();
     #endregion ----------------------------------------------------------------
 
     /// <summary>
@@ -71,37 +76,51 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     /// <returns></returns>
     public async Task<IActionResult> OnGetAsync([FromRoute] int thread, [FromQuery] bool partial = false, string tab = "")
     {
-        var rec = await con.SelectFirstOrDefaultAsync<T_スレッド>(r => r.スレッドid == thread && r.deleted_at == null);
-        if (rec is null)
+
+        スレッドRec = await con.SelectFirstOrDefaultAsync<T_スレッド>(r => r.スレッドid == thread && r.deleted_at == null);
+        if (スレッドRec is null)
         {
             logger.ZLogWarning($"編集対象データ不存在：{thread}");
             return BadRequest("指定されたスレッドがありません。");
         }
-        スレッドRec = rec;
 
+        // --------------------------------------------
         // ログイン情報を取得
         組織Records = await con.SelectAsync<T_組織>(r => r.表示順 != null && r.deleted_at == null,
             otherClauses: $"ORDER BY {nameof(T_組織.表示順)}");
         ユーザーRec = login.Isログイン済 ? await login.Getユーザー情報Async() : null;
         所属組織Rec = 組織Records.FirstOrDefault(r => r.組織id == ユーザーRec?.組織id);
 
-        // 左メニュー調査依頼
+        // --------------------------------------------
+        // 左メニュー
+        // 調査依頼
         調査依頼Records = await con.SelectAsync<T_調査依頼>(r => r.スレッドid == thread && r.deleted_at == null,
             otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
-        // 左メニュー調査予定ルート
+        // 調査予定ルート
         調査予定Records = await con.SelectAsync<T_調査予定>(r => r.スレッドid == thread && r.ステータス == 調査ステータスEnum.調査予定 && r.deleted_at == null,
             otherClauses: $"ORDER BY {nameof(T_調査予定.updated_at)} DESC");
 
-        // 調査依頼状況タブ　調査依頼　プルダウン
-        //if (ユーザーRec?.組織id == 101)
-        //{
-        //    // 総括班は全組織分を表示（組織条件なし）
-        //    依頼状況調査依頼Records = await con.SelectAsync<T_調査依頼>( r => r.スレッドid == thread && r.deleted_at == null, otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
-        //}
-        //else
-        //{
-        //    依頼状況調査依頼Records = await con.SelectAsync<T_調査依頼>( r => r.スレッドid == thread && r.組織id == ユーザーRec!.組織id && r.deleted_at == null, otherClauses: $"ORDER BY {nameof(T_調査依頼.updated_at)} DESC");
-        //}
+        int? jishinId = スレッドRec.地震id;
+        if (jishinId is not null)
+        {
+            IReadOnlyList<T_地震サマリ> earthquaks = await con.SelectAsync<T_地震サマリ>( r => r.地震id == jishinId.GetValueOrDefault(0));
+            市区町村震度Records = earthquaks.Select(r => new SelectItem(
+                r.地震id,
+                $"{r.地震発生日時:yyyy/M/d HH:mm}（最大震度{r.最大震度 switch
+                {
+                    "5-"            => "5弱",
+                    "5+" or "5＋"   => "5強",
+                    "6-"            => "6弱",
+                    "6+" or "6＋"   => "6強",
+                    "5?" or "震度５弱以上未入電" or "震度5弱以上未入電" => "不明",
+                    _ => r.最大震度
+                }}）"
+            )).ToList();
+        }
+
+
+        // --------------------------------------------
+        // TAB
         // 調査依頼状況タブ　調査依頼　プルダウン
         var userOrgId = ユーザーRec?.組織id;
         if (userOrgId == 101)
@@ -162,87 +181,87 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     }
     public async Task<IActionResult> OnGetRealTimeInfoStreamAsync([FromRoute(Name ="thread")] int? threadId = null, [FromQuery(Name = "id")] int? id = null)
     {
-        // ルート/クエリどちらかで指定されたスレッドIDを採用
-        threadId = threadId ?? id;
-
-        // ContentTypeをSSE用に設定
-        Response.ContentType = "text/event-stream";
-        Response.Headers.Append("Cache-Control", "no-cache");
-        Response.Headers.Append("X-Accel-Buffering", "no"); // 必要に応じてバッファ無効化（NGINXなど使用時）
-
-        // 明示的にHTTPレスポンスを非同期で継続送信するため、HTTPレスポンスを閉じないようにする
-        // （Action本体終了時にも接続が維持されるようにするためにTaskで無限ループを実行）
-        // 実運用ではキャンセルトークンなどで安全に終了可能とすることを推奨
-        Response.StatusCode = 200;
-
-        // ※リアルタイム情報の送出内容が変化したときに送信（リクエスト初回は必ず送信される）
-        string? prevJsonText = null;
-
-        // スレッド指定がある場合はそのスレッドの災害発生日時で絞り込むためスレッド情報を取得しておく
-        int? jishinId = null;
-        if (threadId is not null)
-        {
-            T_スレッド? threadRec = null;
-            threadRec = await con.SelectFirstOrDefaultAsync<T_スレッド>(
-                r => r.スレッドid == threadId.Value && r.地震id != null && r.deleted_at == null);
-            if (threadRec is not null)
-            {
-                jishinId = threadRec.地震id.Value;
-            } else
-            {
-                return new EmptyResult();
-            }
-        } else {
-            return new EmptyResult();
-        }
-
-        while (!HttpContext.RequestAborted.IsCancellationRequested && !AppSettings.IsApplicationStopping)
-        {
-            var from = provider.GetNow().AddMinutes(-_settings.リアルタイム情報有効時間_分);
-
-            IReadOnlyList<T_地震サマリ> earthquaks;
-            if (jishinId is not null)
-            {
-
-                earthquaks = await con.SelectAsync<T_地震サマリ>( r => r.地震id == jishinId.GetValueOrDefault(0));
-            }
-            else
-            {
-                // 全件（最近更新分のみ）
-                earthquaks = await con.SelectAsync<T_地震サマリ>(
-                    r => r.deleted_at == null && r.updated_at > from,
-                    otherClauses: $"ORDER BY {nameof(T_地震サマリ.updated_at)} DESC");
-            }
-
-            var jsonData = new
-            {
-                earthquaks = earthquaks.Select(rec => new
-                {
-                    id = rec.地震id,
-                    text = $"{rec.地震発生日時:yyyy/M/d HH:mm}（最大震度{rec.最大震度 switch
-                    {
-                        "5-" => "5弱",
-                        "5+" or "5＋" => "5強",
-                        "6-" => "6弱",
-                        "6+" or "6＋" => "6強",
-                        "5?" or "震度５弱以上未入電" or "震度5弱以上未入電" => "不明",
-                        _ => rec.最大震度
-                    }}）"
-                }).ToArray(),
-            };
-            var jsonText = JsonSerializer.Serialize(jsonData);
-            if (prevJsonText != jsonText)
-            {
-                await Response.WriteAsync($"data: {jsonText}\n\n");
-                await Response.Body.FlushAsync();
-                prevJsonText = jsonText;
-            }
-            // 指定秒数sleep相当
-            for (int i = 0; i < _settings.リアルタイム情報更新間隔_秒 && !AppSettings.IsApplicationStopping; i++)
-            {
-                await Task.Delay(1000, HttpContext.RequestAborted);
-            }
-        }
+//        // ルート/クエリどちらかで指定されたスレッドIDを採用
+//        threadId = threadId ?? id;
+//
+//        // ContentTypeをSSE用に設定
+//        Response.ContentType = "text/event-stream";
+//        Response.Headers.Append("Cache-Control", "no-cache");
+//        Response.Headers.Append("X-Accel-Buffering", "no"); // 必要に応じてバッファ無効化（NGINXなど使用時）
+//
+//        // 明示的にHTTPレスポンスを非同期で継続送信するため、HTTPレスポンスを閉じないようにする
+//        // （Action本体終了時にも接続が維持されるようにするためにTaskで無限ループを実行）
+//        // 実運用ではキャンセルトークンなどで安全に終了可能とすることを推奨
+//        Response.StatusCode = 200;
+//
+//        // ※リアルタイム情報の送出内容が変化したときに送信（リクエスト初回は必ず送信される）
+//        string? prevJsonText = null;
+//
+//        // スレッド指定がある場合はそのスレッドの災害発生日時で絞り込むためスレッド情報を取得しておく
+//        int? jishinId = null;
+//        if (threadId is not null)
+//        {
+//            T_スレッド? threadRec = null;
+//            threadRec = await con.SelectFirstOrDefaultAsync<T_スレッド>(
+//                r => r.スレッドid == threadId.Value && r.地震id != null && r.deleted_at == null);
+//            if (threadRec is not null)
+//            {
+//                jishinId = threadRec.地震id.Value;
+//            } else
+//            {
+//                return new EmptyResult();
+//            }
+//        } else {
+//            return new EmptyResult();
+//        }
+//
+//        while (!HttpContext.RequestAborted.IsCancellationRequested && !AppSettings.IsApplicationStopping)
+//        {
+//            var from = provider.GetNow().AddMinutes(-_settings.リアルタイム情報有効時間_分);
+//
+//            IReadOnlyList<T_地震サマリ> earthquaks;
+//            if (jishinId is not null)
+//            {
+//
+//                earthquaks = await con.SelectAsync<T_地震サマリ>( r => r.地震id == jishinId.GetValueOrDefault(0));
+//            }
+//            else
+//            {
+//                // 全件（最近更新分のみ）
+//                earthquaks = await con.SelectAsync<T_地震サマリ>(
+//                    r => r.deleted_at == null && r.updated_at > from,
+//                    otherClauses: $"ORDER BY {nameof(T_地震サマリ.updated_at)} DESC");
+//            }
+//
+//            var jsonData = new
+//            {
+//                earthquaks = earthquaks.Select(rec => new
+//                {
+//                    id = rec.地震id,
+//                    text = $"{rec.地震発生日時:yyyy/M/d HH:mm}（最大震度{rec.最大震度 switch
+//                    {
+//                        "5-" => "5弱",
+//                        "5+" or "5＋" => "5強",
+//                        "6-" => "6弱",
+//                        "6+" or "6＋" => "6強",
+//                        "5?" or "震度５弱以上未入電" or "震度5弱以上未入電" => "不明",
+//                        _ => rec.最大震度
+//                    }}）"
+//                }).ToArray(),
+//            };
+//            var jsonText = JsonSerializer.Serialize(jsonData);
+//            if (prevJsonText != jsonText)
+//            {
+//                await Response.WriteAsync($"data: {jsonText}\n\n");
+//                await Response.Body.FlushAsync();
+//                prevJsonText = jsonText;
+//            }
+//            // 指定秒数sleep相当
+//            for (int i = 0; i < _settings.リアルタイム情報更新間隔_秒 && !AppSettings.IsApplicationStopping; i++)
+//            {
+//                await Task.Delay(1000, HttpContext.RequestAborted);
+//            }
+//        }
         return new EmptyResult();
     }
     /// <summary>

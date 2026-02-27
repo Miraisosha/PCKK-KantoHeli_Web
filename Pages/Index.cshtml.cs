@@ -35,6 +35,10 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
 
     #region 画面表示内容 ------------------------------------------------------
+    public T_ユーザー? ユーザーRec { get; set; }
+    public IReadOnlyList<T_組織> 組織Records { get; set; } = [];
+    public T_組織? 所属組織Rec { get; set; }
+
     public int 年度Min { get; set; }
     public int 年度Max { get; set; }
     public IReadOnlyList<T_災害区分> 災害区分Records { get; set; } = [];
@@ -43,6 +47,15 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
     public async Task OnGetAsync()
     {
+
+        // --------------------------------------------
+        // ログイン情報を取得
+        組織Records = await con.SelectAsync<T_組織>(r => r.表示順 != null && r.deleted_at == null,
+            otherClauses: $"ORDER BY {nameof(T_組織.表示順)}");
+        ユーザーRec = login.Isログイン済 ? await login.Getユーザー情報Async() : null;
+        所属組織Rec = 組織Records.FirstOrDefault(r => r.組織id == ユーザーRec?.組織id);
+
+
         年度Min = 2020; //TODO 後日設定ファイル化の可能性あり？
         年度Max = provider.GetToday().AddMonths(-3).Year; // 今年度を最大値とする
         if (Year < 年度Min || Year > 年度Max)
