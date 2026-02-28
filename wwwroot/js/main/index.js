@@ -216,7 +216,7 @@ map.on('click', (e) => {
     }
     // 距離標ポイント　クリックイベント
     if (kpManager.handleMapClick(feature, layer)) {
-      return;
+      return true;
     }
   });
 });
@@ -850,7 +850,7 @@ function init調査依頼タブ() {
   function create調査依頼行FromKP(kpResult) {
     const feature = kpResult.feature;
     const toast調査地点追加Element = document.getElementById('toast調査地点追加');
-    feature.set('name', kpResult.selRoadRiver + ' ' + kpResult.startKp + 'Kp - ' + kpResult..endKp + 'Kp');
+    feature.set('name', kpResult.selRoadRiver + ' ' + kpResult.startKp + 'kp ～ ' + kpResult..endKp + 'kp');
     feature.set('color', '#FF0000');
     feature.set('requester', toast調査地点追加Element.dataset.requester);
     feature.set('survey', '通過');

@@ -34,6 +34,7 @@ export function initKPManager(ctx) {
     enterKPMode(drawType);
     isRiver = (drawType == 'River');
     kpProp = (isRiver) ? '距離標' : '地点標名称';
+    document.getElementById('lblRoadRiver').innerHTML = (isRiver) ? '河川' : '道路';
     if (isRiver) {
       hideAllKPLayers();
       layerKP河川.setVisible(true);
@@ -53,6 +54,18 @@ export function initKPManager(ctx) {
     modalKPPoint.style.display = 'none';
     hideAllKPLayers();
     sources.mapKPSource.clear();
+    layerKP河川.setStyle(function (f) {
+      return styleKPRiver(f);
+    });
+    layerKPLine河川.setStyle(function (f) {
+      return styleKPLineRiver(f);
+    });
+    layerKP道路.setStyle(function (f) {
+      return styleKPRiver(f);
+    });
+    layerKPLine道路.setStyle(function (f) {
+      return styleKPLineRiver(f);
+    });
   }
 
   function resetInputs() {
@@ -180,7 +193,7 @@ export function initKPManager(ctx) {
         return (isSameGroup(f, values)) ? styleKPLineRiver(f) : null;
       });
       zoomKPLine(layerKP河川);
-    } else if (values.length == 6) {
+    } else if (values.length == 7) {
       layerKP道路.setStyle(function (f) {
         return (isSameGroup(f, values)) ? styleKPRiver(f) : null;
       });
@@ -194,7 +207,6 @@ export function initKPManager(ctx) {
   // ================================================================
   // 距離標選択状態Source Changeイベント
   mapKPSource.on('change', () => {
-    console.log('mapKPSource change! -----------------------------------------------------');
     const btnKPOk = document.getElementById("btnKPOk");
     btnKPOk.disabled = true;
 
@@ -271,6 +283,8 @@ export function initKPManager(ctx) {
   function onKPLayerClickInternal(feature, hoverLayer) {
     const features = mapKPSource.getFeatures();
     const cnt = features.length;
+    console.log("onKPLayerClickInternal !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    console.log(cnt);
 
     // 同じ距離標を再クリック → 解除
     const existing = features.find(f => f.get('srcFeature') === feature);
@@ -370,7 +384,7 @@ export function initKPManager(ctx) {
     let source = null;
     if (parts.length === 3) {
       source = mapKPSource河川;
-    } else if (parts.length === 6) {
+    } else if (parts.length === 7) {
       source = mapKPSource道路;
     } else {
       return;
@@ -415,7 +429,7 @@ export function initKPManager(ctx) {
     }
 
     // 道路
-    if (parts.length === 6) {
+    if (parts.length === 7) {
       if (feature.get('地方整備局') == parts[0]
         && feature.get('事務所') == parts[1]
         && feature.get('道路種別') == parts[2]
@@ -424,16 +438,15 @@ export function initKPManager(ctx) {
         && feature.get('上下区分') == parts[5]
         && feature.get('補助番号') == parts[6])
       {
-          console.log(parts);
-          console.log([
-            feature.get('地方整備局'),
-            feature.get('事務所'),
-            feature.get('道路種別'),
-            feature.get('路線'),
-            feature.get('現旧新区分'),
-            feature.get('上下区分'),
-            feature.get('補助番号')
-          ]);
+//          console.log([
+//            feature.get('地方整備局'),
+//            feature.get('事務所'),
+//            feature.get('道路種別'),
+//            feature.get('路線'),
+//            feature.get('現旧新区分'),
+//            feature.get('上下区分'),
+//            feature.get('補助番号')
+//          ]);
         }
       return feature.get('地方整備局') == parts[0]
         && feature.get('事務所') == parts[1]
@@ -453,11 +466,14 @@ export function initKPManager(ctx) {
     if (selRoadRiver.selectedIndex == 0) {
       selRoadRiver.value = key;
     }
-    if (startKp.value == "") {
-      startKp.value = kp;
-    } else if (startKp.value != "" && endKp.value == "") {
-      endKp.value = kp;
-    }
+//      console.log("start KP:[" + startKp.value + "]");
+//    if (startKp.value == "") {
+//      console.log("start KP:" + kp);
+//      startKp.value = kp;
+//    } else if (startKp.value != "" && endKp.value == "") {
+//      console.log("end KP:" + kp);
+//      endKp.value = kp;
+//    }
   }
 
   // ================================================================
@@ -580,11 +596,8 @@ export function initKPManager(ctx) {
     selectedFeature.set('srcFeature', feature);
     selectedFeature.set('elemId', elemId);
 
-    console.log("setSelectedKPPoint:" + elemId);
-
     mapKPSource.getFeatures().map(f => {
       if (f.get('elemId') == elemId) {
-        console.log("setSelectedKPPoint:REMOVE:" + elemId);
         mapKPSource.removeFeature(f);
       }
     });

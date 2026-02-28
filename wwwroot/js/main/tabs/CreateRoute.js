@@ -410,8 +410,10 @@ export function CreateRoute({
 
     // 先頭列（チェックボックス、ただし特定初動調査は巡回順テキスト表示）
     innerHTML += `<td class="text-center"><input type="checkbox" name="id" value="${id}" class="form-check-input chkCreateRoute"></td>`;
-    // 地点名・依頼者
+    // 地点名
     innerHTML += `<td><input type="text" readonly class="py-0 my-0 form-control-plaintext" value="${htmlEncode(name)}"></td>`;
+    // 依頼者
+    innerHTML += `<td class="text-center">${requester}</td>`;
     // 優先度
     innerHTML += `<td><div class="btn-group" name="input.prioritygroup">`;
     for (let value of ['高', '中', '低']) {

@@ -1081,6 +1081,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         T_調査予定? t調査予定Rec = null;
         T_調査予定ルート? t始点Rec = null;
         T_調査予定ルート? t終点Rec = null;
+        T_起点終点? t起点終点 = null;
         int[] id = [];
         if (tempid is not null)
         {
@@ -1100,6 +1101,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             t始点Rec = tルートRecords.FirstOrDefault(r => r.調査箇所id == null && r.連番 == 0);
             t終点Rec = tルートRecords.FirstOrDefault(r => r.調査箇所id == null && r.連番 > 0);
             id = [.. tルートRecords.Select(r => r.調査箇所id).OfType<int>()];
+        } else { 
+            t起点終点 = await con.SelectFirstOrDefaultAsync<T_起点終点>(r => r.起点終点id == 11 && r.deleted_at == null);
         }
 
         return new JsonResult(new
@@ -1109,14 +1112,14 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 // 選択可能な調査箇所
                 features = await ToFearureCollectionAsync(records),
                 // 画面入力項目
-                startid = t調査予定Rec?.起点id,
-                endid = t調査予定Rec?.終点id,
-                auto = t調査予定Rec?.is自動作成ルート ?? false,
+                startid = t調査予定Rec?.起点id ?? 11,
+                endid = t調査予定Rec?.終点id ?? 11,
+                auto = t調査予定Rec?.is自動作成ルート ?? true,
                 title = t調査予定Rec?.調査予定名,
-                startx = t始点Rec?.ジオメトリ.Coordinate.X,
-                starty = t始点Rec?.ジオメトリ.Coordinate.Y,
-                endx = t終点Rec?.ジオメトリ.Coordinate.X,
-                endy = t終点Rec?.ジオメトリ.Coordinate.Y,
+                startx = t始点Rec?.ジオメトリ.Coordinate.X ?? t起点終点.緯度,
+                starty = t始点Rec?.ジオメトリ.Coordinate.Y ?? t起点終点.経度,
+                endx = t終点Rec?.ジオメトリ.Coordinate.X ?? t起点終点.緯度,
+                endy = t終点Rec?.ジオメトリ.Coordinate.Y ?? t起点終点.経度,
                 drawroute = t調査予定Rec?.手動描画調査ルート,
                 // 選択状態の調査箇所
                 id,
