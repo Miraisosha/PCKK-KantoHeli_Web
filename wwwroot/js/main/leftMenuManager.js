@@ -1,104 +1,58 @@
 export function leftMenuManager(ctx) {
   const {
     base_url,
+    root_url,
     threadId,
     map,
+    layerCity,
+    layerHeliPort,
     layer調査地点,
     layer調査ルート,
   } = ctx;
 
-  // ---------------------------------------------------------------------------------
-  // 
-  function initialize() {
-
-  }
+  const sourceCity = new ol.source.Vector();
 
   // ====================================================================
   // リアルタイム情報表示
   // ====================================================================
-  function init市区町村震度Layer() {
+  function initialize() {
+    // 市区町村震度ポリゴン　イベント
     const left市区町村震度Element = document.getElementById('left市区町村震度');
-    // レイヤ作成
-    const layer市区町村震度 = new ol.layer.Vector({
-      source: new ol.source.Vector(),
-      style: (feature, resolution) => {
-        const rgb = feature.get('rgb');
-        return new ol.style.Style({
-          fill: new ol.style.Fill({ color: `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)` }),
-          stroke: new ol.style.Stroke({ color: '#00008888', width: 1 }),
-        });
-      },
-    });
-    map.addLayer(layer市区町村震度);
-    // EventStreamで更新情報を受け取り
-//    const realtimeEventSource = new EventSource(base_url + '?Handler=RealTimeInfoStream&id=' + threadId);
-//    realtimeEventSource.onmessage = (e) => {
-//      const json = JSON.parse(e.data);
-//      // html表示内容を差し替え
-//      left市区町村震度Element.innerHTML = !json.earthquaks.length
-//        ? `<div>　直近の地震情報がありません。</div>`
-//        : json.earthquaks.map((item) => {
-//          // （現在選択中なら選択中状態を維持）
-//          const oldChecked = !!left市区町村震度Element.querySelector(`input[type="checkbox"][name="quake"][value="${item.id}"]:checked`);
-//          return `<div><label class="form-check">`
-//            + `<input class="form-check-input" type="checkbox" name="quake" value="${item.id}" ${oldChecked ? ' checked' : ''}>`
-//            + ` <span class="form-check-label">${item.text}</span>`
-//            + `</label></div>`;
-//        }).join('');
-//      // チェック状態変更時にタイル読み込み
-//      left市区町村震度Element.querySelectorAll(`input[type="checkbox"][name="quake"]`).forEach((chk) => {
-//        chk.addEventListener('change', (e) => {
-//          let sourceUrl = BASE_URL + 'api/mapdata/EarthquakePolygon?'
-//            + Array.from(left市区町村震度Element.querySelectorAll(`input[type="checkbox"][name="quake"]:checked`)).map((chk) => `quake=${chk.value}`).join('&');
-//          layer市区町村震度.setSource(new ol.source.Vector({ url: sourceUrl, format: new ol.format.GeoJSON() }));
-//        });
-//      });
-//    };
     left市区町村震度Element.querySelectorAll(`input[type="checkbox"][name="quake"]`).forEach((chk) => {
+      loadCityGzGeoJson(chk.value);
       chk.addEventListener('change', (e) => {
-        let sourceUrl = BASE_URL + 'api/mapdata/EarthquakePolygon?'
-          + Array.from(left市区町村震度Element.querySelectorAll(`input[type="checkbox"][name="quake"]:checked`)).map((chk) => `quake=${chk.value}`).join('&');
-        layer市区町村震度.setSource(new ol.source.Vector({ url: sourceUrl, format: new ol.format.GeoJSON() }));
+        layerCity.setVisible(e.target.checked);
+      });
+    });
+
+    const left事前情報Element = document.getElementById('left事前情報');
+    left事前情報Element.querySelectorAll(`input[type="checkbox"][data-geojsonurl]`).forEach((chk) => {
+      // チェック状態変更時に表示ON/Off切り替え
+      chk.addEventListener('change', (e) => {
+        layerHeliPort.setVisible(e.target.checked);
       });
     });
   }
+
+  // ====================================================================
+  // 市区町村震度ポリゴン 読み込み
+  async function loadCityGzGeoJson(id) {
+    const url = root_url + '/files/earthquake/' + id + '.geojson.gz';
+    const res = await fetch(url, { credentials: 'same-origin' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const buf = await res.arrayBuffer();
+    const decompressed = pako.inflate(new Uint8Array(buf), { to: 'string' });
+    const geojson = JSON.parse(decompressed);
+    const features = new ol.format.GeoJSON().readFeatures(geojson, { featureProjection: 'EPSG:3857' });
+    sourceCity.addFeatures(features);
+    layerCity.setSource(sourceCity);
+  }
+
 
   // ====================================================================
   // 事前情報表示
   // ====================================================================
   function init事前情報Layers() {
-    const left事前情報Element = document.getElementById('left事前情報');
-    left事前情報Element.querySelectorAll(`input[type="checkbox"][data-geojsonurl]`).forEach((chk) => {
-      // レイヤ作成
-      const infoType = chk.value;
-      const style = (infoType == 'heliport')
-        ? new ol.style.Style({
-          text: new ol.style.Text({
-            font: 'bold 18px bootstrap-icons',
-            text: '\uF7FB',
-            fill: new ol.style.Fill({ color: '#00F' }),
-            stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
-          })
-        })
-        : new ol.style.Style({
-          text: new ol.style.Text({
-            font: 'bold 18px bootstrap-icons',
-            text: '\uF627',
-            fill: new ol.style.Fill({ color: '#800' }),
-            stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
-          })
-        });
-      const layer事前情報 = new ol.layer.Vector({
-        source: new ol.source.Vector({ url: chk.dataset.geojsonurl, format: new ol.format.GeoJSON() }),
-        style: style,
-        visible: false,
-      });
-      map.addLayer(layer事前情報);
-      // チェック状態変更時に表示ON/Off切り替え
-      chk.addEventListener('change', (e) => {
-        layer事前情報.setVisible(chk.checked);
-      });
-    });
   }
 
   // ====================================================================
@@ -270,7 +224,6 @@ export function leftMenuManager(ctx) {
   }
   return {
     initialize,
-    init市区町村震度Layer,
     init事前情報Layers
   };
 }

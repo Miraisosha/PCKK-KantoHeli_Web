@@ -35,7 +35,6 @@ export function CreateRoute({
   // ---------------------------------------------------------------------------------
   // 初期化関数（公開）
   const initialize = (tempid) => {
-    console.log("initルート作成 (CreateRoute)!!!!!");
     const tbody = tabElement.querySelector('#tableルート作成>tbody');
     set調査地点Source(tabElement, source調査地点, new ol.source.Vector());
     // 画面初期状態を読み込み（一時保存id指定時はその保存内容を読み出し）

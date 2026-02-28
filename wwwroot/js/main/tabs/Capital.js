@@ -31,6 +31,9 @@ export function Capital(ctx) {
     ids:          [],
   };
 
+    const source = new ol.source.Vector();
+    set調査地点Source(tabElement, new ol.source.Vector(), source);
+
   // ---------------------------------------------------------------------------------
   // 初期設定
   function initialize() {
@@ -68,19 +71,16 @@ export function Capital(ctx) {
           `<option value="${r.value}" ${(r.isLowest) ? "selected" : "" }>${r.name}：評価スコア${r.score}${(r.isLowest) ? "（推奨）" : "" }</option>`
         ).join('');
       }
-
-      // 初動調査地点一覧
-      loadInitialSurveyRoute();
+      showSurveyRoute()
     }).catch((err) => {
       console.warn('初動調査ルート読み込み失敗', err);
     });
   }
-
   // ---------------------------------------------------------------------------------
   // 初動調査ルート　読み込み
-  function loadInitialSurveyRoute() {
+  function showSurveyRoute() {
     var 初動調査ルートid = sel初動調査ルート.value
-    console.log("loadInitialSurveyRoute:" + 初動調査ルートid);
+    source.clear();
     if (!sel初動調査ルート) {
       console.warn('initCapital: select[name="routeid"] が見つかりません。load初動調査ルート を中止します。');
       return;
@@ -88,13 +88,6 @@ export function Capital(ctx) {
     if (!初動調査ルートid) return;
 
     const tbody = tabElement.querySelector('#table特定初動調査 tbody');
-    const source = new ol.source.Vector();
-    // 調査地点はこのタブでは使わないので空のsourceを渡す
-    try {
-      set調査地点Source(tabElement, new ol.source.Vector(), source);
-    } catch (err) {
-      console.warn('set調査地点Source 呼び出しでエラー', err);
-    }
     if (tbody) tbody.innerHTML = '';
 
     ajaxExecute(
@@ -143,7 +136,7 @@ export function Capital(ctx) {
   // ---------------------------------------------------------------------------------
   // イベント登録（明示的に存在チェック）
   if (sel初動調査ルート) {
-    sel初動調査ルート.addEventListener('change', loadInitialSurveyRoute);
+    sel初動調査ルート.addEventListener('change', showSurveyRoute);
   }
 
   // ---------------------------------------------------------------------------------
@@ -182,7 +175,13 @@ export function Capital(ctx) {
     return formData;
   };
 
+  // ---------------------------------------------------------------
+  function hideSurveyRoute() {
+
+  }
   return {
-    initialize
+    initialize,
+    showSurveyRoute,
+    hideSurveyRoute,
   };
 }

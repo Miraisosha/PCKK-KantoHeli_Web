@@ -145,8 +145,9 @@ export function initKPManager(ctx) {
       const 路線 = f.get('路線');
       const 現旧新区分 = f.get('現旧新区分');
       const 上下区分 = f.get('上下区分');
+      const 補助番号 = f.get('補助番号');
 
-      const key = `${地方整備局}_${事務所}_${道路種別}_${路線}_${現旧新区分}_${上下区分}`;
+      const key = `${地方整備局}_${事務所}_${道路種別}_${路線}_${現旧新区分}_${上下区分}_${補助番号}`;
       const text = `${路線}号線 ${現旧新区分} ${上下区分}`;
 
       if (!mapKP道路.has(key)) {
@@ -420,7 +421,8 @@ export function initKPManager(ctx) {
         && feature.get('道路種別') == parts[2]
         && String(feature.get('路線')) == parts[3]
         && feature.get('現旧新区分') == parts[4]
-        && feature.get('上下区分') == parts[5])
+        && feature.get('上下区分') == parts[5]
+        && feature.get('補助番号') == parts[6])
       {
           console.log(parts);
           console.log([
@@ -429,7 +431,8 @@ export function initKPManager(ctx) {
             feature.get('道路種別'),
             feature.get('路線'),
             feature.get('現旧新区分'),
-            feature.get('上下区分')
+            feature.get('上下区分'),
+            feature.get('補助番号')
           ]);
         }
       return feature.get('地方整備局') == parts[0]
@@ -437,7 +440,8 @@ export function initKPManager(ctx) {
         && feature.get('道路種別') == parts[2]
         && String(feature.get('路線')) == parts[3]
         && feature.get('現旧新区分') == parts[4]
-        && feature.get('上下区分') == parts[5];
+        && feature.get('上下区分') == parts[5]
+        && feature.get('補助番号') == parts[6];
     }
     return false;
   }
@@ -616,7 +620,8 @@ export function initKPManager(ctx) {
         feature.get('道路種別'),
         feature.get('路線'),
         feature.get('現旧新区分'),
-        feature.get('上下区分')];
+        feature.get('上下区分'),
+        feature.get('補助番号')];
     }
   }
   return {

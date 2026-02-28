@@ -152,7 +152,7 @@ public class MapDataApi(ILogger<MapDataApi> logger, DbConnection con, LoginServi
             try
             {
                 Directory.CreateDirectory(webrootDir);
-                var filePath = Path.Combine(webrootDir, $"{quake[0]}.geojson");
+                var filePath = Path.Combine(webrootDir, $"{quake[0]}.json");
                 if (System.IO.File.Exists(filePath))
                 {
                     var jsonText = await System.IO.File.ReadAllTextAsync(filePath);
@@ -194,7 +194,9 @@ public class MapDataApi(ILogger<MapDataApi> logger, DbConnection con, LoginServi
             )
             SELECT
                 w_地震明細.code,
-                intensity, wkb_geometry
+                intensity,
+                --ST_Simplify(wkb_geometry, 0.001) AS wkb_geometry
+                wkb_geometry
             FROM
                 w_地震明細
             INNER JOIN
@@ -244,10 +246,15 @@ public class MapDataApi(ILogger<MapDataApi> logger, DbConnection con, LoginServi
         }
 
         // ファイル出力
-        var outputPath = Path.Combine(Directory.GetCurrentDirectory(), "intensity_polygons.geojson");
-        await File.WriteAllTextAsync(outputPath, geoJson, Encoding.UTF8);
+        var outputPath = Path.Combine(webrootDir, $"{quake[0]}.json");
+        await System.IO.File.WriteAllTextAsync(outputPath, geoJson, Encoding.UTF8);
 
         Console.WriteLine($"GeoJSON作成完了: {outputPath}");
+        return new JsonResult(new
+        {
+            type = "FeatureCollection",
+            features = ""
+        });
     }
     private class Query震度ポリゴン
     {

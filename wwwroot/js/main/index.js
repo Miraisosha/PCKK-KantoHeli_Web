@@ -10,6 +10,8 @@ import { CreateRoute } from './tabs/CreateRoute.js';
 const base_url = location.origin + location.pathname;
 const segments = location.pathname.split("/").filter(Boolean);
 const threadId = segments[segments.length - 1];
+const appName = segments.length > 2 ? `/${segments[0]}` : '';
+const root_url = url.origin + appName;
 
 
 // タブ・ないしタブ間での相互連携があるelement定義
@@ -25,7 +27,6 @@ const loginUser = {
   userdId:        document.getElementById('ユーザーid').dataset.value,
   isRouteCreate:  document.getElementById('isルート作成可').dataset.value,
 };
-console.log(loginUser);
 
 // =====================================================================
 // 地図表示（以下の順にレイヤを作成・追加する（レイヤ作成処理は後ろで宣言する関係でfunctionとして定義しホイスティング））
@@ -36,10 +37,16 @@ const map = window.app.map;
 // 選択中状態で表示すべきfeatureのidの一覧
 let selectedFeatureIds = [];
 
+// ---------------------------------------------
+// LEFT MENU LAYER
 // 防災ヘリ関連情報
 const layer調査地点 = createSpotLayer(map);
 const layer調査ルート = createRouteLayer(map);
+const layer市区町村震度 = createCityLayer(map);
+const layerヘリポート = createHeliPortLayer(map);
 
+// ---------------------------------------------
+// タブ
 // 調査依頼　距離標選択
 const layerKPLine河川         = createKPLineRiver(map);           // 距離標　河川 Line
 const layerKPLine道路         = createKPLineRoad(map);            // 距離標　道路 Line
@@ -57,7 +64,7 @@ layerKP河川.setSource(mapKPSource河川);
 layerKP道路.setSource(mapKPSource道路);
 layerSelectionKP.setSource(mapKPSource);
 layerSelectedKPLine.setSource(mapSelectedKPLineSource);
-// タブ
+
 const layer編集中調査地点 = createSpotLayer(map);
 //const layer編集中調査ルート = createRouteLayer(map);
 const /** @type{Map<string, ol.source.Vector>} */ map調査地点Source = {};
@@ -69,6 +76,22 @@ const layer編集調査ルート = createEditRouteLayer(map);
 let /** @type{ol.interaction.Draw?} */ mapDraw = null;
 // 何らかの表示中のtoast
 let /** @type{bootstrap.Toast?} */ displayingToast = null;
+
+
+// ====================================================================
+// レイヤーの順序
+map.addLayer(layer市区町村震度);
+map.addLayer(layer調査地点);
+map.addLayer(layer調査ルート);
+map.addLayer(layerヘリポート);
+map.addLayer(layerKPLine河川     );
+map.addLayer(layerKPLine道路     );
+map.addLayer(layerKP河川         );
+map.addLayer(layerKP道路         );
+map.addLayer(layerSelectionKP    );
+map.addLayer(layerSelectedKPLine );
+map.addLayer(layer編集調査ルート);
+map.addLayer(layer編集中調査地点);
 
 // ====================================================================
 const 調査依頼タブ = init調査依頼タブ();
@@ -110,14 +133,15 @@ const kpManager = initKPManager({
 const distance = initDistanceMeasure({ map });
 const leftMenu = leftMenuManager({
   base_url,
+  root_url,
   threadId,
   map,
+  layerCity: layer市区町村震度,
+  layerHeliPort: layerヘリポート,
   layer調査地点,
   layer調査ルート
 });
-leftMenu.init市区町村震度Layer();
-leftMenu.init事前情報Layers();
-
+leftMenu.initialize();
 init防災ヘリ関連情報Layers();
 
 // ====================================================================
@@ -213,7 +237,6 @@ document.querySelectorAll('#bottomArea table>thead input[name="chk全選択"]').
     checkboxes.forEach((cb) => {
       cb.checked = checked;
       const index = selectedFeatureIds.indexOf(cb.value);
-      console.log("All Change");
       if (cb.checked && index == -1) {
         selectedFeatureIds.push(cb.value);
       } else if (!cb.checked && index != -1) {
@@ -234,7 +257,6 @@ document.querySelectorAll('#bottomArea table>tbody').forEach((tbody) => {
     //    }
     if (cb) {
       const index = selectedFeatureIds.indexOf(cb.value);
-      console.log("Single Change");
       if (cb.checked && index == -1) {
         selectedFeatureIds.push(cb.value);
       } else if (!cb.checked && index != -1) {
@@ -352,7 +374,6 @@ function init防災ヘリ関連情報Layers() {
   const show表示対象Features = () => {
     const formData = new FormData(form防災ヘリ関連情報);
     // 調査依頼、および調査予定データをまとめて取得
-    console.log("init防災ヘリ関連情報Layers.show表示対象Features")
     ajaxGetJson(base_url + '?Handler=Features&' + new URLSearchParams(formData).toString())
       .then((json) => {
         const spots = geojsonFormatter.readFeatures(json.spots);
@@ -411,41 +432,60 @@ function set調査地点Source(tab, source調査地点, source調査ルート) {
   map調査ルートSource[tab.id] = source調査ルート;
   if (dispArea.dataset.bottomtab == tab.id) {
     layer編集中調査地点.setSource(source調査地点);
+    layer編集調査ルート.setSource(source調査ルート); //-----------------------
     source調査地点.changed(); // レイヤ再描画
-//    layer編集中調査ルート.setSource(source調査ルート);
     source調査ルート.changed(); // レイヤ再描画
   }
 }
+function tabChange(tab) {
+  dispArea.dataset.bottomtab = tab;
+
+  // クリア
+  kpManager.hideAllKPLayers();
+
+  const source調査地点 = map調査地点Source[tab] ?? new ol.source.Vector();
+  layer編集中調査地点.setSource(source調査地点);
+  source調査地点.changed(); // レイヤ再描画
+  const source調査ルート = map調査ルートSource[tab] ?? new ol.source.Vector();
+  source調査ルート.changed(); // レイヤ再描画
+
+  switch (tab) {
+    case "tab調査依頼":
+      layer編集調査ルート.setVisible(false);
+      break;
+    case "tab依頼状況" :
+      layer編集調査ルート.setVisible(false);
+      break;
+    case "tab特定初動調査" :
+      capital.showSurveyRoute();
+      layer編集調査ルート.setVisible(true);
+      break;
+    case "tabルート作成" :
+      layer編集調査ルート.setVisible(true);
+      break;
+    default: return;
+  }
+
+}
+tabChange(dispArea.dataset.bottomtab);
 
 // --------------------------------
 // タブ変更時に呼び出し
 // --------------------------------
 document.querySelectorAll('button[name="btnタブ選択"]').forEach((button) => {
   button.addEventListener('click', e => {
-    // URL変更
+    // リロードURL変更
     history.replaceState({}, '', `?tab=${button.value}`);
+
     // 未ログインならログインモーダル表示、ログイン済なら表示タブ切り替え
     const loginModalElement = document.getElementById('loginModal');
     if (loginModalElement) {
       const modal = bootstrap.Modal.getOrCreateInstance(loginModalElement);
       modal.show();
-    } else if (dispArea.dataset.bottomtab != button.value) {
-console.log("TAB Change:" + button.value);
-      // ログイン済なら表示タブ切り替え
-      dispArea.dataset.bottomtab = button.value;
-      const source調査地点 = map調査地点Source[button.value] ?? new ol.source.Vector();
-      layer編集中調査地点.setSource(source調査地点);
-      source調査地点.changed(); // レイヤ再描画
-      const source調査ルート = map調査ルートSource[button.value] ?? new ol.source.Vector();
-//      layer編集中調査ルート.setSource(source調査ルート);
-      source調査ルート.changed(); // レイヤ再描画
-      //TODO おそらくはinteraction停止が必要
-
-      console.log("TAB Change:" + button.value);
-      layer編集調査ルート.setVisible(button.value == "tabルート作成");
-
-      kpManager.hideAllKPLayers();
+      return;
     }
+
+    if (dispArea.dataset.bottomtab != button.value) tabChange(button.value);
   });
 });
 
@@ -708,7 +748,6 @@ function init調査依頼タブ() {
         tbody調査依頼.querySelectorAll('input[type="checkbox"][name="id"]').forEach((cb) => cb.checked = (cb.value == e.feature.getId()));
         trElement.querySelector('input[name="input.name"]').focus();
         // 地図上の選択状態も同期をとって変更
-        console.log(e.feature);
         source調査地点.addFeature(e.feature); // レイヤ再描画
         start追加地点指定(null);
       });
@@ -755,7 +794,6 @@ function init調査依頼タブ() {
     button.addEventListener('click', (e) => {
       form調査依頼.querySelector('input[name="mode"]').value = 'check';
       const formData = new FormData(form調査依頼);
-      console.log(form調査依頼.action);
       ajaxExecute(form調査依頼.action,
         { method: 'POST', body: formData },
         { title: button.dataset.modaltitle, form: form調査依頼 }

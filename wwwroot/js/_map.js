@@ -162,7 +162,6 @@ const createSpotLayer = (map) => {
       return styles;
     },
   });
-  map.addLayer(layer調査地点);
   return layer調査地点;
 };
 
@@ -217,9 +216,98 @@ const createRouteLayer = (map) => {
       return styles;
     },
   });
-  map.addLayer(layer調査ルート);
   return layer調査ルート;
 };
+
+// ---------------------------------------------------------------------------------
+// 市区町村地震ポリゴン
+// rgb / color 値のパース（配列、"r,g,b"、"#rrggbb" を許容）
+// color プロパティ（"#RRGGBB"）があれば優先して使うように変更
+function parseRgbValue(val) {
+  if (!val && val !== 0) return null;
+  // 配列 [r,g,b]
+  if (Array.isArray(val) && val.length >= 3) {
+    const nums = val.slice(0, 3).map(n => Number(n));
+    if (nums.every(n => !Number.isNaN(n))) return nums;
+    return null;
+  }
+  // 文字列
+  if (typeof val === 'string') {
+    const s = val.trim();
+    // "#RRGGBB" または "RRGGBB"
+    const hexMatch = s.match(/^#?([0-9a-fA-F]{6})$/);
+    if (hexMatch) {
+      const hex = hexMatch[1];
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      return [r, g, b];
+    }
+    // "r,g,b" や "r g b"
+    const parts = s.split(/[, \t]+/).map(p => Number(p));
+    if (parts.length >= 3 && parts.slice(0, 3).every(n => !Number.isNaN(n))) {
+      return parts.slice(0, 3);
+    }
+  }
+  // 数値は不正（期待しないが保険）
+  return null;
+}
+function createCityLayer(map){
+  const layer = new ol.layer.Vector({
+    style: (feature, resolution) => {
+      try {
+        // GeoJSON 側で color プロパティ("#RRGGBB") が入る場合は優先して使用する
+        const rawColor = feature.get('color') ?? feature.get('rgb');
+        const rgb = parseRgbValue(rawColor);
+        // ポリゴンの背景色（半透明）
+        const fillColor = rgb ? `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)` : 'rgba(0,0,0,0.6)';
+        // 枠線は背景色を暗くした色（なければ既定）
+        let strokeColor = '#00008888';
+        if (rgb) {
+          const dr = Math.max(0, rgb[0] - 40);
+          const dg = Math.max(0, rgb[1] - 40);
+          const db = Math.max(0, rgb[2] - 40);
+          strokeColor = `rgba(${dr},${dg},${db},0.9)`;
+        }
+        return new ol.style.Style({
+          fill: new ol.style.Fill({ color: fillColor }),
+          stroke: new ol.style.Stroke({ color: strokeColor, width: 1 }),
+        });
+      } catch (err) {
+        console.warn('layer style parse error', err);
+        return new ol.style.Style({
+          fill: new ol.style.Fill({ color: 'rgba(0,0,0,0.6)' }),
+          stroke: new ol.style.Stroke({ color: '#00008888', width: 1 }),
+        });
+      }
+    },
+    visible: false,
+  });
+  return layer;
+}
+
+// ----------------------------------------------------------
+// 事前情報ヘリポート
+function createHeliPortLayer(map) {
+  const style = new ol.style.Style({
+    text: new ol.style.Text({
+      font: 'bold 18px bootstrap-icons',
+      text: '\uF7FB',
+      fill: new ol.style.Fill({ color: '#00F' }),
+      stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
+    })
+  });
+  const layer = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: root_url + "/files/heliports.json",
+      format: new ol.format.GeoJSON(),
+    }),
+    style: style,
+    visible: false,
+  });
+  return layer;
+}
+  
 /**
  * 調査ルート（編集中）レイヤを作成します。
   * @param {ol.Map} map mapオブジェクト
@@ -271,7 +359,6 @@ const createEditRouteLayer = (map) => {
       return styles;
     },
   });
-  map.addLayer(layer);
   return layer;
 };
 
@@ -294,15 +381,14 @@ const createKPRiver = (map) => {
     style: styleKPRiver,
     visible: false
   });
-  map.addLayer(layer);
   return layer;
 };
 function setKPSource(drawType) {
   let url = null;
   if (drawType == 'River') {
-    url = root_url + '/files/kp_river.json'
+    url = root_url + '/files/kp_river_point.json'
   } else if (drawType == 'Road') {
-    url = root_url + '/files/kp_road.json'
+    url = root_url + '/files/kp_road_point.json'
   } else {
     return null;
   }
@@ -363,7 +449,6 @@ const createKPLineRiver = (map) => {
     style: styleKPLineRiver,
     visible:false 
   });
-  map.addLayer(layer);
   return layer;
 }
 function styleKPLineRiver(feature) {
@@ -386,7 +471,6 @@ const createKPRoad = (map) => {
     style: styleKPRoad,
     visible:false,
   });
-  map.addLayer(layer);
   return layer;
 };
 function styleKPRoad(feature) {
@@ -447,7 +531,6 @@ const createSelectionKPLayer = (map) => {
       })
     })
   });
-  map.addLayer(selectLayer);
   return selectLayer;
 }
 /**
@@ -463,7 +546,6 @@ const createSelectedKPLineLayer = (map) => {
       })
     })
   });
-  map.addLayer(layer);
   return layer;
 }
 
@@ -479,6 +561,5 @@ const createKPLineRoad = (map) => {
     style: styleKPLineRiver,
     visible: false
   });
-  map.addLayer(layer);
   return layer;
 }
