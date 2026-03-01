@@ -47,7 +47,9 @@ export function InvestigationRequestStatus(ctx) {
     ).then((json) => {
       const features = geojsonFormatter.readFeatures(json.features);
 
+      console.log("SurveyRequest:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
       features.forEach((f) => {
+        console.log("createDetailRecord:OK");
         const tr = createDetailRecord(f);
         tbody依頼状況.appendChild(tr);
       });
@@ -87,11 +89,11 @@ export function InvestigationRequestStatus(ctx) {
         reload防災ヘリ関連情報()
           .then(() => {
             load依頼状況();
-            showAlert('依頼取消', json.success || '依頼を取消しました。');
+            return;
           })
           .catch(() => {
             load依頼状況();
-            showAlert('依頼取消', json.success || '依頼を取消しました。');
+            return;
           });
       }, () => { });
     });

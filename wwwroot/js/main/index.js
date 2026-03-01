@@ -206,7 +206,6 @@ if (loginUser.isRouteCreate) {
 // 共通：地図上をマウスクリックした際の制御
 map.on('click', (e) => {
   if (mapDraw != null) { return; } // ただし描画操作中は除く
-  console.log("Map Click!");
   map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
     // 現在表示中の画面下部タブの当該featureの選択状態を反転させる
     if (layer == layer編集中調査地点) {
@@ -216,7 +215,6 @@ map.on('click', (e) => {
         checkbox.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
       }
     }
-    console.log("Draw Feature");
 
     // 距離標ポイント　クリックイベント
     if (kpManager.handleMapClick(feature, layer)) {
@@ -248,7 +246,7 @@ document.querySelectorAll('#bottomArea table>thead input[name="chk全選択"]').
       }
     });
     //source調査地点.changed(); // レイヤ再描画
-    if (tabルート作成) createRoute.autoCalculateDistance();
+    if (tabルート作成 && dispArea.dataset.bottomtab == 'tabルート作成') createRoute.autoCalculateDistance();
   });
 });
 // ====================================================================
@@ -267,7 +265,7 @@ document.querySelectorAll('#bottomArea table>tbody').forEach((tbody) => {
         selectedFeatureIds.splice(index, 1);
       }
       //source調査地点.changed(); // レイヤ再描画
-      if (tabルート作成) createRoute.autoCalculateDistance();
+    if (tabルート作成 && dispArea.dataset.bottomtab == 'tabルート作成') createRoute.autoCalculateDistance();
     }
   });
 });
@@ -598,6 +596,155 @@ function init調査依頼タブ() {
   set調査地点Source(tab調査依頼, source調査地点, new ol.source.Vector());
   const tbody調査依頼 = document.querySelector('#table調査依頼>tbody');
 
+  // --- ここから一括操作関連の追加 ---
+  // 一括操作メニュー（「一括操作」ラベルを持つドロップダウンだけを対象）
+  const bulkDropdown = Array.from(document.querySelectorAll('#tab調査依頼 .dropdown'))
+    .find(dd => {
+      const btn = dd.querySelector('.dropdown-toggle');
+      return btn && btn.textContent && btn.textContent.trim().includes('一括操作');
+    });
+  const bulkItems = bulkDropdown ? Array.from(bulkDropdown.querySelectorAll('.dropdown-item')) : [];
+
+  // 更新：一括操作ボタンの有効/無効を制御
+  const updateBulkButtonsState = () => {
+    const anyChecked = tbody調査依頼.querySelectorAll('input[type="checkbox"][name="id"]:checked').length > 0;
+    bulkItems.forEach((it) => { it.disabled = !anyChecked; });
+  };
+
+  // 一括設定ダイアログ表示共通（type: 'priority'|'persons'|'remarks'）
+  const showBulkModal = (type) => {
+    // モーダルDOMを作る
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.tabIndex = -1;
+    modal.innerHTML = `
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">${type === 'priority' ? '優先度一括設定' : type === 'persons' ? '搭乗希望一括設定' : '備考一括設定'}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            ${type === 'priority' ? `
+              <div class="d-flex gap-2 justify-content-center">
+                <button type="button" class="btn btn-outline-primary btn-priority" data-value="高">高</button>
+                <button type="button" class="btn btn-outline-primary btn-priority" data-value="中">中</button>
+                <button type="button" class="btn btn-outline-primary btn-priority" data-value="低">低</button>
+              </div>
+            ` : type === 'persons' ? `
+              <div>
+                <label class="form-label">搭乗人数</label>
+                <select class="form-select" id="bulkPersonsSelect">
+                  ${Array.from({ length: 9 }).map((_, i) => `<option value="${i}">${i === 0 ? 'なし' : i + '名'}</option>`).join('')}
+                </select>
+              </div>
+            ` : `
+              <div>
+                <label class="form-label">備考</label>
+                <input type="text" class="form-control" id="bulkRemarksInput" />
+              </div>
+            `}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="bulkOk">OK</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    const bsModal = new bootstrap.Modal(modal);
+    // 優先度選択のUI挙動
+    let selectedPriority = null;
+    modal.querySelectorAll('.btn-priority').forEach(b => {
+      b.addEventListener('click', (e) => {
+        modal.querySelectorAll('.btn-priority').forEach(x => x.classList.remove('btn-primary'));
+        modal.querySelectorAll('.btn-priority').forEach(x => x.classList.add('btn-outline-primary'));
+        b.classList.remove('btn-outline-primary');
+        b.classList.add('btn-primary');
+        selectedPriority = b.dataset.value;
+      });
+    });
+
+    modal.querySelector('#bulkOk').addEventListener('click', async () => {
+      const checked = Array.from(tbody調査依頼.querySelectorAll('input[type="checkbox"][name="id"]:checked'));
+      if (!checked.length) {
+        bsModal.hide();
+        return;
+      }
+      if (type === 'priority') {
+        if (!selectedPriority) { return; }
+        checked.forEach(cb => {
+          const tr = cb.closest('tr');
+          // hidden input ない場合はスキップ
+          const hidden = tr.querySelector('input[type="hidden"][name="input.priority"]');
+          if (hidden) hidden.value = selectedPriority;
+          // ボタンの見た目更新
+          const buttons = tr.querySelectorAll('button[name="priority"]');
+          buttons.forEach(btn => {
+            const checkedBtn = (btn.value === selectedPriority);
+            btn.classList.toggle('btn-primary', checkedBtn);
+            btn.classList.toggle('btn-secondary', !checkedBtn);
+            if (checkedBtn) btn.classList.remove('disabled'); else btn.classList.add('disabled');
+          });
+          // feature 更新
+          const fid = cb.value;
+          const feature = source調査地点.getFeatureById(fid);
+          if (feature) feature.set('priority', selectedPriority);
+        });
+      } else if (type === 'persons') {
+        const sel = modal.querySelector('#bulkPersonsSelect');
+        const val = Number(sel.value);
+        checked.forEach(cb => {
+          const tr = cb.closest('tr');
+          const personsSel = tr.querySelector('select[name="input.persons"]');
+          if (personsSel) personsSel.value = val;
+          const feature = source調査地点.getFeatureById(cb.value);
+          if (feature) feature.set('persons', val);
+        });
+      } else if (type === 'remarks') {
+        const txt = modal.querySelector('#bulkRemarksInput').value;
+        checked.forEach(cb => {
+          const tr = cb.closest('tr');
+          const remarksInput = tr.querySelector('input[name="input.remarks"]');
+          if (remarksInput) remarksInput.value = txt;
+          const feature = source調査地点.getFeatureById(cb.value);
+          if (feature) feature.set('remarks', txt);
+        });
+      }
+      // レイヤ再描画（必要なら）
+      source調査地点.changed();
+      bsModal.hide();
+    });
+
+    modal.addEventListener('hidden.bs.modal', () => {
+      // クリーンアップ
+      modal.remove();
+      updateBulkButtonsState();
+    });
+    bsModal.show();
+  };
+
+  // ドロップダウンメニューの各アイテムにハンドラを割当
+  if (bulkItems.length >= 3) {
+    // 初期は無効化
+    bulkItems.forEach(it => it.disabled = true);
+    // 優先度
+    bulkItems[0].addEventListener('click', (e) => { e.preventDefault(); showBulkModal('priority'); });
+    // 搭乗希望
+    bulkItems[1].addEventListener('click', (e) => { e.preventDefault(); showBulkModal('persons'); });
+    // 備考
+    bulkItems[2].addEventListener('click', (e) => { e.preventDefault(); showBulkModal('remarks'); });
+  }
+
+  // tbody のチェックボックス状態変化で一括ボタン更新
+  tbody調査依頼.addEventListener('change', (e) => {
+    // 元々 global handler が selectedFeatureIds を管理しているのでここは UI 側の有効/無効だけ更新する
+    updateBulkButtonsState();
+  });
+  // 初回状態
+  updateBulkButtonsState();
+  // --- ここまで一括操作関連の追加 ---
   // 一時保存チェックボックス→一時保存調査箇所呼び出しの選択肢
   const form防災ヘリ関連情報 = document.getElementById('form防災ヘリ関連情報');
   const array一時保存Chk = Array.from(form防災ヘリ関連情報.querySelectorAll('#left調査依頼一時保存 input[type="checkbox"][value]'));

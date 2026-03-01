@@ -466,7 +466,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     /// <returns></returns>
     public async Task<IActionResult> OnGetUpdateStatusAsync(
         [FromRoute(Name = "thread")] int? threadId,
-        [FromQuery(Name = "id")] int? yoteiId )
+        [FromQuery(Name = "id")] int? yoteiId,
+        [FromQuery(Name = "rid")] int? routeId)
     {
         if (!login.Isログイン済)
         {
@@ -563,10 +564,19 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 r => r.調査依頼id == iraiId && r.deleted_at == null);
         }
 
-        // 5. 調査予定は削除扱いにする（論理削除）
-        await tran.UpdateAsync(
-            () => new T_調査予定 { deleted_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP") },
-            r => r.調査予定id == yoteiId.Value && r.deleted_at == null);
+        if (routeId != null)
+        {
+            // 5. 調査予定は削除扱いにする（論理削除）
+            await tran.UpdateAsync(
+                () => new T_調査予定 { deleted_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP") },
+                r => r.調査予定id == yoteiId.Value && r.deleted_at == null);
+        } else {
+            // 5. 調査予定は削除扱いにする（論理削除）
+            await tran.UpdateAsync(
+                () => new T_調査予定 { ステータス = 調査ステータスEnum.一時保存 },
+                r => r.調査予定id == yoteiId.Value && r.deleted_at == null);
+
+        }
 
         await tran.CommitAsync();
 
@@ -1127,6 +1137,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 }
             });
         } else { 
+            id = [.. records.Select(r => r.調査箇所id).OfType<int>()];
+
             t起点終点 = await con.SelectFirstOrDefaultAsync<T_起点終点>(r => r.起点終点id == 初期起点id && r.deleted_at == null);
             return new JsonResult(new
             {
@@ -1469,12 +1481,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             });
         }
 
-        // ---------------------------------------------------------------------
-        // 公開登録モードで飛行時間が超えている場合
-        if(mode == "register" && 飛行時間 > 飛行可能時間)
-        {
-            iv.AddError("調査時間が飛行可能時間を超えています。");
-        }
         // ---------------------------------------------------------------------
         if (iv.Errors.Count > 0)
         {   // 明細入力項目エラー有、エラーを返す

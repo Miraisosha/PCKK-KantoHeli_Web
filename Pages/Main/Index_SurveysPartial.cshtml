@@ -70,8 +70,13 @@
                 </button>
               </li>
               <li>
-                <button class="dropdown-item btn差戻" data-id="@rec.調査予定id" type="button" data-name="@rec.調査予定名">
-                  一時保存に差戻
+                <button class="dropdown-item btn差戻" data-id="@rec.調査予定id" type="button" data-name="@rec.調査予定名" data-routeid="@rec.初動調査ルートid">
+                @if(rec.初動調査ルートid != null)
+                {
+                  <span>調査依頼に差し戻し</span>
+                } else {
+                  <span>一時保存に差戻</span>
+                }
                 </button>
               </li>
             </ul>

@@ -247,6 +247,7 @@ export function CreateRoute({
   // ---------------------------------------------------------------------------------
   // 距離算出処理
   const autoCalculateDistance = (calc = null) => {
+    console.log("autoCalculateDistance:!!");
     const tbody = tabElement.querySelector('#tableルート作成>tbody');
     if (calc === null) {
       document.getElementById('radioルート手動作成').checked = true;
@@ -278,8 +279,6 @@ export function CreateRoute({
       source調査地点.changed();
       tbody.querySelectorAll(`input[type="checkbox"][name="id"]:checked`).forEach((cb) => {
         const index = (getSelectedFeatureIds() || []).indexOf(cb.value);
-        console.log("index:" + index);
-        console.log("cb:" + cb.value);
         if (index == -1) {
           cb.checked = false;
           cb.disabled = true;
@@ -335,6 +334,7 @@ export function CreateRoute({
       modal調査予定登録Element.querySelector('input[name="drawroute"]').value = '';
       btn調査ルート手動描画削除.disabled = true;
       displayingToast.hide();
+
       autoCalculateDistance();
     });
   }
@@ -438,7 +438,7 @@ export function CreateRoute({
     btn調査予定登録実行.innerHTML = btnValue.button;
     const modal = bootstrap.Modal.getOrCreateInstance(modal調査予定登録Element);
     modal.show();
-    btn調査予定登録実行.value = btnValue.value;
+    btn調査予定登録実行.value = 'register';
   });
 
   if (btn調査予定登録実行) {

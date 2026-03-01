@@ -73,9 +73,10 @@ export function leftMenuManager(ctx) {
       // 差し戻し
       const modBtn = e.target.closest(".btn差戻");
       if (modBtn) {
-        const id = modBtn.dataset.id;
-        const name = modBtn.dataset.name;
-        showSendBackModal(name, id);
+        showSendBackModal(
+          modBtn.dataset.name,
+          modBtn.dataset.id,
+          modBtn.dataset.routeid);
       }
     });
   });
@@ -85,6 +86,7 @@ export function leftMenuManager(ctx) {
   const modalKP = new bootstrap.Modal(modalKPElement);
   // 表示関数
   function showKmlModal(name, id) {
+
     // 名前表示
     document.getElementById("kmlName").textContent = name;
     // OKボタンにID保持
@@ -112,24 +114,33 @@ export function leftMenuManager(ctx) {
   const modalSendElement = document.getElementById("modalSendBackConfirm");
   const modalSend = new bootstrap.Modal(modalSendElement);
   // 表示関数
-  function showSendBackModal(name, id) {
+  function showSendBackModal(name, id, routeid) {
+    if (routeid != "") {
+      document.getElementById('modalSendBackConfirmHeader').innerHTML = "依頼中に差し戻し";
+      document.getElementById('modalSendBackConfirmTitle').innerHTML = "以下のルートを依頼中に差し戻します。";
+    } else {
+      document.getElementById('modalSendBackConfirmHeader').innerHTML = "一時保存に差し戻し";
+      document.getElementById('modalSendBackConfirmTitle').innerHTML = "以下のルートを一時保存に差し戻します。";
+    }
     // 名前表示
     document.getElementById("SendBackName").textContent = name;
     // OKボタンにID保持
     const okBtn = document.getElementById("btnSendOK");
     okBtn.dataset.id = id;
+    okBtn.dataset.routeid = routeid;
     modalSend.show();
   }
   // OKボタンイベント
   document.getElementById("btnSendOK").addEventListener("click", function () {
     const name = document.getElementById("SendBackName").textContent;
     const id = this.dataset.id;
+    const routeid = this.dataset.routeid;
     console.log("差し戻し実行:", id);
-    ajaxExecute(base_url + '?Handler=UpdateStatus&id=' + id,
+    ajaxExecute(base_url + '?Handler=UpdateStatus&id=' + id + '&rid=' + routeid,
       {}, {}
     ).then((json) => {
       modalSend.hide();
-      showSendBackDoneModal(name, id);
+      showSendBackDoneModal(name, id, routeid);
     }).catch((err) => {
       console.warn('差し戻し失敗', err);
     });
@@ -143,7 +154,14 @@ export function leftMenuManager(ctx) {
   const modalSendDoneElement = document.getElementById("modalSendBackDone");
   const modalSendDone = new bootstrap.Modal(modalSendDoneElement);
   // ダイアログ表示
-  function showSendBackDoneModal(name, id) {
+  function showSendBackDoneModal(name, id, routeid) {
+    if (routeid != "") {
+      document.getElementById('modalSendBackDoneHeader').innerHTML = "依頼中に差し戻し";
+      document.getElementById('modalSendBackDoneTitle').innerHTML = "以下のルートを依頼中に差し戻しました。";
+    } else {
+      document.getElementById('modalSendBackDoneHeader').innerHTML = "一時保存に差し戻し";
+      document.getElementById('modalSendBackDoneTitle').innerHTML = "以下のルートを一時保存に差し戻しました。";
+    }
     // 名前表示
     document.getElementById("SendBackDoneName").textContent = name;
     modalSendDone.show();
