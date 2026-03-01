@@ -86,7 +86,7 @@
         @foreach (var rec in Model.スレッドRecords)
         {
           //TODO 一覧表示を正式実装（災害発令中の行は赤字表記）
-          <tr class="align-middle">
+          <tr class="align-middle" style="cursor:pointer;">
             <td class="text-center">
               @if (login.Isログイン済)
               {

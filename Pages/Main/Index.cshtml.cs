@@ -15,6 +15,7 @@ using Src.Common;
 using Src.Services;
 using Src.Validation.CustomValidators;
 using ZLogger;
+using System.Diagnostics;
 
 namespace Pages.Main;
 
@@ -1459,11 +1460,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             tルートRecords = Get最短経路(tルートRecords);
         }
 
-
-        // ---------------------------------------------------------------------
-        // 飛行時間
-        var flightTime = calcHeliFlightTime(tルートRecords);
-
         // ---------------------------------------------------------------------
         // 調査ルートのfeatureを生成(ただし手動描画ルートがあるならそれを優先)
         LineString? route = line手動描画ルート ?? Get調査ルートLineString(tルートRecords);
@@ -2077,11 +2073,14 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 continue;
             }
 
+            Debug.WriteLine(rec.調査箇所id.ToString() + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+
             // --------------------------------
             // 点の場合は単純に座標追加
             if (geom is Point p)
             {
                 lineCoordinates.Add(p.Coordinate);  // <<<<--------------
+                Debug.WriteLine("Point:" + lineCoordinates.Count.ToString());
                 continue;
             }
 
@@ -2094,6 +2093,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             }
             else if (geom is MultiLineString mls)
             {
+                Debug.WriteLine("MultiLineString");
                 // MultiLineString は代表的な LineString（先頭で座標が2以上あるもの）を探す
                 for (int gi = 0; gi < mls.NumGeometries; gi++)
                 {
@@ -2123,6 +2123,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             }
             else if (geom is GeometryCollection gc)
             {
+                Debug.WriteLine("GeometryCollection");
                 // GeometryCollection から最初に見つかる LineString / Point を採用
                 for (int gi = 0; gi < gc.NumGeometries; gi++)
                 {
@@ -2317,15 +2318,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             }
         }
         return totalDistance;
-    }
-    private int calcHeliFlightTime(List<T_調査予定ルート> records)
-    {
-        int time = -1;
-        foreach(var rec in records)
-        {
-
-        }
-        return time;
     }
     /// <summary>
     /// 選択された調査地点（線）の距離合計を取得

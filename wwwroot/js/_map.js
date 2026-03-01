@@ -382,6 +382,7 @@ function createHeliPortLayer(map) {
 const createEditRouteLayer = (map) => {
   const layer = new ol.layer.Vector({
     source: new ol.source.Vector(),
+    visible:false,
     style: function (feature, resolution) {
       const color = feature.get('color') || '#0000FF';
       const strokeColor = isBrightColor(color) ? '#000000' : '#FFFFFF';
@@ -433,6 +434,7 @@ const createEditRouteLayer = (map) => {
 const createCapitalRouteLayer = (map) => {
   const layer = new ol.layer.Vector({
     source: new ol.source.Vector(),
+    visible:false,
     style: function (feature, resolution) {
       const color = feature.get('color') || '#0000FF';
       const strokeColor = '#FFFFFF';
