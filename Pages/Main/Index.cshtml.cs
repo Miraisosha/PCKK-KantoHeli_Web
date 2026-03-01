@@ -709,15 +709,36 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             return BadRequest("指定された初動調査ルートの情報は表示できません。");
         }
 
+        // 起点終点
         int[] ids起点終点 = [rec初動調査ルート.起点id, rec初動調査ルート.終点id];
         var t起点終点Records = await con.SelectAsync<T_起点終点>(r => r.起点終点id == SqlExpr.In(ids起点終点) && r.deleted_at == null);
+
+        // 初動調査地点
         var t調査地点Records = await con.SelectAsync<T_初動調査地点>(r => r.初動調査ルートid == route && r.deleted_at == null,
             otherClauses: $"ORDER BY {nameof(T_初動調査地点.連番)}");
 
+        // カラーパレット（代表的な 50 色）
+        var palette = new List<string>
+        {
+            "#e6194b","#3cb44b","#ffe119","#4363d8","#f58231",
+            "#911eb4","#46f0f0","#f032e6","#bcf60c","#fabebe",
+            "#008080","#e6beff","#9a6324","#fffac8","#800000",
+            "#aaffc3","#808000","#ffd8b1","#000075","#808080",
+            "#ff4500","#2e8b57","#daa520","#1e90ff","#ff1493",
+            "#9400d3","#00ced1","#ff69b4","#7cfc00","#ffb6c1",
+            "#20b2aa","#dda0dd","#cd853f","#fafad2","#b22222",
+            "#98fb98","#6b8e23","#ffdead","#191970","#a9a9a9",
+            "#ff6347","#228b22","#b8860b","#4169e1","#ff00ff",
+            "#8a2be2","#00ffff","#adff2f","#ffc0cb"
+        };
+
+        int i = 0;
         List<Feature> features = [];
         features.Add(new Feature(rec初動調査ルート.ジオメトリ, null));
         foreach (var rec in t調査地点Records)
         {
+            var color = palette[i % palette.Count];
+
             features.Add(new Feature(new Point(rec.経度, rec.緯度), new AttributesTable {
                 { "text", $"{rec.連番}" },
                 { "name", $"{rec.初動調査地点名}" },
@@ -727,8 +748,10 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 { "persons", 0 },
                 { "spottype", "線" },
                 { "remarks", $"{rec.備考}" },
-                { "spotColor", "#FF0000" },
+                { "spotColor", color },
+                { "type", "4" },
             }));
+            i++;
         }
         if (t起点終点Records.FirstOrDefault(r => r.起点終点id == rec初動調査ルート.起点id) is T_起点終点 rec終点)
         {
@@ -738,6 +761,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 { "start_end_point_id", $"{rec終点.起点終点id}" },
                 { "lat", $"{ rec終点.緯度}" },
                 { "lng", $"{ rec終点.経度}" },
+                { "type", "3" },
             }));
         }
         if (t起点終点Records.FirstOrDefault(r => r.起点終点id == rec初動調査ルート.起点id) is T_起点終点 rec起点)
@@ -748,7 +772,68 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 { "start_end_point_id", $"{rec起点.起点終点id}" },
                 { "lat", $"{ rec起点.緯度}" },
                 { "lng", $"{ rec起点.経度}" },
+                { "type", "2" },
             }));
+        }
+
+        // 調査箇所　ライン
+        i = 0;
+        foreach (var rec in t調査地点Records)
+        {
+            var color = palette[i % palette.Count];
+            // 優先して geometry 列のジオメトリを使い、なければ経度/緯度で Point を作成する
+            Geometry geomSrc = rec.geometry;
+            Geometry geom;
+            if (geomSrc is null)
+            {
+                geom = new Point(rec.経度, rec.緯度) { SRID = 4326 };
+            }
+            else
+            {
+                // SRID が未設定の場合は 4326 をセット
+                if (geomSrc.SRID == 0) geomSrc.SRID = 4326;
+
+                // MultiLineString の場合は代表的な LineString (座標数 >= 2) を優先的に使う
+                if (geomSrc is MultiLineString mls)
+                {
+                    LineString? firstLs = null;
+                    for (int gi = 0; gi < mls.NumGeometries; gi++)
+                    {
+                        if (mls.GetGeometryN(gi) is LineString ls && ls.Coordinates.Length >= 2)
+                        {
+                            firstLs = ls;
+                            break;
+                        }
+                    }
+                    if (firstLs is not null)
+                    {
+                        geom = firstLs;
+                    }
+                    else
+                    {
+                        // LineString が無ければ先頭ジオメトリを使う（Point 等）
+                        geom = mls.GetGeometryN(0) ?? new Point(rec.経度, rec.緯度) { SRID = 4326 };
+                    }
+                }
+                else if (geomSrc is LineString || geomSrc is Point)
+                {
+                    geom = geomSrc;
+                }
+                else
+                {
+                    // その他のジオメトリはそのまま使う（安全策として Point にフォールバックできる）
+                    geom = geomSrc;
+                }
+            }
+
+            // 生成したジオメトリを Feature として追加
+            features.Add(new Feature(geom, new AttributesTable {
+                { "no", $"{rec.連番}" },
+                { "name", $"{rec.初動調査地点名}" },
+                { "spotColor", color },
+                { "type", "1" },
+            }));
+            i++;
         }
 
         // Jsonで返す

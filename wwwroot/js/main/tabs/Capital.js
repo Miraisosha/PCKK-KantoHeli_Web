@@ -8,6 +8,7 @@ export function Capital(ctx) {
   const {
     base_url,
     tabElement,
+    layerRoute,
     set調査地点Source,
     create明細行,
     ajaxExecute,
@@ -31,8 +32,9 @@ export function Capital(ctx) {
     ids:          [],
   };
 
-    const source = new ol.source.Vector();
-    set調査地点Source(tabElement, new ol.source.Vector(), source);
+  const sourceRoute = new ol.source.Vector();
+  layerRoute.setSource(sourceRoute);
+//  set調査地点Source(tabElement, new ol.source.Vector(), sourceRoute);
 
   // ---------------------------------------------------------------------------------
   // 初期設定
@@ -79,8 +81,9 @@ export function Capital(ctx) {
   // ---------------------------------------------------------------------------------
   // 初動調査ルート　読み込み
   function showSurveyRoute() {
+    console.log("showSurveyRoute");
     var 初動調査ルートid = sel初動調査ルート.value
-    source.clear();
+    sourceRoute.clear();
     if (!sel初動調査ルート) {
       console.warn('initCapital: select[name="routeid"] が見つかりません。load初動調査ルート を中止します。');
       return;
@@ -97,7 +100,7 @@ export function Capital(ctx) {
     ).then((json) => {
       // 地図へ描画
       const features = geojsonFormatter.readFeatures(json.routes);
-      source.addFeatures(features);
+      sourceRoute.addFeatures(features);
 
       // 調査地点一覧
       features.forEach((f) => {

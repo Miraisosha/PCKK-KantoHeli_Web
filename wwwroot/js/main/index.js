@@ -54,6 +54,7 @@ const layerKP河川             = createKPRiver(map);               // 距離標
 const layerKP道路             = createKPRoad(map);                // 距離標　道路 Point
 const layerSelectionKP        = createSelectionKPLayer(map);      // 選択中 Point
 const layerSelectedKPLine     = createSelectedKPLineLayer(map);   // 選択完了 Line
+
 const mapKPSource             = new ol.source.Vector();
 const mapSelectedKPLineSource =  new ol.source.Vector();
 const mapKPSource河川         = setKPSource('River');
@@ -65,10 +66,11 @@ layerKP道路.setSource(mapKPSource道路);
 layerSelectionKP.setSource(mapKPSource);
 layerSelectedKPLine.setSource(mapSelectedKPLineSource);
 
+const layer初動調査ルート = createCapitalRouteLayer(map);
 const layer編集中調査地点 = createSpotLayer(map);
 //const layer編集中調査ルート = createRouteLayer(map);
-const /** @type{Map<string, ol.source.Vector>} */ map調査地点Source = {};
-const /** @type{Map<string, ol.source.Vector>} */ map調査ルートSource = {};
+const map調査地点Source = {};
+const map調査ルートSource = {};
 // 調査ルート作成　（編集中）
 const layer編集調査ルート = createEditRouteLayer(map);
 
@@ -90,6 +92,7 @@ map.addLayer(layerKP河川         );
 map.addLayer(layerKP道路         );
 map.addLayer(layerSelectionKP    );
 map.addLayer(layerSelectedKPLine );
+map.addLayer(layer初動調査ルート);
 map.addLayer(layer編集調査ルート);
 map.addLayer(layer編集中調査地点);
 
@@ -168,6 +171,7 @@ requestStatus.reload();
 const capital = Capital({
   base_url,
   tabElement: tab特定初動調査,
+  layerRoute : layer初動調査ルート,
   set調査地点Source,
   create明細行,
   ajaxExecute,
@@ -453,16 +457,20 @@ function tabChange(tab) {
 
   switch (tab) {
     case "tab調査依頼":
+      layer初動調査ルート.setVisible(false);
       layer編集調査ルート.setVisible(false);
       break;
     case "tab依頼状況" :
+      layer初動調査ルート.setVisible(false);
       layer編集調査ルート.setVisible(false);
       break;
     case "tab特定初動調査" :
       capital.showSurveyRoute();
-      layer編集調査ルート.setVisible(true);
+      layer初動調査ルート.setVisible(true);
+      layer編集調査ルート.setVisible(false);
       break;
     case "tabルート作成" :
+      layer初動調査ルート.setVisible(false);
       layer編集調査ルート.setVisible(true);
       break;
     default: return;
