@@ -458,7 +458,7 @@
             </select>
           </div>
         </div>
-        <div class="row mx-2 g-1 align-items-center" style="margin-top:5px;">
+        <div class="row mx-2 g-1 align-items-center mt-1">
           <div class="col-3">搭乗人数</div>
           <div class="col-3"></div>
           <div class="col-5">
@@ -475,11 +475,11 @@
             </select>
           </div>
         </div>
-        <div class="row mx-2 mt-2 g-1 align-items-center">
+        <div class="row mx-2 g-1 align-items-center mt-1">
           <div class="col-2">経路</div>
           <div class="col-auto">
             <label class="form-check">
-              <input class="form-check-input" type="radio" id="radioルート手動作成" name="radioルート作成モード" value="false" checked>
+              <input class="form-check-input" type="radio" id="radioルート手動作成" name="radioルート作成モード" value="false">
               <span class="form-check-label">手動</span>
               <span class="form-text">（地点選択順に追加）</span>
             </label>
@@ -496,25 +496,31 @@
             <label class="form-check">
               <input class="form-check-input" type="radio" id="radioルート自動作成" name="radioルート作成モード" value="true">
               <span class="form-check-label">自動</span>
-              <div class="btn btn-sm btn-info ms-2 py-1 px-2">ルート作成実行</div>
             </label>
           </div>
         </div>
-        <div class="row mx-2 mt-4 g-1 align-items-center">
-          <div class="col-4">総飛行距離</div>
-          <div class="col-auto" id="divルート作成_総飛行距離"></div>
+        <div class="row mx-2 g-1 align-items-center">
+          <div class="col-2"></div>
+          <div class="col-auto">
+              <div class="btn btn-sm btn-info" id="btnルート作成">上記の設定でルートを作成</div>
+          </div>
+          <div class="col-2"></div>
+        </div>
+        <div class="row mx-2 g-1 align-items-center mt-2">
+          <div class="col-4">調査時間</div>
+          <div class="col-auto" id="divルート作成_調査時間"></div>
+        </div>
+        <div class="row mx-2 g-1 align-items-center">
+          <div class="col-4">飛行可能時間</div>
+          <div class="col-auto" id="divルート作成_飛行可能時間"></div>
+        </div>
+        <div class="row mx-2 g-1 align-items-center">
+          <div class="col-4">飛行距離</div>
+          <div class="col-auto" id="divルート作成_飛行距離"></div>
         </div>
         <div class="row mx-2 g-1 align-items-center">
           <div class="col-4">調査箇所</div>
           <div class="col-auto" id="divルート作成_調査箇所"></div>
-        </div>
-        <div class="row mx-2 g-1 align-items-center">
-          <div class="col-4">飛行時間</div>
-          <div class="col-auto" id="divルート作成_飛行時間"></div>
-        </div>
-        <div class="row mx-2 g-1 align-items-center">
-          <div class="col-4">同乗可能人数</div>
-          <div class="col-auto" id="divルート作成_同乗可能人数"></div>
         </div>
       </div>
       <div style="position:absolute; top:-6px; bottom:0; left:340px; right:0;">
@@ -886,3 +892,28 @@
     </div>
   </div>
 </form>
+<div class="modal fade" id="modalRouteCreateOverflow" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">調査予定ルートとして公開</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-2">
+          <span style="color:red">注意</span>
+        </div>
+        <div class="mb-2" >調査時間が飛行可能時間を超えています。</div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btnContinue" class="btn btn-primary">続ける</button>
+        <button type="button" id="btnSendCancel" class="btn btn-secondary" data-bs-dismiss="modal">
+          キャンセル
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

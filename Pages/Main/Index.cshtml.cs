@@ -389,6 +389,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         foreach (var rec in records)
         {
             var color = t組織Records.FirstOrDefault(r => r.組織id == rec.組織id)?.ピン表示色;
+            var name = t組織Records.FirstOrDefault(r => r.組織id == rec.組織id)?.組織名;
             features.Add(new Feature(rec.ジオメトリ, new AttributesTable
             {
                 {"irai", rec.調査依頼id },
@@ -401,6 +402,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 {"spottype", Enum.GetName(typeof(調査箇所登録方法Enum), rec.登録方法) },
                 {"survey", Enum.GetName(typeof(調査手法Enum), rec.調査手法) },
                 {"updated", $"{rec.updated_at:yyyy.M.d HH:mm}" },
+                {"requester", name },
                 {"color", color},
             }));
         }
@@ -1035,6 +1037,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         [FromRoute(Name = "thread")] int? threadId,
         int? tempid)
     {
+        int 初期起点id = 11; // 起点終点テーブルの「首都直下起点」のID。初期値として使用する
+
         if (!login.Isログイン済)
         {
             return BadRequest("ログインが無効です。調査依頼を編集できません。");
@@ -1101,30 +1105,52 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             t始点Rec = tルートRecords.FirstOrDefault(r => r.調査箇所id == null && r.連番 == 0);
             t終点Rec = tルートRecords.FirstOrDefault(r => r.調査箇所id == null && r.連番 > 0);
             id = [.. tルートRecords.Select(r => r.調査箇所id).OfType<int>()];
+            return new JsonResult(new
+            {
+                success = new
+                {
+                    // 選択可能な調査箇所
+                    features = await ToFearureCollectionAsync(records),
+                    // 画面入力項目
+                    startid     = t調査予定Rec?.起点id ?? 初期起点id,
+                    endid       = t調査予定Rec?.終点id ?? 初期起点id,
+                    auto        = t調査予定Rec?.is自動作成ルート ?? true,
+                    title       = t調査予定Rec?.調査予定名,
+                    startx      = t始点Rec?.ジオメトリ.Coordinate.X,
+                    starty      = t始点Rec?.ジオメトリ.Coordinate.Y,
+                    endx        = t終点Rec?.ジオメトリ.Coordinate.X,
+                    endy        = t終点Rec?.ジオメトリ.Coordinate.Y,
+                    drawroute = t調査予定Rec?.手動描画調査ルート,
+                    // 選択状態の調査箇所
+                    id,
+                    num_people = t調査予定Rec?.搭乗人数,
+                }
+            });
         } else { 
-            t起点終点 = await con.SelectFirstOrDefaultAsync<T_起点終点>(r => r.起点終点id == 11 && r.deleted_at == null);
+            t起点終点 = await con.SelectFirstOrDefaultAsync<T_起点終点>(r => r.起点終点id == 初期起点id && r.deleted_at == null);
+            return new JsonResult(new
+            {
+                success = new
+                {
+                    // 選択可能な調査箇所
+                    features = await ToFearureCollectionAsync(records),
+                    // 画面入力項目
+                    startid     = 初期起点id,
+                    endid       = 初期起点id,
+                    auto        = true,
+                    title       = "",
+                    startx      = t起点終点.緯度,
+                    starty      = t起点終点.経度,
+                    endx        = t起点終点.緯度,
+                    endy        = t起点終点.経度,
+                    drawroute   = t調査予定Rec?.手動描画調査ルート,
+                    // 選択状態の調査箇所
+                    id,
+                    num_people = 0,
+                }
+            });
         }
 
-        return new JsonResult(new
-        {
-            success = new
-            {
-                // 選択可能な調査箇所
-                features = await ToFearureCollectionAsync(records),
-                // 画面入力項目
-                startid = t調査予定Rec?.起点id ?? 11,
-                endid = t調査予定Rec?.終点id ?? 11,
-                auto = t調査予定Rec?.is自動作成ルート ?? true,
-                title = t調査予定Rec?.調査予定名,
-                startx = t始点Rec?.ジオメトリ.Coordinate.X ?? t起点終点.緯度,
-                starty = t始点Rec?.ジオメトリ.Coordinate.Y ?? t起点終点.経度,
-                endx = t終点Rec?.ジオメトリ.Coordinate.X ?? t起点終点.緯度,
-                endy = t終点Rec?.ジオメトリ.Coordinate.Y ?? t起点終点.経度,
-                drawroute = t調査予定Rec?.手動描画調査ルート,
-                // 選択状態の調査箇所
-                id,
-            }
-        });
     }
 
     public class Input調査予定
@@ -1144,6 +1170,10 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // 以下、入力/選択項目
         [MaxLength(50), Required, Display(Name = "調査ルート名")]
         public string? title { get; set; }
+
+        [Display(Name = "搭乗人数")]
+        public int num_people { get; set; }
+
 #pragma warning restore IDE1006 // 命名スタイル
     }
 
@@ -1380,7 +1410,21 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         var 飛行時間 = 移動時間 + 線調査時間 + 点調査時間 + (調査箇所数 * 2);
         logger.LogInformation("飛行時間：" + 飛行時間 + "\t移動時間：" + 移動時間 + "\t調査時間（線）：" + 線調査時間 + "\t調査時間（点）：" + 点調査時間 + "\t調査箇所数" + 調査箇所数);
 
-
+        double 飛行可能時間 = input.num_people switch
+        {
+            1 => 165,
+            2 => 150,
+            3 => 135,
+            4 => 120,
+            5 => 105,
+            6 => 90,
+            7 => 75,
+            8 => 60,
+            9 => 45,
+            10 => 30,
+            11 => 15,
+            _ => 180,
+        };
         // 調査ルート表示 or 最短経路探索であれば successのjsonを返して終了
         if (status is null || mode == "calc")
         {
@@ -1410,11 +1454,13 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                         crs = new { type = "name", properties = new { name = "urn:ogc:def:crs:OGC:1.3:CRS84" } },
                         features,
                     },
-                    総飛行距離 = distance is not null ? $"{distance:#0.0}Km" : null,
+                    飛行距離 = distance is not null ? $"{distance:#0.0}Km" : null,
                     調査箇所 = id.Length > 0 ? $"{id.Length}箇所" : null,
                     //飛行時間 = val飛行時間_分 is not null ? $"{Math.Floor(val飛行時間_分.Value / 60):0}時間{val飛行時間_分 % 60:0}分" : null,
-                    飛行時間 = $"{Math.Floor(飛行時間 / 60):0}時間{飛行時間 % 60:0}分",
+                    調査時間 = $"{Math.Floor(飛行時間 / 60):0}時間{飛行時間 % 60:0}分",
                     飛行時間分 = 飛行時間,
+                    飛行可能時間 = $"{Math.Floor(飛行可能時間 / 60):0}時間{飛行可能時間 % 60:0}分",
+                    飛行可能時間分 = 飛行可能時間,
                     同乗可能人数 = val飛行時間_分 is not null && recヘリ飛行設定?.搭乗者人数 > 0 ? $"{recヘリ飛行設定.搭乗者人数}人以下" : null,
                     id = tルートRecords.Select(r => r.調査箇所id).OfType<int>().Select(v => $"{v}"),
                     error,
@@ -1424,13 +1470,24 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
 
         // ---------------------------------------------------------------------
+        // 公開登録モードで飛行時間が超えている場合
+        if(mode == "register" && 飛行時間 > 飛行可能時間)
+        {
+            iv.AddError("調査時間が飛行可能時間を超えています。");
+        }
+        // ---------------------------------------------------------------------
         if (iv.Errors.Count > 0)
         {   // 明細入力項目エラー有、エラーを返す
             return new JsonResult(iv.GetErrorJson());
         }
         else if (mode == "check")
         {   // 一覧チェックのみ、OKを返す
-            return new JsonResult(new { success = true });
+            return new JsonResult(new {
+                success = new {
+                    飛行時間分 = 飛行時間,
+                    飛行可能時間分 = 飛行可能時間,
+                }
+            });
         }
 
 
@@ -1443,6 +1500,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             is自動作成ルート = iv.Validate(() => input.auto),
             起点id = iv.Validate(() => input.startid),
             終点id = iv.Validate(() => input.endid),
+            搭乗人数 = iv.Validate(() => input.num_people),
             手動描画調査ルート = line手動描画ルート,
             スレッドid = threadId.Value,
         };
@@ -2120,14 +2178,52 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     {
         if (ls is null || ls.Coordinates.Length < 2) { return null; }
 
+        static bool IsValidLatitude(double v) =>
+            !double.IsNaN(v) && !double.IsInfinity(v) && v >= -90.0 && v <= 90.0;
+        static bool IsValidLongitude(double v) =>
+            !double.IsNaN(v) && !double.IsInfinity(v) && v >= -180.0 && v <= 180.0;
+
         double totalDistance = 0;
         for (int i = 1; i < ls.Coordinates.Length; i++)
         {
             var coord1 = ls.Coordinates[i - 1];
             var coord2 = ls.Coordinates[i];
-            var geo1 = new GeoCoordinate(coord1.Y, coord1.X);
-            var geo2 = new GeoCoordinate(coord2.Y, coord2.X);
-            totalDistance += geo1.GetDistanceTo(geo2);
+
+            GeoCoordinate? geo1 = null;
+            GeoCoordinate? geo2 = null;
+
+            // 通常想定 (latitude = Y, longitude = X)
+            if (IsValidLatitude(coord1.Y) && IsValidLongitude(coord1.X)
+                && IsValidLatitude(coord2.Y) && IsValidLongitude(coord2.X))
+            {
+                geo1 = new GeoCoordinate(coord1.Y, coord1.X);
+                geo2 = new GeoCoordinate(coord2.Y, coord2.X);
+            }
+            else if (IsValidLatitude(coord1.X) && IsValidLongitude(coord1.Y)
+                     && IsValidLatitude(coord2.X) && IsValidLongitude(coord2.Y))
+            {
+                // lat/lon が入れ替わって格納されているケースを想定（fallback）
+                geo1 = new GeoCoordinate(coord1.X, coord1.Y);
+                geo2 = new GeoCoordinate(coord2.X, coord2.Y);
+                logger.ZLogWarning($"座標の順序を入れ替えて距離計算します（lat/lon反転疑い）。coord1=({coord1.X},{coord1.Y}), coord2=({coord2.X},{coord2.Y})");
+            }
+            else
+            {
+                // どちらも範囲外ならそのセグメントはスキップ（例外防止）
+                logger.ZLogWarning($"距離計算スキップ：座標が緯度経度の範囲外です。coord1=({coord1.X},{coord1.Y}), coord2=({coord2.X},{coord2.Y})");
+                continue;
+            }
+
+            try
+            {
+                totalDistance += geo1.GetDistanceTo(geo2);
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                // 安全策：ここで再度例外が出るならログを残してスキップ
+                logger.ZLogWarning(ex, $"GeoCoordinate エラーでセグメントをスキップします。coord1=({coord1.X},{coord1.Y}), coord2=({coord2.X},{coord2.Y})");
+                continue;
+            }
         }
         return totalDistance;
     }

@@ -266,6 +266,7 @@ public partial class T_調査予定
     public LineString? 手動描画調査ルート { get; set; }
     public int? 起点id { get; set; }
     public int? 終点id { get; set; }
+    public int? 搭乗人数 { get; set; }
     public string? 備考 { get; set; }
     public int スレッドid { get; set; }
     public int? 初動調査ルートid { get; set; }

@@ -25,7 +25,7 @@
 
 #bottomArea {
   position: absolute;
-  top: calc(100%-360px);
+  top: calc(100% - 360px);
   height: 360px;
   left: 360px;
   right: 0;

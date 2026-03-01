@@ -90,11 +90,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 });
 
 // css/jsのminify
-builder.Services.AddWebOptimizer(pipeline =>
+if (!builder.Environment.IsDevelopment())
 {
-    pipeline.MinifyCssFiles("css/**/*.css");
-    pipeline.MinifyJsFiles("js/**/*.js");
-});
+    builder.Services.AddWebOptimizer(pipeline =>
+    {
+        pipeline.MinifyCssFiles("css/**/*.css");
+        pipeline.MinifyJsFiles("js/**/*.js");
+    });
+}
 
 // DB接続(DbConnectionのDI)
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -189,7 +192,10 @@ if (settings.ForceHttps接続)
 
 app.UseMiddleware<BasicAuthMiddleware>(); // 自前で書いたBasic認証モジュールでアクセス制限できるようにする
 
-app.UseWebOptimizer(); // css/jsのminify
+if (!app.Environment.IsDevelopment())
+{
+    app.UseWebOptimizer(); // css/jsのminify
+}
 app.UseStaticFiles();
 
 app.UseRouting();

@@ -185,6 +185,7 @@ const createRoute = CreateRoute({
     base_url,
     tabElement: tabルート作成,
     map,
+    mapDraw,
     layer: layer編集調査ルート,
     set調査地点Source,
     ajaxExecute,
@@ -205,6 +206,7 @@ if (loginUser.isRouteCreate) {
 // 共通：地図上をマウスクリックした際の制御
 map.on('click', (e) => {
   if (mapDraw != null) { return; } // ただし描画操作中は除く
+  console.log("Map Click!");
   map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
     // 現在表示中の画面下部タブの当該featureの選択状態を反転させる
     if (layer == layer編集中調査地点) {
@@ -214,6 +216,8 @@ map.on('click', (e) => {
         checkbox.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
       }
     }
+    console.log("Draw Feature");
+
     // 距離標ポイント　クリックイベント
     if (kpManager.handleMapClick(feature, layer)) {
       return true;
@@ -850,7 +854,7 @@ function init調査依頼タブ() {
   function create調査依頼行FromKP(kpResult) {
     const feature = kpResult.feature;
     const toast調査地点追加Element = document.getElementById('toast調査地点追加');
-    feature.set('name', kpResult.selRoadRiver + ' ' + kpResult.startKp + 'kp ～ ' + kpResult..endKp + 'kp');
+    feature.set('name', kpResult.selRoadRiver + ' ' + kpResult.startKp + 'kp ～ ' + kpResult.endKp + 'kp');
     feature.set('color', '#FF0000');
     feature.set('requester', toast調査地点追加Element.dataset.requester);
     feature.set('survey', '通過');

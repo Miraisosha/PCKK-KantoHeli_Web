@@ -9,6 +9,7 @@ export function CreateRoute({
   base_url,
   tabElement,
   map,
+  mapDraw,
   layer,
   set調査地点Source,
   ajaxExecute,
@@ -27,10 +28,13 @@ export function CreateRoute({
   const source調査地点 = new ol.source.Vector();
   const selルート作成起点 = (tabElement) ? tabElement.querySelector('select[name="selルート作成起点"]') : null;
   const selルート作成終点 = (tabElement) ? tabElement.querySelector('select[name="selルート作成終点"]') : null;
+  const sel搭乗人数 = (tabElement) ? tabElement.querySelector('select[name="sel搭乗人数"]') : null;
   // フィルタ用 select 要素取得（initialize の外でも使う）
   const selIrai = tabElement.querySelector('select[name="irai"]');
   const selPriority = tabElement.querySelector('select[name="priority"]');
   const selPersons = tabElement.querySelector('select[name="persons"]');
+  const toastEl = document.getElementById('toast起点終点設定');
+  let displayingToast = toastEl ? bootstrap.Toast.getOrCreateInstance(toastEl) : null;
 
   // ---------------------------------------------------------------------------------
   // 初期化関数（公開）
@@ -61,9 +65,27 @@ export function CreateRoute({
 
       // -----------------------
       // ルート作成
-      if (selルート作成起点 && selルート作成終点) {
+      if (json.startx && json.starty) {
         selルート作成起点.value = add起点終点OptionIfNotExists(json.startx, json.starty);
+      }
+      if (json.endx && json.endy) {
         selルート作成終点.value = add起点終点OptionIfNotExists(json.endx, json.endy);
+      }
+      if (json.startid) {
+        for (const option of selルート作成起点.options) {
+          if (json.startid == option.dataset.id) option.selected = true;
+        }
+      }
+      if (json.endid) {
+        for (const option of selルート作成終点.options) {
+          if (json.endid == option.dataset.id) option.selected = true;
+        }
+      }
+
+      // -----------------------
+      // 搭乗人数
+      if (json.num_people) {
+        sel搭乗人数.value = json.num_people;
       }
       const radio手動 = document.getElementById('radioルート手動作成');
       const radio自動 = document.getElementById('radioルート自動作成');
@@ -129,6 +151,7 @@ export function CreateRoute({
 
 
   // ---------------------------------------------------------------------------------
+  // 起点終点プルダウンに　手入力緯度系をオプション追加
   const add起点終点OptionIfNotExists = (lon, lat) => {
     if (!lon && !lat) {
       return '';
@@ -156,22 +179,27 @@ export function CreateRoute({
     let prevVal = sel.value;
     sel.addEventListener('change', (e) => {
       if (sel.value == '*') {
-        // 描画オブジェクトを初期化して設定
-        mapDraw = new ol.interaction.Draw({
+        // 起点終点 描画オブジェクトを初期化して設定
+        const mapDraw起点終点 = new ol.interaction.Draw({
           type: 'Point',
         });
-        mapDraw.on('drawend', function (e) {
+        mapDraw起点終点.on('drawend', function (e) {
           const point = ol.proj.transform(e.feature.getGeometry().getFirstCoordinate(), proj3857, proj4326);
           const optionValue = add起点終点OptionIfNotExists(point[0], point[1]);
           sel.value = optionValue;
           prevVal = optionValue;
           displayingToast.hide();
+          map.removeInteraction(mapDraw起点終点);
           autoCalculateDistance();
         });
-        map.addInteraction(mapDraw);
-        displayingToast = bootstrap.Toast.getOrCreateInstance(document.getElementById('toast起点終点設定'));
-        document.getElementById('toast起点終点設定').querySelector('div.toast-header').innerHTML = `${name}指定`;
-        displayingToast.show();
+        map.addInteraction(mapDraw起点終点);
+         // 表示用トーストを取得・作成（要素があれば）
+        displayingToast.hide();
+        // ヘッダ表示を安全にセットしてトースト表示
+        if (toastEl) {
+          toastEl.querySelector('div.toast-header').innerHTML = `${name}指定`;
+        }
+        displayingToast?.show();
         sel.value = prevVal;
       } else {
         prevVal = sel.value;
@@ -202,6 +230,7 @@ export function CreateRoute({
     modal調査予定登録Element.querySelector('input[name="mode"]').value = mode;
     const opt起点 = selルート作成起点.options[selルート作成起点.selectedIndex];
     const opt終点 = selルート作成終点.options[selルート作成終点.selectedIndex];
+    const opt人数 = sel搭乗人数.options[sel搭乗人数.selectedIndex];
     const formData = new FormData(modal調査予定登録Element);
     formData.append('input.startid', opt起点.dataset.id || '');
     formData.append('input.endid', opt終点.dataset.id || '');
@@ -210,6 +239,7 @@ export function CreateRoute({
     formData.append('starty', opt起点.dataset.y || '');
     formData.append('endx', opt終点.dataset.x || '');
     formData.append('endy', opt終点.dataset.y || '');
+    formData.append('input.num_people', opt人数.value || '');
     for (let id of (getSelectedFeatureIds() || [])) { formData.append('id', id); }
     return formData;
   };
@@ -234,10 +264,10 @@ export function CreateRoute({
         layer.getSource().addFeatures(features);
       }
       // 飛行距離等の情報を表示
-      document.getElementById('divルート作成_総飛行距離').innerHTML = json.総飛行距離 || '-';
+      document.getElementById('divルート作成_飛行距離').innerHTML = json.飛行距離 || '-';
       document.getElementById('divルート作成_調査箇所').innerHTML = json.調査箇所 || '-';
-      document.getElementById('divルート作成_飛行時間').innerHTML = json.飛行時間 || '-';
-      document.getElementById('divルート作成_同乗可能人数').innerHTML = json.同乗可能人数 || '-';
+      document.getElementById('divルート作成_調査時間').innerHTML = json.調査時間 || '-';
+      document.getElementById('divルート作成_飛行可能時間').innerHTML = json.飛行可能時間 || '-';
       // 入力エラーがあればエラーを表示
       if (json.error) {
         showAlert(title + 'エラー', json.error);
@@ -263,7 +293,7 @@ export function CreateRoute({
   // 経路　手動／自動　ラジオボタンイベント
   const radio自動 = document.getElementById('radioルート自動作成');
   if (radio自動) radio自動.addEventListener('click', async (e) => {
-    autoCalculateDistance(true);
+//    autoCalculateDistance(true);
   });
 
   // ---------------------------------------------------------------------------------
@@ -283,6 +313,12 @@ export function CreateRoute({
       }
     });
   }
+
+  // ---------------------------------------------------------------------------------
+  // ルート作成ボタン（ルート計算）　イベント
+  document.getElementById('btnルート作成').addEventListener('click', async (e) => {
+    autoCalculateDistance(true);
+  });
 
   // ---------------------------------------------------------------------------------
   // 手動描画関連（削除・開始）
@@ -350,6 +386,9 @@ export function CreateRoute({
   // ---------------------------------------------------------------------------------
   // 調査予定登録関連イベント
   const btn調査予定登録実行 = modal調査予定登録Element.querySelector('button[value="register"]');
+  const elem飛行時間超過 = document.getElementById('modalRouteCreateOverflow');
+  const modal飛行時間超過 = new bootstrap.Modal(elem飛行時間超過);
+  let btnValue = {};
   document.querySelectorAll('button[name="btn調査予定登録"]').forEach((button) => {
     button.addEventListener('click', (e) => {
       const formData = create調査予定FormData('check');
@@ -357,6 +396,19 @@ export function CreateRoute({
         { method: 'POST', body: formData },
         { title: button.dataset.modaltitle, form: tabElement }
       ).then((response) => {
+        const 飛行可能時間 = Number(response.飛行可能時間分);
+        const 調査時間 = Number(response.飛行時間分);
+        if (調査時間 > 飛行可能時間) {
+          btnValue = {
+            title: button.dataset.modaltitle,
+            caption: button.dataset.modalcaption,
+            button: button.dataset.modalbutton,
+            name: button.vlaue,
+          };
+          modal飛行時間超過.show();
+          return;
+        }
+        // 公開名入力ダイアログ
         modal調査予定登録Element.querySelector('.modal-title').innerHTML = button.dataset.modaltitle;
         modal調査予定登録Element.querySelector('.modal-body>div:first-child').innerHTML = button.dataset.modalcaption;
         btn調査予定登録実行.innerHTML = button.dataset.modalbutton;
@@ -366,6 +418,29 @@ export function CreateRoute({
       }, () => { });
     });
   });
+  if (elem飛行時間超過) {
+    elem飛行時間超過.addEventListener('hide.bs.modal', (ev) => {
+      try {
+        const active = document.activeElement;
+        if (active && elem飛行時間超過.contains(active)) {
+          active.blur?.();
+          (document.documentElement).focus?.();
+        }
+      } catch (ex) {
+        console.warn('modal hide focus cleanup failed', ex);
+      }
+    });
+  }
+
+  document.getElementById('btnContinue').addEventListener('click', async (e) => {
+    modal調査予定登録Element.querySelector('.modal-title').innerHTML = btnValue.title;
+    modal調査予定登録Element.querySelector('.modal-body>div:first-child').innerHTML = btnValue.caption;
+    btn調査予定登録実行.innerHTML = btnValue.button;
+    const modal = bootstrap.Modal.getOrCreateInstance(modal調査予定登録Element);
+    modal.show();
+    btn調査予定登録実行.value = btnValue.value;
+  });
+
   if (btn調査予定登録実行) {
     btn調査予定登録実行.addEventListener('click', async (e) => {
       const formData = create調査予定FormData(btn調査予定登録実行.value);

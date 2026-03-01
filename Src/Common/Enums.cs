@@ -42,3 +42,12 @@ public enum 調査箇所登録方法Enum : short
     河川KP = 17,
     道路KP = 18,
 }
+
+public enum 人数Enum : short
+{
+    点 = 0,
+    線 = 16,
+    河川KP = 17,
+    道路KP = 18,
+}
+
