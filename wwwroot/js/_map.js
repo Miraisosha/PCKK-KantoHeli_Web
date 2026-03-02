@@ -79,7 +79,8 @@ const createMap = (targetElement, sel背景地図選択Element) => {
     map.getLayers().item(0).setSource(source);
   };
   // 地図タイルのsourceを設定（設定保存値あれば復元＆選択状態を変更）、選択変更時に変更を反映
-  const tileType = sessionStorage.getItem('heliMapTile');
+  let tileType = sessionStorage.getItem('heliMapTile');
+  if (tileType == '' || tileType == null) { tileType = '淡色地図'; }
   setMapTileUrl(map, tileType);
   if (tileType) {
     sel背景地図選択Element.value = tileType;
