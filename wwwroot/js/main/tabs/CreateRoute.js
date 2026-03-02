@@ -41,6 +41,7 @@ export function CreateRoute({
   const initialize = (tempid) => {
     const tbody = tabElement.querySelector('#tableルート作成>tbody');
     set調査地点Source(tabElement, source調査地点, new ol.source.Vector());
+
     // 画面初期状態を読み込み（一時保存id指定時はその保存内容を読み出し）
     ajaxExecute(base_url + `?Handler=InitialPlan&tempid=${tempid || ''}`, {},
       { title: tempid ? '一時保存ルート呼出・削除' : '調査ルート作成' }
@@ -262,6 +263,7 @@ export function CreateRoute({
       layer.getSource().clear();
       if (json.経路) {
         const features = geojsonFormatter.readFeatures(json.経路);
+        const features2 = geojsonFormatter.readFeatures(json.経路);
         layer.getSource().addFeatures(features);
       }
       // 飛行距離等の情報を表示

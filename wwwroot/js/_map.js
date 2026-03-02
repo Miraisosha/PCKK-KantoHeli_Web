@@ -129,96 +129,6 @@ const isBrightColor = (colorText) => {
  * @remarks レイヤのfeatureに「color」プロパティで表示色を指定する。指定なしの場合は黒色表示とする。画面下部編集レイヤでは赤色固定とすること
  * @remarks レイヤのfeatureに「checkbox」プロパティで紐づくcheckboxを指定した場合、チェック状態がONであれば選択状態として表示する。チェック状態変更を行った／検知したらsource.changed()を呼び出すこと。
  */
-const createSpotLayer = (map) => {
-  const layer調査地点 = new ol.layer.Vector({
-    source: new ol.source.Vector(),
-    style: function (feature, resolution) {
-      const color = feature.get('color') || '#000000';
-      const backColor = isBrightColor(color) ? '#000000' : '#FFFFFF';
-      const checkbox = feature.get('checkbox')
-      const styles = [];
-      if (checkbox && checkbox.checked) {
-        // 選択状態の地点は黄色で表示
-        styles.push(new ol.style.Style({
-          image: new ol.style.Circle({
-            radius: 20,
-            fill: new ol.style.Fill({ color: 'rgba(255, 255, 0, 0.6)' }),
-          }),
-          stroke: new ol.style.Stroke({ color: 'rgba(255, 255, 0, 0.6)', width: 15 }),
-        }));
-      }
-      //TODO 点/線に応じたスタイルをもっといろいろ設定すべき？
-      styles.push(new ol.style.Style({
-        stroke: new ol.style.Stroke({ color: backColor, width: 5 }),
-      }));
-      styles.push(new ol.style.Style({
-        image: new ol.style.Circle({
-          radius: 9,
-          fill: new ol.style.Fill({ color: color }),
-          stroke: new ol.style.Stroke({ color: backColor, width: 1 }),
-        }),
-        stroke: new ol.style.Stroke({ color: color, width: 4 }),
-      }));
-      return styles;
-    },
-  });
-  return layer調査地点;
-};
-
-/**
- * 調査ルートレイヤを作成します。
-  * @param {ol.Map} map mapオブジェクト
- * @remarks レイヤのfeatureとして、線 または 「text」プロパティで表示内容を指定したPointを指定する。
- * @remarks レイヤのfeatureには「color」プロパティで表示色を指定する。指定なしの場合は黒色表示となる。
- */
-const createRouteLayer = (map) => {
-  const layer調査ルート = new ol.layer.Vector({
-    source: new ol.source.Vector(),
-    style: function (feature, resolution) {
-      const color = feature.get('color') || '#FF0000';
-      const strokeColor = isBrightColor(color) ? '#000000' : '#FFFFFF';
-      const spotColor = feature.get('spotColor');
-      const text = feature.get('text');
-      const styles = [];
-      if (feature.getGeometry().getType() == 'Point') {
-        // 地点色が指定されているなら円で塗りつぶす
-        if (spotColor) {
-          styles.push(new ol.style.Style({
-            image: new ol.style.Circle({
-              radius: 10,
-              fill: new ol.style.Fill({ color: spotColor }),
-              //TODO 円の境界色も指定できる必要がありそう？(spotBorderColorが指定されてたときのみ描画、等)
-              stroke: new ol.style.Stroke({ color: color, width: 1 }),
-            }),
-          }));
-        }
-        // テキストが指定されていたらそのテキストを表示
-        if (text) {
-          styles.push(new ol.style.Style({
-            text: new ol.style.Text({
-              offsetX: 0.5,
-              text: text,
-              fill: new ol.style.Fill({ color: color }),
-              stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
-              font: '12px Calibri,sans-serif',
-            }),
-          }));
-        }
-      } else {
-        // 飛行ルートの線を表示
-        styles.push(new ol.style.Style({
-          stroke: new ol.style.Stroke({ color: strokeColor, width: 5, lineDash: [4, 10], }),
-        }));
-        styles.push(new ol.style.Style({
-          stroke: new ol.style.Stroke({ color: color, width: 3, lineDash: [0, 1, 2, 11], }),
-        }));
-      }
-      return styles;
-    },
-  });
-  return layer調査ルート;
-};
-
 // ********************************************************************************************
 // 市区町村震度ポリゴン　？？？
 // ********************************************************************************************
@@ -402,14 +312,233 @@ const createEditRouteLayer = (map) => {
           }));
         }
         // テキストが指定されていたらそのテキストを表示
-        if (text) {
+        if (text == '始') {
+          // 始点 H アイコン
           styles.push(new ol.style.Style({
             text: new ol.style.Text({
-              offsetX: 0.5,
+              font: 'bold 20px bootstrap-icons',
+              text: '\uF7FB',
+              fill: new ol.style.Fill({ color: '#00F' }),
+              stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
+            })
+          }));
+          // 始点文字
+          styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+              offsetX: 25,
               text: text,
               fill: new ol.style.Fill({ color: color }),
               stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
-              font: '12px Calibri,sans-serif',
+              font: '18px Calibri,sans-serif',
+            }),
+          }));
+        } else if (text == '終') {
+          // 終点 H アイコン
+          styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+              font: 'bold 20px bootstrap-icons',
+              text: '\uF7FB',
+              fill: new ol.style.Fill({ color: '#00F' }),
+              stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
+            })
+          }));
+          // 終点文字
+          styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+              offsetX: -28,
+              text: text,
+              fill: new ol.style.Fill({ color: color }),
+              stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
+              font: '18px Calibri,sans-serif',
+            }),
+          }));
+        } else if(text != "") {
+          //styles.push(new ol.style.Style({
+          //  text: new ol.style.Text({
+          //    offsetX: 10.5,
+          //    text: text,
+          //    fill: new ol.style.Fill({ color: '#000' }),
+          //    stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
+          //    font: '22px Calibri,sans-serif',
+          //  }),
+          //}));
+          styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+              offsetX: 1,
+              offsetY: 1,
+              text: text,
+              fill: new ol.style.Fill({ color: '#000' }),
+              stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
+              font: '18px Calibri,sans-serif',
+            }),
+          }));
+        }
+      } else {
+        // 飛行ルートの線を表示
+        styles.push(new ol.style.Style({
+          stroke: new ol.style.Stroke({ color: strokeColor, width: 3, lineDash: [4, 10], }),
+        }));
+        styles.push(new ol.style.Style({
+          stroke: new ol.style.Stroke({ color: color, width: 3, lineDash: [0, 1, 5, 11], }),
+        }));
+      }
+      return styles;
+    },
+  });
+  return layer;
+};
+// ********************************************************************************************
+// ルート作成　調査地点　レイヤー ピンクのライン
+const createSpotLayer = (map) => {
+  const layer調査地点 = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    style: function (feature, resolution) {
+      const color = feature.get('color') || '#000000';
+      const backColor = isBrightColor(color) ? '#000000' : '#FFFFFF';
+      const checkbox = feature.get('checkbox')
+      const styles = [];
+      if (checkbox && checkbox.checked) {
+        // 選択状態の地点は黄色で表示
+        styles.push(new ol.style.Style({
+          image: new ol.style.Circle({
+            radius: 20,
+            fill: new ol.style.Fill({ color: 'rgba(255, 255, 0, 0.6)' }),
+          }),
+          stroke: new ol.style.Stroke({ color: 'rgba(255, 255, 0, 0.6)', width: 18 }),
+        }));
+      }
+      //TODO 点/線に応じたスタイルをもっといろいろ設定すべき？
+      styles.push(new ol.style.Style({
+        stroke: new ol.style.Stroke({ color: backColor, width: 8 }),
+      }));
+      styles.push(new ol.style.Style({
+        image: new ol.style.Circle({
+          radius: 12,
+          fill: new ol.style.Fill({ color: color }),
+          stroke: new ol.style.Stroke({ color: color, width: 1 }),
+        }),
+        stroke: new ol.style.Stroke({ color: color, width: 9 }),
+      }));
+      return styles;
+    },
+  });
+  return layer調査地点;
+};
+
+// ********************************************************************************************
+// 左メニュー　調査地点
+const createLeftSpotLayer = (map) => {
+  const layer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    style: function (feature, resolution) {
+      const color = feature.get('color') || '#000000';
+      const backColor = isBrightColor(color) ? '#000000' : '#FFFFFF';
+      const checkbox = feature.get('checkbox')
+      const styles = [];
+      // 選択状態の地点は黄色で表示
+      styles.push(new ol.style.Style({
+        image: new ol.style.Circle({
+          radius: 20,
+          fill: new ol.style.Fill({ color: 'rgba(255, 255, 0, 0.6)' }),
+        }),
+        stroke: new ol.style.Stroke({ color: 'rgba(255, 255, 0, 0.6)', width: 18 }),
+      }));
+      //TODO 点/線に応じたスタイルをもっといろいろ設定すべき？
+      styles.push(new ol.style.Style({
+        stroke: new ol.style.Stroke({ color: backColor, width: 8 }),
+      }));
+      styles.push(new ol.style.Style({
+        image: new ol.style.Circle({
+          radius: 12,
+          fill: new ol.style.Fill({ color: color }),
+          stroke: new ol.style.Stroke({ color: color, width: 1 }),
+        }),
+        stroke: new ol.style.Stroke({ color: color, width: 9 }),
+      }));
+      return styles;
+    },
+  });
+  return layer;
+};
+
+// ********************************************************************************************
+/**
+ * 調査ルートレイヤを作成します。
+  * @param {ol.Map} map mapオブジェクト
+ * @remarks レイヤのfeatureとして、線 または 「text」プロパティで表示内容を指定したPointを指定する。
+ * @remarks レイヤのfeatureには「color」プロパティで表示色を指定する。指定なしの場合は黒色表示となる。
+ */
+// ********************************************************************************************
+const createRouteLayer = (map) => {
+  const layer調査ルート = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    style: function (feature, resolution) {
+      const color = feature.get('color') || '#FF0000';
+      const strokeColor = isBrightColor(color) ? '#000000' : '#FFFFFF';
+      const spotColor = feature.get('spotColor');
+      const text = feature.get('text');
+      const styles = [];
+      if (feature.getGeometry().getType() == 'Point') {
+        // 地点色が指定されているなら円で塗りつぶす
+        if (spotColor) {
+          //styles.push(new ol.style.Style({
+          //  image: new ol.style.Circle({
+          //    radius: 10,
+          //    fill: new ol.style.Fill({ color: spotColor }),
+          //    //TODO 円の境界色も指定できる必要がありそう？(spotBorderColorが指定されてたときのみ描画、等)
+          //    stroke: new ol.style.Stroke({ color: color, width: 1 }),
+          //  }),
+          //}));
+        }
+        // テキストが指定されていたらそのテキストを表示
+        if (text == '始') {
+          // 始点 H アイコン
+          styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+              font: 'bold 20px bootstrap-icons',
+              text: '\uF7FB',
+              fill: new ol.style.Fill({ color: '#00F' }),
+              stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
+            })
+          }));
+          // 始点文字
+          styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+              offsetX: 25,
+              text: text,
+              fill: new ol.style.Fill({ color: '#000' }),
+              stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
+              font: '18px Calibri,sans-serif',
+            }),
+          }));
+        } else if (text == '終') {
+          // 終点 H アイコン
+          styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+              font: 'bold 20px bootstrap-icons',
+              text: '\uF7FB',
+              fill: new ol.style.Fill({ color: '#00F' }),
+              stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
+            })
+          }));
+          // 終点文字
+          styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+              offsetX: -28,
+              text: text,
+              fill: new ol.style.Fill({ color: '#000' }),
+              stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
+              font: '18px Calibri,sans-serif',
+            }),
+          }));
+        } else if (text != "") {
+          styles.push(new ol.style.Style({
+            text: new ol.style.Text({
+              offsetX: 20,
+              text: text,
+              fill: new ol.style.Fill({ color: "#000" }),
+              stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
+              font: '18px Calibri,sans-serif',
             }),
           }));
         }
@@ -418,15 +547,20 @@ const createEditRouteLayer = (map) => {
         styles.push(new ol.style.Style({
           stroke: new ol.style.Stroke({ color: strokeColor, width: 5, lineDash: [4, 10], }),
         }));
+        //styles.push(new ol.style.Style({
+        //  stroke: new ol.style.Stroke({ color: color, width: 3, lineDash: [0, 1, 2, 11], }),
+        //}));
+        // 通過用スタイル
         styles.push(new ol.style.Style({
-          stroke: new ol.style.Stroke({ color: color, width: 3, lineDash: [0, 1, 7, 5], }),
+          stroke: new ol.style.Stroke({ color: '#0000FF', width: 5, lineDash: [1], }),
         }));
       }
       return styles;
     },
   });
-  return layer;
+  return layer調査ルート;
 };
+
 
 // ********************************************************************************************
 // 初動調査ルート　レイヤ
@@ -436,44 +570,49 @@ const createCapitalRouteLayer = (map) => {
     source: new ol.source.Vector(),
     visible:false,
     style: function (feature, resolution) {
-      const color = feature.get('color') || '#0000FF';
+      //const color = feature.get('color') || '#0000FF';
+      const color = '#00000';
       const strokeColor = '#FFFFFF';
       const spotColor = feature.get('spotColor');
       const text = feature.get('text');
       const type = feature.get('type');
+      const no = feature.get('no');
       const styles = [];
       if (feature.getGeometry().getType() == 'Point') {
         // 地点色が指定されているなら円で塗りつぶす
         if (spotColor) {
-          styles.push(new ol.style.Style({
-            image: new ol.style.Circle({
-              radius: 14,
-              fill: new ol.style.Fill({ color: spotColor }),
-              stroke: new ol.style.Stroke({ color: color, width: 1 }),
-            }),
-          }));
+          //styles.push(new ol.style.Style({
+          //  image: new ol.style.Circle({
+          //    radius: 14,
+          //    fill: new ol.style.Fill({ color: "red" }),
+          //    stroke: new ol.style.Stroke({ color: color, width: 1 }),
+          //  }),
+          //}));
         }
         // テキストが指定されていたらそのテキストを表示
         if (text) {
           if (type == 4) {
-            styles.push(new ol.style.Style({
-              text: new ol.style.Text({
-                offsetX: 0.5,
-                text: text,
-                fill: new ol.style.Fill({ color: color }),
-                stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
-                font: '14px Calibri,sans-serif',
-              }),
-            }));
+            //styles.push(new ol.style.Style({
+            //  text: new ol.style.Text({
+            //    offsetX: 10,
+            //    offsetY: 10,
+            //    text: text,
+            //    fill: new ol.style.Fill({ color: '#000' }),
+            //    stroke: new ol.style.Stroke({ color: strokeColor, width: 3 }),
+            //    font: '16px Calibri,sans-serif',
+            //  }),
+            //}));
           } else if (type == 2) {
+            // 始点 H アイコン
             styles.push(new ol.style.Style({
               text: new ol.style.Text({
                 font: 'bold 20px bootstrap-icons',
                 text: '\uF7FB',
-                fill: new ol.style.Fill({ color: '#00F' }),
+                fill: new ol.style.Fill({ color: '#000' }),
                 stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
               })
             }));
+            // 始点文字
             styles.push(new ol.style.Style({
               text: new ol.style.Text({
                 offsetX: 25,
@@ -484,14 +623,16 @@ const createCapitalRouteLayer = (map) => {
               }),
             }));
           } else if (type == 3) {
+            // 終点 H アイコン
             styles.push(new ol.style.Style({
               text: new ol.style.Text({
                 font: 'bold 20px bootstrap-icons',
                 text: '\uF7FB',
-                fill: new ol.style.Fill({ color: '#00F' }),
+                fill: new ol.style.Fill({ color: '#000' }),
                 stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
               })
             }));
+            // 終点文字
             styles.push(new ol.style.Style({
               text: new ol.style.Text({
                 offsetX: -28,
@@ -504,6 +645,55 @@ const createCapitalRouteLayer = (map) => {
           }
         }
       } else {
+        const geometry = feature.getGeometry();
+        const coordinates = geometry.getCoordinates();
+
+        // ---- ライン本体 ----
+        if (type == 1) {
+          styles.push(new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: "red",
+              width: 10,
+            }),
+          }));
+        } else {
+          styles.push(new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: '#0000FF',
+              width: 5,
+            }),
+          }));
+        }
+        // ===== 始点・終点テキスト表示 =====
+        if (no && coordinates.length > 1) {
+
+          const startCoord = coordinates[0];
+          const endCoord = coordinates[coordinates.length - 1];
+
+          // 始点
+          styles.push(new ol.style.Style({
+            geometry: new ol.geom.Point(startCoord),
+            text: new ol.style.Text({
+              text: no,
+              offsetY: 5,
+              font: 'bold 16px Calibri,sans-serif',
+              fill: new ol.style.Fill({ color: '#000' }),
+              stroke: new ol.style.Stroke({ color: '#FFF', width: 3 }),
+            }),
+          }));
+
+          // 終点
+          styles.push(new ol.style.Style({
+            geometry: new ol.geom.Point(endCoord),
+            text: new ol.style.Text({
+              text: no,
+              offsetY: -5,
+              font: 'bold 16px Calibri,sans-serif',
+              fill: new ol.style.Fill({ color: '#000' }),
+              stroke: new ol.style.Stroke({ color: '#FFF', width: 3 }),
+            }),
+          }));
+        }
         // 飛行ルートの線を表示
         //styles.push(new ol.style.Style({
         //  stroke: new ol.style.Stroke({ color: strokeColor, width: 5, lineDash: [4, 10], }),
@@ -511,7 +701,7 @@ const createCapitalRouteLayer = (map) => {
         if (type == 1) {
           // 調査箇所スタイル
           styles.push(new ol.style.Style({
-            stroke: new ol.style.Stroke({ color: spotColor, width: 10, lineDash: [1], }),
+            stroke: new ol.style.Stroke({ color: "red", width: 10, lineDash: [1], }),
           }));
         } else {
           // 通過用スタイル
@@ -724,6 +914,18 @@ const createKPLineRoad = (map) => {
     }),
     style: styleKPLineRiver,
     visible: false
+  });
+  return layer;
+}
+function createFlightRouteKMLLayer(map) {
+  var rand = (new Date).time;
+  const layer = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      url: root_url + '/files/FlightRoute/sample.kml?k=' + rand,
+      format: new ol.format.KML({
+        extractStyles: true   // ← 重要
+      })
+    })
   });
   return layer;
 }

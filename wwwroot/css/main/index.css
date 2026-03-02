@@ -278,6 +278,9 @@
   .legend-line.edit {
     border-top: 3px dashed blue;
   }
+  .legend-line.route {
+    border-top: 3px blue solid;
+  }
 
   /* 赤点線（調査予定） */
   .legend-line.plan {

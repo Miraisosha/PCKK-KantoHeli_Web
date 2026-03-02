@@ -44,6 +44,7 @@ const layer調査地点 = createSpotLayer(map);
 const layer調査ルート = createRouteLayer(map);
 const layer市区町村震度 = createCityLayer(map);
 const layerヘリポート = createHeliPortLayer(map);
+const layerLeft調査地点 = createLeftSpotLayer(map);
 
 // ---------------------------------------------
 // タブ
@@ -73,6 +74,7 @@ const map調査地点Source = {};
 const map調査ルートSource = {};
 // 調査ルート作成　（編集中）
 const layer編集調査ルート = createEditRouteLayer(map);
+const layerFlightRouteKML = createFlightRouteKMLLayer(map);
 
 // 地図に対する描画操作（地点追加等）
 let /** @type{ol.interaction.Draw?} */ mapDraw = null;
@@ -83,8 +85,8 @@ let /** @type{bootstrap.Toast?} */ displayingToast = null;
 // ====================================================================
 // レイヤーの順序
 map.addLayer(layer市区町村震度);
-map.addLayer(layer調査地点);
 map.addLayer(layer調査ルート);
+map.addLayer(layer調査地点);
 map.addLayer(layerヘリポート);
 map.addLayer(layerKPLine河川     );
 map.addLayer(layerKPLine道路     );
@@ -93,9 +95,10 @@ map.addLayer(layerKP道路         );
 map.addLayer(layerSelectionKP    );
 map.addLayer(layerSelectedKPLine );
 map.addLayer(layer初動調査ルート);
-map.addLayer(layer編集調査ルート);
+//map.addLayer(layerFlightRouteKML);
+map.addLayer(layerLeft調査地点);
 map.addLayer(layer編集中調査地点);
-
+map.addLayer(layer編集調査ルート);
 // ====================================================================
 const 調査依頼タブ = init調査依頼タブ();
 //init依頼状況タブ();
@@ -373,7 +376,7 @@ function init防災ヘリ関連情報Layers() {
   var i = 0;
   form防災ヘリ関連情報.querySelectorAll('input[name="yotei"]').forEach((r) => {
     yoteiColor[r.value] = routeColors[i]; 
-    addRouteToLegend(r.dataset.title, routeColors[i]);
+//    addRouteToLegend(r.dataset.title, routeColors[i]);
     i++;
   });
   // チェック状態に応じた（調査依頼中／調査予定などの）対象地点一覧を表示
@@ -382,6 +385,7 @@ function init防災ヘリ関連情報Layers() {
     // 調査依頼、および調査予定データをまとめて取得
     ajaxGetJson(base_url + '?Handler=Features&' + new URLSearchParams(formData).toString())
       .then((json) => {
+        console.log("show表示対象Features");
         const spots = geojsonFormatter.readFeatures(json.spots);
         layer調査地点.getSource().clear();
         layer調査地点.getSource().addFeatures(spots);
@@ -401,19 +405,19 @@ function init防災ヘリ関連情報Layers() {
 
   // ---------------------------------------
   // 地図　凡例表示
-  function addRouteToLegend(name, color) {
-    const container = document.querySelector('.legend-section');
-
-    const row = document.createElement('div');
-    row.className = 'legend-route';
-
-    row.innerHTML = `
-      <span class="legend-line" style="border-top:3px dotted ${color};"></span>
-      <span class="legend-label">${name}</span>
-    `;
-
-    container.appendChild(row);
-  }
+//  function addRouteToLegend(name, color) {
+//    const container = document.querySelector('.legend-section');
+//
+//    const row = document.createElement('div');
+//    row.className = 'legend-route';
+//
+//    row.innerHTML = `
+//      <span class="legend-line" style="border-top:3px dotted ${color};"></span>
+//      <span class="legend-label">${name}</span>
+//    `;
+//
+//    container.appendChild(row);
+//  }
 
   // 初期化時にも読み込み
   show表示対象Features();
@@ -896,7 +900,7 @@ function init調査依頼タブ() {
       });
       mapDraw.on('drawend', function (e) {
         // 指定終了時にレイヤ/一覧へ描画内容追加
-        e.feature.set('color', '#FF0000');
+        e.feature.set('color', '#F618FD');
         e.feature.set('requester', toast調査地点追加Element.dataset.requester);
         e.feature.set('survey', drawType == 'LineString' ? '通過' : '周回');
         e.feature.set('spottype', drawType == 'LineString' ? '線' : '点');

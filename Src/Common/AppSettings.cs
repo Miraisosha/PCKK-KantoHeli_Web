@@ -44,4 +44,6 @@ public class AppSettings
     public string AuthValidationClaimValue { get; set; } = string.Empty;
 
     public static bool IsApplicationStopping { get; set; } = false;
+
+    public string? FlightRouteKMLPath { get; set; }
 }

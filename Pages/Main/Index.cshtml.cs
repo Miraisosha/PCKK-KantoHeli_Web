@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Data.Common;
-using System.Text.Json;
-using Dapper;
+using System.Diagnostics;
 using DapperAid;
 using GeoCoordinatePortable;
 using Google.OrTools.ConstraintSolver;
@@ -15,7 +14,7 @@ using Src.Common;
 using Src.Services;
 using Src.Validation.CustomValidators;
 using ZLogger;
-using System.Diagnostics;
+
 
 namespace Pages.Main;
 
@@ -271,51 +270,150 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     /// <param name="irai">調査依頼idの一覧</param>
     /// <param name="yotei">調査予定idの一覧</param>
     /// <returns></returns>
+//    public async Task<IActionResult> OnGetFeaturesAsync(
+//        [FromRoute(Name = "thread")] int? threadId,
+//        int[]? irai = null,
+//        int[]? yotei = null)
+//    {
+//        // スレッドidチェック
+//        if(threadId is null)
+//        {
+//            return new JsonResult(new { error = "スレッドidが取得できません。" });
+//        }
+//        // 調査予定ルート（yotei）から参照される調査箇所idを取得して一意化する。
+//        IReadOnlyList<T_調査予定ルート> tルートRecords = Array.Empty<T_調査予定ルート>();
+//        int[] yoteiSpotIds = Array.Empty<int>();
+//        if (yotei is not null && yotei.Length > 0)
+//        {
+//            tルートRecords = await con.SelectAsync<T_調査予定ルート>(
+//                r => r.調査予定id == SqlExpr.In<int>(yotei),
+//                otherClauses: $"ORDER BY {nameof(T_調査予定ルート.調査予定id)},{nameof(T_調査予定ルート.連番)}");
+//            yoteiSpotIds = tルートRecords
+//                .Where(r => r.調査箇所id is not null)
+//                .Select(r => r.調査箇所id!.Value)
+//                .Distinct()
+//                .ToArray();
+//        }
+//
+//        // プロットすべき調査箇所を取得（調査依頼指定 or 調査予定ルートに紐づく調査箇所指定）
+//        IReadOnlyList<T_調査箇所> t調査箇所Records = Array.Empty<T_調査箇所>();
+//        if ((irai is not null && irai.Length > 0) || (yoteiSpotIds.Length > 0))
+//        {
+//            // 条件を組み立てて一回のクエリで取得（重複はDB側で除去されないため DISTINCT 相当は取れないが
+//            // 調査箇所idをキーにした選択で一意化される）
+//            t調査箇所Records = await con.SelectAsync<T_調査箇所>(
+//                r => ((irai != null && irai.Length > 0 && r.調査依頼id == SqlExpr.In(irai))
+//                      || (yoteiSpotIds.Length > 0 && r.調査箇所id == SqlExpr.In<int>(yoteiSpotIds)))
+//                     && r.deleted_at == null,
+//                otherClauses: $"ORDER BY {nameof(T_調査箇所.調査箇所id)}");
+//        }
+//        // プロットすべき調査箇所を取得
+////        IReadOnlyList<T_調査箇所> t調査箇所Records = [];
+////        if (irai is not null || yotei is not null)
+////        {
+////            t調査箇所Records = await con.SelectAsync<T_調査箇所>(
+////                r => (irai != null && r.調査依頼id == SqlExpr.In(irai) || yotei != null && r.調査予定id == SqlExpr.In<int>(yotei))
+////                    && r.deleted_at == null,
+////                otherClauses: $"ORDER BY {nameof(T_調査箇所.調査箇所id)}");
+////        }
+//
+//        // 調査予定ルートがあればFeatureとして取得
+//        List<Feature> routes = [];
+//         if (yotei is not null)
+//         {
+//             var t調査予定Records = await con.SelectAsync<T_調査予定>(
+//                 r => r.調査予定id == SqlExpr.In(yotei) && r.deleted_at == null,
+//                 otherClauses: $"ORDER BY {nameof(T_調査予定.調査予定id)}");
+//             var tルートRecords = await con.SelectAsync<T_調査予定ルート>(
+//                 r => r.調査予定id == SqlExpr.In(yotei),
+//                 otherClauses: $"ORDER BY {nameof(T_調査予定ルート.調査予定id)},{nameof(T_調査予定ルート.連番)}");
+//
+//             // まず調査ルートの線を格納
+//             foreach (var rec in t調査予定Records)
+//             {
+//                 var line = rec.手動描画調査ルート ?? Get調査ルートLineString([.. tルートRecords.Where(r => r.調査予定id == rec.調査予定id)]);
+//                 routes.Add(new Feature(line, new AttributesTable { { "name", rec.調査予定名 }, { "id", rec.調査予定id } } ));
+//             }
+//             // 続いて、手動描画でなければ調査地点を格納
+//             foreach (var rec in t調査予定Records.Where(r => r.手動描画調査ルート is null))
+//             {
+//                 var records = tルートRecords.Where(r => r.調査予定id == rec.調査予定id).ToArray();
+//                 routes.AddRange(Get調査ルートPoints(records));
+//             }
+//         }
+//
+//        // Jsonでまとめて返す
+//        return new JsonResult(new
+//        {
+//            spots = await dataService.ToFearureCollectionAsync(t調査箇所Records),
+//            routes = new
+//            {
+//                type = "FeatureCollection",
+//                crs = new { type = "name", properties = new { name = "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+//                features = routes,
+//            },
+//        });
+//    }
     public async Task<IActionResult> OnGetFeaturesAsync(
-        [FromRoute(Name = "thread")] int? threadId,
-        int[]? irai = null,
-        int[]? yotei = null)
+    [FromRoute(Name = "thread")] int? threadId,
+    int[]? irai = null,
+    int[]? yotei = null)
     {
         // スレッドidチェック
-        if(threadId is null)
+        if (threadId is null)
         {
             return new JsonResult(new { error = "スレッドidが取得できません。" });
         }
-        // プロットすべき調査箇所を取得
-        IReadOnlyList<T_調査箇所> t調査箇所Records = [];
-        if (irai is not null || yotei is not null)
+
+        // 調査予定ルート（yotei）から参照される調査箇所idを取得して一意化する。
+        IReadOnlyList<T_調査予定ルート> tルートRecords = Array.Empty<T_調査予定ルート>();
+        int[] yoteiSpotIds = Array.Empty<int>();
+        if (yotei is not null && yotei.Length > 0)
         {
+            tルートRecords = await con.SelectAsync<T_調査予定ルート>(
+                r => r.調査予定id == SqlExpr.In<int>(yotei),
+                otherClauses: $"ORDER BY {nameof(T_調査予定ルート.調査予定id)},{nameof(T_調査予定ルート.連番)}");
+            yoteiSpotIds = tルートRecords
+                .Where(r => r.調査箇所id is not null)
+                .Select(r => r.調査箇所id!.Value)
+                .Distinct()
+                .ToArray();
+        }
+
+        // プロットすべき調査箇所を取得（調査依頼指定 or 調査予定ルートに紐づく調査箇所指定）
+        IReadOnlyList<T_調査箇所> t調査箇所Records = Array.Empty<T_調査箇所>();
+        if ((irai is not null && irai.Length > 0) || (yoteiSpotIds.Length > 0))
+        {
+            // 条件を組み立てて一回のクエリで取得（重複はDB側で除去されないため DISTINCT 相当は取れないが
+            // 調査箇所idをキーにした選択で一意化される）
             t調査箇所Records = await con.SelectAsync<T_調査箇所>(
-                r => (irai != null && r.調査依頼id == SqlExpr.In(irai)
-                        || yotei != null && r.調査予定id == SqlExpr.In<int>(yotei))
-                    && r.deleted_at == null,
+                r => ((irai != null && irai.Length > 0 && r.調査依頼id == SqlExpr.In(irai))
+                      || (yoteiSpotIds.Length > 0 && r.調査箇所id == SqlExpr.In<int>(yoteiSpotIds)))
+                     && r.deleted_at == null,
                 otherClauses: $"ORDER BY {nameof(T_調査箇所.調査箇所id)}");
         }
 
-        // 調査予定ルートがあればFeatureとして取得
-        List<Feature> routes = [];
-         if (yotei is not null)
-         {
-             var t調査予定Records = await con.SelectAsync<T_調査予定>(
-                 r => r.調査予定id == SqlExpr.In(yotei) && r.deleted_at == null,
-                 otherClauses: $"ORDER BY {nameof(T_調査予定.調査予定id)}");
-             var tルートRecords = await con.SelectAsync<T_調査予定ルート>(
-                 r => r.調査予定id == SqlExpr.In(yotei),
-                 otherClauses: $"ORDER BY {nameof(T_調査予定ルート.調査予定id)},{nameof(T_調査予定ルート.連番)}");
+        // 調査予定ルートがあればFeatureとして取得（tルートRecords は既に取得済の場合は再利用）
+        List<Feature> routes = new();
+        if (yotei is not null && yotei.Length > 0)
+        {
+            var t調査予定Records = await con.SelectAsync<T_調査予定>(
+                r => r.調査予定id == SqlExpr.In(yotei) && r.deleted_at == null,
+                otherClauses: $"ORDER BY {nameof(T_調査予定.調査予定id)}");
 
-             // まず調査ルートの線を格納
-             foreach (var rec in t調査予定Records)
-             {
-                 var line = rec.手動描画調査ルート ?? Get調査ルートLineString([.. tルートRecords.Where(r => r.調査予定id == rec.調査予定id)]);
-                 routes.Add(new Feature(line, new AttributesTable { { "name", rec.調査予定名 }, { "id", rec.調査予定id } } ));
-             }
-             // 続いて、手動描画でなければ調査地点を格納
-             foreach (var rec in t調査予定Records.Where(r => r.手動描画調査ルート is null))
-             {
-                 var records = tルートRecords.Where(r => r.調査予定id == rec.調査予定id).ToArray();
-                 routes.AddRange(Get調査ルートPoints(records));
-             }
-         }
+            // まず調査ルートの線を格納
+            foreach (var rec in t調査予定Records)
+            {
+                var line = rec.手動描画調査ルート ?? Get調査ルートLineString([.. tルートRecords.Where(r => r.調査予定id == rec.調査予定id)]);
+                routes.Add(new Feature(line, new AttributesTable { { "name", rec.調査予定名 }, { "id", rec.調査予定id } }));
+            }
+            // 続いて、手動描画でなければ調査地点を格納
+            foreach (var rec in t調査予定Records.Where(r => r.手動描画調査ルート is null))
+            {
+                var records = tルートRecords.Where(r => r.調査予定id == rec.調査予定id).ToArray();
+                routes.AddRange(Get調査ルートPoints(records));
+            }
+        }
 
         // Jsonでまとめて返す
         return new JsonResult(new
@@ -1462,9 +1560,20 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         // ---------------------------------------------------------------------
         // 調査ルートのfeatureを生成(ただし手動描画ルートがあるならそれを優先)
-        LineString? route = line手動描画ルート ?? Get調査ルートLineString(tルートRecords);
-        // 距離や飛行情報を把握
-        var distance = Calc距離(route) / 1000;
+        LineString? routeLineString = line手動描画ルート ?? Get調査ルートLineString(tルートRecords);
+
+        // ---------------------------------------------------------------------
+        // KML生成
+        List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
+        var generator = new FlightRouteKmlGenerator();
+        var bytes = generator.Generate(flightRoutes);
+        var savePath = _settings.FlightRouteKMLPath;
+        System.IO.File.WriteAllBytes(savePath + "sample.kml", bytes);
+
+
+        // ---------------------------------------------------------------------
+        // 距離/飛行情報
+        var distance = Calc距離(routeLineString) / 1000;
         var val飛行時間_分 = distance is not null ? ((decimal)distance.Value / _settings.ヘリ時速_毎時 * 60) : (decimal?)null;
         var recヘリ飛行設定 = await con.SelectFirstOrDefaultAsync<T_ヘリ飛行設定>(
             r => r.飛行可能時間_分 >= val飛行時間_分,
@@ -1523,9 +1632,9 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         {
             // 調査ルートのfeatureが出来ていればそれを
             List<Feature> features = [];
-            if (route is not null)
+            if (routeLineString is not null)
             {
-                features.Add(new Feature(route, new AttributesTable { }));
+                features.Add(new Feature(routeLineString, new AttributesTable { }));
                 if (line手動描画ルート is null)
                 {
                     features.AddRange(Get調査ルートPoints(tルートRecords));
@@ -1964,80 +2073,253 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
     #endregion ------------------------------------------------------------------------------------
 
+    private async Task<List<FlightRoute>> GetFlightRoutes(IReadOnlyList<T_調査予定ルート> tルートRecords)
+    {
+        List<Coordinate> lineCoordinates = new();
+        List<FlightRoute> list = [];
+        int frIdx = 1;
 
-    /// <summary>
-    /// (private) 調査ルートの経路を生成して返します。
-    /// </summary>
-    /// <param name="tルートRecords">調査予定ルート</param>
-    /// <returns>経路。調査予定ルート未設定の場合はnull</returns>
-    /// <exception cref="InvalidDataException"></exception>
-//    private LineString? Get調査ルートLineString(IReadOnlyList<T_調査予定ルート> tルートRecords)
-//    {
-//        // まず経路の線を引きつつ、LineStringの経路追加時に前/後ろどちらから経路追加するか決定する
-//        List<Coordinate> lineCoordinates = [];
-//        for (int i = 0; i < tルートRecords.Count; i++)
-//        {
-//            var rec = tルートRecords[i];
-//            if (rec.ジオメトリ is Point p)
-//            {
-//                lineCoordinates.Add(p.Coordinate); // 点であれば単純にその地点を追加
-//            }
-//            else if (rec.ジオメトリ is LineString ls && ls.Coordinates.FirstOrDefault() is Coordinate coord前 && ls.Coordinates.LastOrDefault() is Coordinate coord後ろ)
-//            {
-//                // 前/後ろどちらから経路に追加したほうが距離が短くなるか判断する
-//                double distance前から追加した場合 = 0;
-//                double distance後ろから追加した場合 = 0;
-//                var geo前 = new GeoCoordinate(coord前.Y, coord前.X);
-//                var geo後ろ = new GeoCoordinate(coord後ろ.Y, coord後ろ.X);
-//
-//                // 直前の座標が分かっていれば距離を算出
-//                if (lineCoordinates.LastOrDefault() is Coordinate prev)
-//                {
-//                    var prevGeo = new GeoCoordinate(prev.Y, prev.X);
-//                    distance前から追加した場合 += prevGeo.GetDistanceTo(geo前);
-//                    distance後ろから追加した場合 += prevGeo.GetDistanceTo(geo後ろ);
-//                }
-//                // それより後ろにも座標があるならさらに距離を算出して加算
-//                var nextジオメトリ = (i + 1 < tルートRecords.Count) ? tルートRecords[i + 1].ジオメトリ : null;
-//                if (nextジオメトリ is Point)
-//                {
-//                    var nextGeo = new GeoCoordinate(nextジオメトリ.Coordinate.Y, nextジオメトリ.Coordinate.X);
-//                    distance前から追加した場合 += nextGeo.GetDistanceTo(geo後ろ);
-//                    distance後ろから追加した場合 += nextGeo.GetDistanceTo(geo前);
-//                }
-//                else if (rec.ジオメトリ is LineString ls2 && ls2.Coordinates.FirstOrDefault() is Coordinate coord前2 && ls.Coordinates.LastOrDefault() is Coordinate coord後ろ2)
-//                {
-//                    // 後続のジオメトリも線の場合は、その後続の線の前/後ろどちらに繋げるほうがより短いかをさらに考慮する
-//                    // (厳密にやるのであれば始点～終点までGoogleOrTool等で最短経路を算出する必要があるが、ここでは妥協して直前直後のみを考慮した最短経路を導出する)
-//                    var nextGeo前 = new GeoCoordinate(coord前2.Y, coord前2.X);
-//                    var nextGeo後ろ = new GeoCoordinate(coord後ろ2.Y, coord後ろ2.X);
-//                    distance前から追加した場合 += Math.Min(nextGeo前.GetDistanceTo(geo前), nextGeo後ろ.GetDistanceTo(geo前));
-//                    distance後ろから追加した場合 += Math.Min(nextGeo前.GetDistanceTo(geo後ろ), nextGeo後ろ.GetDistanceTo(geo後ろ));
-//                }
-//
-//                rec.is後ろから経路追加 = distance後ろから追加した場合 < distance前から追加した場合;
-//                if (rec.is後ろから経路追加 == true)
-//                {
-//                    for (int i2 = rec.ジオメトリ.Coordinates.Length - 1; i2 >= 0; i2--)
-//                    {   // 座標の配列の後ろから追加していく
-//                        lineCoordinates.Add(rec.ジオメトリ.Coordinates[i2]);
-//                    }
-//                }
-//                else
-//                {
-//                    lineCoordinates.AddRange(rec.ジオメトリ.Coordinates);
-//                }
-//            }
-//            else
-//            {
-//                logger.ZLogError($"想定外のジオメトリが登録されている。型:{rec.ジオメトリ.GetType()}, 調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
-//                throw new InvalidDataException($"想定外のジオメトリが登録されている。型:{rec.ジオメトリ.GetType()}, 調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
-//            }
-//        }
-//        return lineCoordinates.Count >= 2
-//            ? new LineString([.. lineCoordinates]) { SRID = 4326 }
-//            : null;
-//    }
+        static Coordinate? GetEndpoint(Geometry? g, bool first)
+        {
+            if (g is null) return null;
+            if (g is Point pt) return pt.Coordinate;
+            if (g is LineString ls && ls.Coordinates.Length > 0)
+                return first ? ls.Coordinates[0] : ls.Coordinates[ls.Coordinates.Length - 1];
+            if (g is MultiLineString mls)
+            {
+                for (int i = 0; i < mls.NumGeometries; i++)
+                {
+                    var g0 = mls.GetGeometryN(i);
+                    if (g0 is LineString ls0 && ls0.Coordinates.Length > 0)
+                        return first ? ls0.Coordinates[0] : ls0.Coordinates[ls0.Coordinates.Length - 1];
+                    if (g0 is Point pt0) return pt0.Coordinate;
+                }
+            }
+            // 最後の手段として Geometry.Coordinate を使う（null の場合は無視）
+            return g.Coordinate;
+        }
+
+        for (int i = 0; i < tルートRecords.Count; i++)
+        {
+            var rec = tルートRecords[i];
+            var geom = rec.ジオメトリ;
+            if (geom is null)
+            {
+                logger.ZLogWarning($"ジオメトリが null の調査予定ルートをスキップします：調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
+                continue;
+            }
+
+            GeoCoordinate? pointA = null;
+            GeoCoordinate? pointB = null;
+            // 最後のポイント　バッファ
+            if (lineCoordinates.LastOrDefault() is Coordinate point)
+            {
+                pointA = new GeoCoordinate(point.Y, point.X);
+            }
+
+            // --------------------------------
+            // 点の場合は単純に座標追加
+            if (geom is Point p)
+            {
+                lineCoordinates.Add(p.Coordinate);  // <<<<--------------
+                pointB = new GeoCoordinate(p.Coordinate.Y, p.Coordinate.X);
+            }
+            // --------------------------------
+            // LineString
+            LineString? ls = null;
+            if (geom is LineString lss)
+            {
+                ls = lss;
+            }
+            // --------------------------------
+            // MultiLineString
+            else if (geom is MultiLineString mls)
+            {
+                // MultiLineString は代表的な LineString（先頭で座標が2以上あるもの）を探す
+                for (int gi = 0; gi < mls.NumGeometries; gi++)
+                {
+                    var g0 = mls.GetGeometryN(gi);
+                    if (g0 is LineString ls0 && ls0.Coordinates.Length >= 2)
+                    {
+                        ls = ls0;
+                        break;
+                    }
+                    if (g0 is Point pt0)
+                    {
+                        lineCoordinates.Add(pt0.Coordinate);  // <<<<--------------
+                        ls = null;
+                        break;
+                    }
+                }
+                // 見つからなければ先頭のジオメトリの代表点を使う（fallback）
+                if (ls == null && mls.NumGeometries > 0)
+                {
+                    var g0 = mls.GetGeometryN(0);
+                    if (g0?.Coordinate != null)
+                    {
+                        lineCoordinates.Add(g0.Coordinate);  // <<<<--------------
+                        continue;
+                    }
+                }
+            }
+            // --------------------------------
+            // GeometryCollection
+            else if (geom is GeometryCollection gc)
+            {
+                Debug.WriteLine("GeometryCollection");
+                // GeometryCollection から最初に見つかる LineString / Point を採用
+                for (int gi = 0; gi < gc.NumGeometries; gi++)
+                {
+                    var g0 = gc.GetGeometryN(gi);
+                    if (g0 is LineString ls0 && ls0.Coordinates.Length >= 2)
+                    {
+                        ls = ls0;
+                        break;
+                    }
+                    if (g0 is Point pt0)
+                    {
+                        lineCoordinates.Add(pt0.Coordinate);  // <<<<--------------
+                        ls = null;
+                        break;
+                    }
+                }
+                if (ls == null)
+                {
+                    var g0 = gc.NumGeometries > 0 ? gc.GetGeometryN(0) : null;
+                    if (g0?.Coordinate != null)
+                    {
+                        lineCoordinates.Add(g0.Coordinate);  // <<<<--------------
+                        continue;
+                    }
+                }
+            }
+
+            if (ls != null && ls.Coordinates.FirstOrDefault() is Coordinate coord前 && ls.Coordinates.LastOrDefault() is Coordinate coord後ろ)
+            {
+                Debug.WriteLine("LineString:" + lineCoordinates.Count.ToString());
+                // 前/後ろどちらから経路に追加したほうが距離が短くなるか判断する
+                double distance前から追加した場合 = 0;
+                double distance後ろから追加した場合 = 0;
+                var geo前 = new GeoCoordinate(coord前.Y, coord前.X);
+                var geo後ろ = new GeoCoordinate(coord後ろ.Y, coord後ろ.X);
+
+                // 直前の座標が分かっていれば距離を算出
+                if (lineCoordinates.LastOrDefault() is Coordinate prev)
+                {
+                    var prevGeo = new GeoCoordinate(prev.Y, prev.X);
+                    distance前から追加した場合 += prevGeo.GetDistanceTo(geo前);
+                    distance後ろから追加した場合 += prevGeo.GetDistanceTo(geo後ろ);
+                }
+
+                // 後続ジオメトリの代表点を取得して距離を算出（次の要素が存在する場合のみ）
+                var nextジオメトリ = (i + 1 < tルートRecords.Count) ? tルートRecords[i + 1].ジオメトリ : null;
+                var next前 = GetEndpoint(nextジオメトリ, true);
+                var next後ろ = GetEndpoint(nextジオメトリ, false);
+                if (next前 is not null)
+                {
+                    var next前Geo = new GeoCoordinate(next前.Y, next前.X);
+                    distance前から追加した場合 += next前Geo.GetDistanceTo(geo後ろ);
+                    distance後ろから追加した場合 += next前Geo.GetDistanceTo(geo前);
+                }
+                else if (next後ろ is not null)
+                {
+                    var next後ろGeo = new GeoCoordinate(next後ろ.Y, next後ろ.X);
+                    distance前から追加した場合 += next後ろGeo.GetDistanceTo(geo後ろ);
+                    distance後ろから追加した場合 += next後ろGeo.GetDistanceTo(geo前);
+                }
+
+                rec.is後ろから経路追加 = distance後ろから追加した場合 < distance前から追加した場合;
+                if (rec.is後ろから経路追加 == true)
+                {
+                    for (int i2 = ls.Coordinates.Length - 1; i2 >= 0; i2--)
+                    {   // 座標の配列の後ろから追加していく
+                        lineCoordinates.Add(ls.Coordinates[i2]);
+                    }
+                    var pLast = ls.Coordinates.LastOrDefault();
+                    pointB = new GeoCoordinate(pLast.Y, pLast.X);
+                }
+                else
+                {
+                    lineCoordinates.AddRange(ls.Coordinates);
+                    var pFirst = ls.Coordinates.FirstOrDefault();
+                    pointB = new GeoCoordinate(pFirst.Y, pFirst.X);
+                }
+            }
+            else
+            {
+                // 想定外ジオメトリは警告ログを出して代表点を使う（安全フェールバック）
+                logger.ZLogWarning($"想定外または座標不足のジオメトリを処理します。型:{geom.GetType()}, 調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
+                if (geom.Coordinate != null)
+                {
+                    lineCoordinates.Add(geom.Coordinate);
+                }
+                else
+                {
+                    // 最後の手段としてスキップ
+                    logger.ZLogWarning($"ジオメトリの代表点が取得できないためスキップします：調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
+                }
+            }
+
+            // 通過ライン　追加
+            if (pointA is not null && pointB is not null)
+            {
+                var coords = new[]
+                {
+                    new Coordinate(pointA.Longitude, pointA.Latitude), // Coordinate(X=lon, Y=lat)
+                    new Coordinate(pointB.Longitude, pointB.Latitude),
+                };
+                Geometry lineGeom = new LineString(coords) { SRID = 4326 };
+                list.Add(new FlightRoute
+                {
+                    id          = frIdx++,
+                    no          = null,
+                    priority    = null,
+                    survey      = null,
+                    persons     = null,
+                    name        = String.Empty,
+                    type        = 4,
+                    geometry    = lineGeom,
+                });
+            }
+
+
+            // 調査箇所　追加
+            if (rec.調査箇所id != null)
+            {
+                T_調査箇所? tRec = await con.SelectFirstOrDefaultAsync<T_調査箇所>(r => r.調査箇所id == rec.調査箇所id);
+                if (tRec is not null)
+                {
+                    list.Add(new FlightRoute
+                    {
+                        id          = frIdx++,
+                        no          = i,
+                        priority    = tRec.優先度,
+                        survey      = tRec.調査手法,
+                        persons     = tRec.搭乗希望人数,
+                        name        = tRec.地点名,
+                        type        = 3,    // 調査箇所
+                        geometry    = rec.ジオメトリ,
+                    });
+                }
+            } else {
+                // 起点・終点　追加
+                int type = (i == 0) ? 1 : 2;
+                list.Add(new FlightRoute
+                {
+                    id          = frIdx++,
+                    no          = i,
+                    priority    = null,
+                    survey      = null,
+                    persons     = null,
+                    name        = string.Empty,
+                    type        = type,
+                    geometry    = rec.ジオメトリ,
+                });
+            }
+        }
+
+        return list;
+    }
     private LineString? Get調査ルートLineString(IReadOnlyList<T_調査予定ルート> tルートRecords)
     {
         // まず経路の線を引きつつ、LineStringの経路追加時に前/後ろどちらから経路追加するか決定する
@@ -2073,8 +2355,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 continue;
             }
 
-            Debug.WriteLine(rec.調査箇所id.ToString() + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-
             // --------------------------------
             // 点の場合は単純に座標追加
             if (geom is Point p)
@@ -2085,12 +2365,14 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             }
 
             // --------------------------------
-            // LineString / MultiLineString / GeometryCollection などを扱う
+            // LineString
             LineString? ls = null;
             if (geom is LineString lss)
             {
                 ls = lss;
             }
+            // --------------------------------
+            // MultiLineString
             else if (geom is MultiLineString mls)
             {
                 Debug.WriteLine("MultiLineString");
@@ -2121,6 +2403,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                     }
                 }
             }
+            // --------------------------------
+            // GeometryCollection
             else if (geom is GeometryCollection gc)
             {
                 Debug.WriteLine("GeometryCollection");
@@ -2153,6 +2437,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
             if (ls != null && ls.Coordinates.FirstOrDefault() is Coordinate coord前 && ls.Coordinates.LastOrDefault() is Coordinate coord後ろ)
             {
+                Debug.WriteLine("LineString:" + lineCoordinates.Count.ToString());
                 // 前/後ろどちらから経路に追加したほうが距離が短くなるか判断する
                 double distance前から追加した場合 = 0;
                 double distance後ろから追加した場合 = 0;
@@ -2253,7 +2538,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             {
                 yield return new Feature(start.ジオメトリ, new AttributesTable { { "text", "始" } });
             }
-            if (end is not null && (start?.ジオメトリ != end.ジオメトリ))
+            if (end is not null)
             {
                 yield return new Feature(end.ジオメトリ, new AttributesTable { { "text", "終" } });
             }
@@ -2395,3 +2680,4 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         return hours * 60.0; // 分に変換
     }
 }
+

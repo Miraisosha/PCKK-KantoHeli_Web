@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.WebEncoders;
 using NetTopologySuite.Geometries;
 using Npgsql;
@@ -196,6 +197,26 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseWebOptimizer(); // css/jsのminify
 }
+
+// kml / geojson 等を確実に返すための ContentTypeProvider と診断ログ（静的ファイル処理の前に置く）
+var contentTypeProvider = new FileExtensionContentTypeProvider();
+contentTypeProvider.Mappings[".kml"] = "application/vnd.google-earth.kml+xml";
+contentTypeProvider.Mappings[".geojson"] = "application/geo+json";
+contentTypeProvider.Mappings[".kmz"] = "application/vnd.google-earth.kmz";
+contentTypeProvider.Mappings[".gz"] = "application/gzip";
+
+app.Use(async (context, next) =>
+{
+    app.Logger.ZLogInformation($"StaticRequest START: {context.Request.Method} {context.Request.Path}{context.Request.QueryString} AuthHeaderPresent:{context.Request.Headers.ContainsKey("Authorization")}");
+    await next();
+    app.Logger.ZLogInformation($"StaticRequest END: {context.Response.StatusCode} {context.Request.Path}");
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = contentTypeProvider
+});
+
 app.UseStaticFiles();
 
 app.UseRouting();
