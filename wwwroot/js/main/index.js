@@ -95,10 +95,10 @@ map.addLayer(layerKP道路         );
 map.addLayer(layerSelectionKP    );
 map.addLayer(layerSelectedKPLine );
 map.addLayer(layer初動調査ルート);
-//map.addLayer(layerFlightRouteKML);
 map.addLayer(layerLeft調査地点);
 map.addLayer(layer編集中調査地点);
 map.addLayer(layer編集調査ルート);
+//map.addLayer(layerFlightRouteKML);
 // ====================================================================
 const 調査依頼タブ = init調査依頼タブ();
 //init依頼状況タブ();

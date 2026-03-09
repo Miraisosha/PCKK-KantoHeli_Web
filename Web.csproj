@@ -15,15 +15,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\files\earthquake\65.geojson\**" />
     <Compile Remove="wwwroot\js\main\新しいフォルダー1\**" />
     <Compile Remove="wwwroot\js\main\新しいフォルダー\**" />
     <Compile Remove="wwwroot\新しいフォルダー\**" />
+    <Content Remove="wwwroot\files\earthquake\65.geojson\**" />
     <Content Remove="wwwroot\js\main\新しいフォルダー1\**" />
     <Content Remove="wwwroot\js\main\新しいフォルダー\**" />
     <Content Remove="wwwroot\新しいフォルダー\**" />
+    <EmbeddedResource Remove="wwwroot\files\earthquake\65.geojson\**" />
     <EmbeddedResource Remove="wwwroot\js\main\新しいフォルダー1\**" />
     <EmbeddedResource Remove="wwwroot\js\main\新しいフォルダー\**" />
     <EmbeddedResource Remove="wwwroot\新しいフォルダー\**" />
+    <None Remove="wwwroot\files\earthquake\65.geojson\**" />
     <None Remove="wwwroot\js\main\新しいフォルダー1\**" />
     <None Remove="wwwroot\js\main\新しいフォルダー\**" />
     <None Remove="wwwroot\新しいフォルダー\**" />
@@ -54,6 +58,29 @@
   <ItemGroup>
     <!-- その他余計なファイル等の除去 -->
     <Content Remove="appsettings.Development.json" Condition="'$(Configuration)'=='Release'" />
+    <Content Remove="wwwroot\files\earthquake\46.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\47.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\48.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\49.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\50.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\51.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\52.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\53.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\54.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\55.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\56.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\57.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\58.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\59.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\60.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\61.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\62.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\63.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\64.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\65.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\66.geojson.gz" />
+    <Content Remove="wwwroot\files\earthquake\67.geojson.gz" />
+    <Content Remove="wwwroot\files\FlightRoute\sample.kml" />
     <Content Remove="wwwroot\js\main\JavaScript.js" />
     <Content Remove="wwwroot\js\main\_kp.js" />
     <Content Remove="wwwroot\js\main\_selectionKP.js" />
@@ -69,6 +96,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\files\earthquake\" />
     <Folder Include="wwwroot\files\FlightRoute\" />
   </ItemGroup>
 </Project>

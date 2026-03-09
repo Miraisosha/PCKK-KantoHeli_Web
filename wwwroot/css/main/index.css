@@ -272,6 +272,8 @@
   display: inline-block;
   width: 40px;
   margin-right: 8px;
+  margin-right:10px;
+  margin-left:20px;
 }
 
   /* 青破線（編集中） */
@@ -285,6 +287,32 @@
   /* 赤点線（調査予定） */
   .legend-line.plan {
     border-top: 3px dotted red;
+  }
+
+.legend-shindo {
+  width:  40px;
+  height:15px;
+  border: 1px gray solid;
+  margin-right:10px;
+  margin-left:20px;
+}
+  .legend-shindo.shindo4 {
+    background-color: #FAE696;
+  }
+  .legend-shindo.shindo5min {
+    background-color: #FAE600;
+  }
+  .legend-shindo.shindo5max {
+    background-color: #FF9900;
+  }
+  .legend-shindo.shindo6min {
+    background-color: #FF2800;
+  }
+  .legend-shindo.shindo6max {
+    background-color: #A50021;
+  }
+  .legend-shindo.shindo7 {
+    background-color: #B40068;
   }
 .map-legend.hidden {
   display: none;

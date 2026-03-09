@@ -1562,14 +1562,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // 調査ルートのfeatureを生成(ただし手動描画ルートがあるならそれを優先)
         LineString? routeLineString = line手動描画ルート ?? Get調査ルートLineString(tルートRecords);
 
-        // ---------------------------------------------------------------------
-        // KML生成
-        List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
-        var generator = new FlightRouteKmlGenerator();
-        var bytes = generator.Generate(flightRoutes);
-        var savePath = _settings.FlightRouteKMLPath;
-        System.IO.File.WriteAllBytes(savePath + "sample.kml", bytes);
-
 
         // ---------------------------------------------------------------------
         // 距離/飛行情報
@@ -1640,6 +1632,19 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                     features.AddRange(Get調査ルートPoints(tルートRecords));
                 }
             }
+
+            // ---------------------------------------------------------------------
+            // KML生成
+            Debug.WriteLine("KML Route Create >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+            List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
+            var generator = new FlightRouteKmlGenerator();
+            var bytes = generator.Generate(flightRoutes);
+
+            // 安全に保存（設定ディレクトリ or wwwroot/files を使用、権限エラーは一時ファイルへフォールバック）
+            string kmlFileName = "sample.kml";
+            string savedPath = SaveKmlSafely(bytes, kmlFileName);
+            logger.ZLogInformation($"KML を保存しました: {savedPath}");
+            Debug.WriteLine("KML Route Create <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
             // エラーがあればエラーメッセージを組み立て
             var error = (iv.Errors.Count > 0)
@@ -1714,6 +1719,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         {   // 調査予定サマリの入力エラー有
             return new JsonResult(iv.GetErrorJson());
         }
+
 
         // ---------------------------------------------
         // DB更新
@@ -1948,6 +1954,43 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 _ => "調査予定ルートの公開が完了しました。",
             }
         });
+    }
+    // ----- 同ファイルに追加するヘルパーメソッド（クラス内の他の private メソッドと同じ位置に追加） -----
+    private string SaveKmlSafely(byte[] bytes, string fileName)
+    {
+        // 設定からパスを取得。未設定なら wwwroot/files を使う
+        //string? configuredDir = _settings.FlightRouteKMLPath;
+        string? configuredDir = "D:\\Openlayers";
+        string dirToUse = !string.IsNullOrWhiteSpace(configuredDir)
+            ? configuredDir!
+            : Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files");
+
+        try
+        {
+            // 終端セパレータを付与してディレクトリを作成
+            if (!Path.EndsInDirectorySeparator(dirToUse))
+                dirToUse += Path.DirectorySeparatorChar;
+            Directory.CreateDirectory(dirToUse);
+            Debug.WriteLine(dirToUse);
+
+            var fullPath = Path.Combine(dirToUse, fileName);
+            System.IO.File.WriteAllBytes(fullPath, bytes);
+            return fullPath;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.ZLogError(ex, $"KML ファイルの書き込み権限がありません。dir={dirToUse} - 一時ファイルへフォールバックします。");
+            var temp = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".kml");
+            System.IO.File.WriteAllBytes(temp, bytes);
+            return temp;
+        }
+        catch (Exception ex)
+        {
+            logger.ZLogError(ex, $"KML 保存中に予期しないエラーが発生しました。dir={dirToUse} - 一時ファイルへフォールバックします。");
+            var temp = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".kml");
+            System.IO.File.WriteAllBytes(temp, bytes);
+            return temp;
+        }
     }
 
     /// <summary>
