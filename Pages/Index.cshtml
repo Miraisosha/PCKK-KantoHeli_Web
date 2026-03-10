@@ -74,12 +74,12 @@
     <table id="listTable" class="table table-bordered table-hover fixTHead">
       <thead>
         <tr class="table-primary align-middle text-center">
-          <th style="width:7rem"></th>
           <th style="width:10rem">区分</th>
           <th style="min-width:15rem">スレッド名</th>
           <th style="width:9rem">作成日時</th>
           <th style="width:9rem">最終更新日時</th>
           <th style="min-width:20rem">備考</th>
+          <th style="width:7rem"></th>
         </tr>
       </thead>
       <tbody>
@@ -87,12 +87,6 @@
         {
           //TODO 一覧表示を正式実装（災害発令中の行は赤字表記）
           <tr class="align-middle" style="cursor:pointer;">
-            <td class="text-center">
-              @if (login.Isログイン済)
-              {
-                <button type="button" name="btn編集" class="btn btn-sm btn-primary w-100" value="@rec.スレッドid">編集</button>
-              }
-            </td>
             <td class="tabCellClick" id="td2-@rec.スレッドid">
               @Model.災害区分Records.FirstOrDefault(r => r.災害区分id == rec.災害区分id)?.災害区分名
               @if (rec.特定初動調査区分id == 101)
@@ -104,6 +98,14 @@
             <td class="tabCellClick" id="td4-@rec.スレッドid">@($"{rec.created_at:yyyy/MM/dd HH:mm}")</td>
             <td class="tabCellClick" id="td5-@rec.スレッドid">@($"{rec.updated_at:yyyy/MM/dd HH:mm}")</td>
             <td class="tabCellClick" id="td7-@rec.スレッドid">@rec.備考</td>
+            <td class="text-center">
+              @if (login.Isログイン済)
+              {
+                <a href="#" name="btn編集" data-id="@rec.スレッドid" title="編集" class="text-primary">
+                  <i class="bi bi-pencil-square"></i>
+                </a>
+              }
+            </td>
           </tr>
         }
       </tbody>

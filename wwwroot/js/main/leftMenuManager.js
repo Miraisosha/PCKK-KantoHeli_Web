@@ -39,7 +39,8 @@ export function leftMenuManager(ctx) {
   async function loadCityGzGeoJson(id) {
     const url = root_url + '/files/earthquake/' + id + '.geojson.gz';
     const res = await fetch(url, { credentials: 'same-origin' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) return;
+
     const buf = await res.arrayBuffer();
     const decompressed = pako.inflate(new Uint8Array(buf), { to: 'string' });
     const geojson = JSON.parse(decompressed);

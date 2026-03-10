@@ -10,8 +10,8 @@
   });
   // 初期表示/一覧表示更新時に編集ボタンイベント設定
   const setListTableEvent = () => {
-    document.querySelectorAll('#listTable>tbody button[name="btn編集"]').forEach((button) => {
-      button.addEventListener('click', (e) => { showEditModal(button.value); });
+    document.querySelectorAll('#listTable>tbody a[name="btn編集"]').forEach((elem) => {
+      elem.addEventListener('click', (e) => { showEditModal(elem.value); });
     });
   };
   setListTableEvent();

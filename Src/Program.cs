@@ -56,20 +56,32 @@ builder.Logging
 
 
 // RazorPageで開発
-builder.Services.AddRazorPages(options =>
-    {
-        // ModelState.Clear()を自動的に実行
-        options.Conventions.ConfigureFilter(new AutoClearModelStateFilter());
-    })
-    .AddMvcOptions(options =>
-        // ASPNETCoreデフォルトのモデル検証をすべて無効化する（処理速度が異様に遅いため）
-        // ※PageModelのModelState.IsValidが(検証を行わないため)常にtrueになってしまうのでModelStateは使用しないこと
-        options.ModelValidatorProviders.Clear())
-    .AddViewOptions(options =>
-        // 検証属性からのクライアント側検証htmlの出力を抑止
-        options.HtmlHelperOptions.ClientValidationEnabled = false)
-    ;
+//builder.Services.AddRazorPages(options =>
+//    {
+//        // ModelState.Clear()を自動的に実行
+//        options.Conventions.ConfigureFilter(new AutoClearModelStateFilter());
+//    })
+//    .AddMvcOptions(options =>
+//        // ASPNETCoreデフォルトのモデル検証をすべて無効化する（処理速度が異様に遅いため）
+//        // ※PageModelのModelState.IsValidが(検証を行わないため)常にtrueになってしまうのでModelStateは使用しないこと
+//        options.ModelValidatorProviders.Clear())
+//    .AddViewOptions(options =>
+//        // 検証属性からのクライアント側検証htmlの出力を抑止
+//        options.HtmlHelperOptions.ClientValidationEnabled = false)
 //    .AddRazorRuntimeCompilation(); // 2026/02/09 Add
+var razor = builder.Services.AddRazorPages(options =>
+{
+    options.Conventions.ConfigureFilter(new AutoClearModelStateFilter());
+})
+.AddMvcOptions(options =>
+    options.ModelValidatorProviders.Clear())
+.AddViewOptions(options =>
+    options.HtmlHelperOptions.ClientValidationEnabled = false);
+
+if (builder.Environment.IsDevelopment())
+{
+    razor.AddRazorRuntimeCompilation();
+}
 
 
 // WebAPIも使用

@@ -121,7 +121,7 @@ export function CreateRoute({
       if (selPersons) selPersons.value = '';
 
       // ルート表示実施（距離算出処理実行、自動ルート作成は解除しない）
-      autoCalculateDistance(false);
+      //autoCalculateDistance(false);
     }, (error) => {
       if (tempid) {
         location.reload(); // エラー（その一時保存データが編集できない）なら画面再読み込み
@@ -323,41 +323,41 @@ export function CreateRoute({
 
   // ---------------------------------------------------------------------------------
   // 手動描画関連（削除・開始）
-  const toast調査ルート手動描画Element = document.getElementById('toast調査ルート手動描画');
-  toast調査ルート手動描画Element.addEventListener('hidden.bs.toast', (e) => {
-    if (mapDraw) {
-      map.removeInteraction(mapDraw);
-      mapDraw = null;
-    }
-  });
-  const btn調査ルート手動描画削除 = toast調査ルート手動描画Element.querySelector('button[name="btn調査ルート手動描画削除"]');
-  if (btn調査ルート手動描画削除) {
-    btn調査ルート手動描画削除.addEventListener('click', (e) => {
-      modal調査予定登録Element.querySelector('input[name="drawroute"]').value = '';
-      btn調査ルート手動描画削除.disabled = true;
-      displayingToast.hide();
-
-      autoCalculateDistance();
-    });
-  }
-  const btn調査ルート手動描画 = document.getElementById('btn調査ルート手動描画');
-  if (btn調査ルート手動描画) {
-    btn調査ルート手動描画.addEventListener('click', async (e) => {
-      mapDraw = new ol.interaction.Draw({
-        type: 'LineString',
-        condition: (ev) => { return ev.originalEvent.button !== 2; }
-      });
-      mapDraw.on('drawend', function (ev) {
-        modal調査予定登録Element.querySelector('input[name="drawroute"]').value = geojsonFormatter.writeGeometry(ev.feature.getGeometry());
-        btn調査ルート手動描画削除.disabled = false;
-        displayingToast.hide();
-        autoCalculateDistance();
-      });
-      map.addInteraction(mapDraw);
-      displayingToast = bootstrap.Toast.getOrCreateInstance(toast調査ルート手動描画Element);
-      displayingToast.show();
-    });
-  }
+//  const toast調査ルート手動描画Element = document.getElementById('toast調査ルート手動描画');
+//  toast調査ルート手動描画Element.addEventListener('hidden.bs.toast', (e) => {
+//    if (mapDraw) {
+//      map.removeInteraction(mapDraw);
+//      mapDraw = null;
+//    }
+//  });
+//  const btn調査ルート手動描画削除 = toast調査ルート手動描画Element.querySelector('button[name="btn調査ルート手動描画削除"]');
+//  if (btn調査ルート手動描画削除) {
+//    btn調査ルート手動描画削除.addEventListener('click', (e) => {
+//      modal調査予定登録Element.querySelector('input[name="drawroute"]').value = '';
+//      btn調査ルート手動描画削除.disabled = true;
+//      displayingToast.hide();
+//
+//      autoCalculateDistance();
+//    });
+//  }
+//  const btn調査ルート手動描画 = document.getElementById('btn調査ルート手動描画');
+//  if (btn調査ルート手動描画) {
+//    btn調査ルート手動描画.addEventListener('click', async (e) => {
+//      mapDraw = new ol.interaction.Draw({
+//        type: 'LineString',
+//        condition: (ev) => { return ev.originalEvent.button !== 2; }
+//      });
+//      mapDraw.on('drawend', function (ev) {
+//        modal調査予定登録Element.querySelector('input[name="drawroute"]').value = geojsonFormatter.writeGeometry(ev.feature.getGeometry());
+//        btn調査ルート手動描画削除.disabled = false;
+//        displayingToast.hide();
+//        autoCalculateDistance();
+//      });
+//      map.addInteraction(mapDraw);
+//      displayingToast = bootstrap.Toast.getOrCreateInstance(toast調査ルート手動描画Element);
+//      displayingToast.show();
+//    });
+//  }
   // ---------------------------------------------------------------------------------
   // 一時保存調査依頼に対する操作各種
   const modal調査予定呼び出しElement = document.getElementById('modal調査予定呼び出し');

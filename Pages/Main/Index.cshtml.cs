@@ -1389,12 +1389,12 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     public async Task<IActionResult> OnPostPlanAsync(
         [FromRoute(Name = "thread")] int? threadId,
         [FromForm] string? mode,
-        [FromForm] Input調査予定 input,
+        [FromForm] Input調査予定? input,
         [FromForm] double? startx,
         [FromForm] double? starty,
         [FromForm] double? endx,
         [FromForm] double? endy,
-        [FromForm] int[] id,
+        [FromForm] int[]? id,
         [FromForm] string? drawroute,
         [FromForm] int? tempid,
         [FromForm] int? firstRouteId)
