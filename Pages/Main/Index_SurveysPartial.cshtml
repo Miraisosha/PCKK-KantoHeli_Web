@@ -71,12 +71,7 @@
               </li>
               <li>
                 <button class="dropdown-item btn差戻" data-id="@rec.調査予定id" type="button" data-name="@rec.調査予定名" data-routeid="@rec.初動調査ルートid">
-                @if(rec.初動調査ルートid != null)
-                {
-                  <span>調査依頼に差し戻し</span>
-                } else {
-                  <span>一時保存に差戻</span>
-                }
+                  <span>差し戻し</span>
                 </button>
               </li>
             </ul>
@@ -119,12 +114,27 @@
     <div class="indent collapse show" id="left調査ルート一時保存">
       @foreach (var rec in Model.一時保存調査予定Records)
       {
-        <div>
-          <label class="form-check d-flex align-items-center">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-1">
+          <!-- 左 -->
+          <label class="form-check d-flex align-items-start flex-grow-1 mb-0">
             <input class="form-check-input" type="checkbox" name="yotei" value="@rec.調査予定id" data-title="@rec.調査予定名"
               data-name="@(value: $"{rec.調査予定名}（{rec.updated_at:yyyy.M.d HH:mm}）")">
             <span class="form-check-label">@rec.調査予定名<br>@($"{rec.updated_at:yyyy.M.d HH:mm}")</span>
           </label>
+          <!-- 右 -->
+          <div class="dropdown" style="background-color:transparent;">
+            <i class="bi bi-list text-muted"
+               role="button"
+               data-bs-toggle="dropdown"
+               style="font-size:20px;background-color: transparent;"></i>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <button class="dropdown-item btnKml" data-id="@rec.調査予定id" type="button" data-name="@rec.調査予定名">
+                  KML出力
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       }
     </div>

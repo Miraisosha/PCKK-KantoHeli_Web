@@ -80,7 +80,7 @@ var razor = builder.Services.AddRazorPages(options =>
 
 if (builder.Environment.IsDevelopment())
 {
-    razor.AddRazorRuntimeCompilation();
+//    razor.AddRazorRuntimeCompilation();
 }
 
 

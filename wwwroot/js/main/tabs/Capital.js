@@ -1,8 +1,3 @@
-// ----------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
-// 首都直下　タブ
-// 
 
 export function Capital(ctx) {
   const {
@@ -10,7 +5,6 @@ export function Capital(ctx) {
     tabElement,
     layerRoute,
     set調査地点Source,
-    create明細行,
     ajaxExecute,
     geojsonFormatter
   } = ctx;
@@ -73,14 +67,14 @@ export function Capital(ctx) {
           `<option value="${r.value}" ${(r.isLowest) ? "selected" : "" }>${r.name}：評価スコア${r.score}${(r.isLowest) ? "（推奨）" : "" }</option>`
         ).join('');
       }
-      showSurveyRoute()
+      show()
     }).catch((err) => {
       console.warn('初動調査ルート読み込み失敗', err);
     });
   }
   // ---------------------------------------------------------------------------------
   // 初動調査ルート　読み込み
-  function showSurveyRoute() {
+  function show() {
     console.log("showSurveyRoute");
     var 初動調査ルートid = sel初動調査ルート.value
     sourceRoute.clear();
@@ -118,14 +112,14 @@ export function Capital(ctx) {
           selectedRoute.startx = f.get('lng');
           selectedRoute.starty = f.get('lat');
         } else if (f.get('text')) {
-          if (typeof create明細行 === 'function' && tbody) {
+          if (typeof createDetailRow === 'function' && tbody) {
             try {
-              tbody.appendChild(create明細行(tabElement, f));
+              tbody.appendChild(createDetailRow(f));
             } catch (err) {
-              console.warn('create明細行 でエラー:', err);
+              console.warn('createDetailRow でエラー:', err);
             }
           } else {
-            console.warn('create明細行 が未定義または tbody がありません。');
+            console.warn('createDetailRow が未定義または tbody がありません。');
           }
         }
       });
@@ -139,7 +133,7 @@ export function Capital(ctx) {
   // ---------------------------------------------------------------------------------
   // イベント登録（明示的に存在チェック）
   if (sel初動調査ルート) {
-    sel初動調査ルート.addEventListener('change', showSurveyRoute);
+    sel初動調査ルート.addEventListener('change', show);
   }
 
   // ---------------------------------------------------------------------------------
@@ -168,7 +162,7 @@ export function Capital(ctx) {
     formData.append('mode',  mode);
     formData.append('input.startid',  selectedRoute.startid);
     formData.append('input.endid',    selectedRoute.endid);
-    formData.append('auto', false);
+    formData.append('auto', true);
     formData.append('startx', selectedRoute.startx);
     formData.append('starty', selectedRoute.starty); 
     formData.append('endx',   selectedRoute.endx); 
@@ -179,12 +173,66 @@ export function Capital(ctx) {
   };
 
   // ---------------------------------------------------------------
-  function hideSurveyRoute() {
+  function createDetailRow(feature) {
+
+    const id = feature.get('id') ?? '';
+    const name = feature.get('name') ?? '';
+    const requester = feature.get('requester') ?? '';
+    const priority = feature.get('priority') ?? '';
+    const survey = feature.get('survey') ?? '';
+    const persons = feature.get('persons') ?? '';
+    const spottype = feature.get('spottype') ?? '';
+    const remarks = feature.get('remarks') ?? '';
+
+    const trElement = document.createElement('tr');
+    trElement.classList.add('align-middle');
+
+    let innerHTML = `
+    <td class="text-center">${feature.get('text')}</td>
+    <td><input type="text" readonly class="py-0 my-0 form-control-plaintext" value="${htmlEncode(name)}"></td>
+    <td><input type="text" readonly class="py-0 my-0 form-control-plaintext" value="${htmlEncode(requester)}"></td>
+  `;
+
+    innerHTML += `<td><div class="btn-group">`;
+
+    for (let value of ['高', '中', '低']) {
+      const checked = (priority == value);
+      innerHTML += `<button type="button"
+      name="priority"
+      value="${value}"
+      class="btn btn-sm ${checked ? 'btn-primary' : 'btn-secondary'} ${checked ? '' : 'disabled'}">
+      ${value}
+    </button>`;
+    }
+
+    innerHTML += `</div></td>`;
+
+    innerHTML += `
+    <td class="text-center">${survey}</td>
+    <td class="text-center">${persons === 0 ? 'なし' : persons ? persons + '名' : ''}</td>
+    <td class="text-center">${getSpotTypeDisplay(spottype)}</td>
+    <td><input type="text" readonly class="py-0 my-0 form-control-plaintext" value="${htmlEncode(remarks)}"></td>
+  `;
+
+    trElement.innerHTML = innerHTML;
+
+    const checkbox = trElement.querySelector('input[type="checkbox"]');
+    if (checkbox) feature.set('checkbox', checkbox);
+
+    return trElement;
+  }
+  function getSpotTypeDisplay(spottype) {
+    let text = spottype;
+    text = text.replace('河川KP', 'KPデータ（河川）');
+    text = text.replace('道路KP', 'KPデータ（道路）');
+    return text;
+  }
+  function hide() {
 
   }
   return {
     initialize,
-    showSurveyRoute,
-    hideSurveyRoute,
+    show,
+    hide,
   };
 }

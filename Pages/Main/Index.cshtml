@@ -898,10 +898,18 @@
           <input type="text" name="input.title" maxlength="50" class="form-control w-100">
         </div>
       </div>
+      <div class="modal-body">
+        <div>
+          <label class="form-check">
+            <span class="form-check-label">KMLファイルを出力</span>
+            <input type="checkbox" name="input.kml" class="form-check-input">
+          </label>
+        </div>
+      </div>
       <div class="modal-footer">
         <input type="hidden" name="mode">
-        <input type="hidden" name="tempid">
-        <input type="hidden" name="drawroute">
+        <input type="hidden" name="tempid" value="">
+        <input type="hidden" name="drawroute" value="">
         <button type="button" value="register" class="btn btn-primary">@*(文面はJavaScriptにて設定)*@</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
       </div>

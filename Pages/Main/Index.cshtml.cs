@@ -469,7 +469,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             success = new
             {
                 title = rec.調査依頼名,
-                features = await dataService.ToFearureCollectionAsync(records, "#FF0000"),
+                features = await dataService.ToFearureCollectionAsync(records),
             }
         });
     }
@@ -816,27 +816,12 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         var t調査地点Records = await con.SelectAsync<T_初動調査地点>(r => r.初動調査ルートid == route && r.deleted_at == null,
             otherClauses: $"ORDER BY {nameof(T_初動調査地点.連番)}");
 
-        // カラーパレット（代表的な 50 色）
-        var palette = new List<string>
-        {
-            "#e6194b","#3cb44b","#ffe119","#4363d8","#f58231",
-            "#911eb4","#46f0f0","#f032e6","#bcf60c","#fabebe",
-            "#008080","#e6beff","#9a6324","#fffac8","#800000",
-            "#aaffc3","#808000","#ffd8b1","#000075","#808080",
-            "#ff4500","#2e8b57","#daa520","#1e90ff","#ff1493",
-            "#9400d3","#00ced1","#ff69b4","#7cfc00","#ffb6c1",
-            "#20b2aa","#dda0dd","#cd853f","#fafad2","#b22222",
-            "#98fb98","#6b8e23","#ffdead","#191970","#a9a9a9",
-            "#ff6347","#228b22","#b8860b","#4169e1","#ff00ff",
-            "#8a2be2","#00ffff","#adff2f","#ffc0cb"
-        };
-
         int i = 0;
         List<Feature> features = [];
         features.Add(new Feature(rec初動調査ルート.ジオメトリ, null));
         foreach (var rec in t調査地点Records)
         {
-            var color = palette[i % palette.Count];
+            var color = "#FF8888";
 
             features.Add(new Feature(new Point(rec.経度, rec.緯度), new AttributesTable {
                 { "text", $"{rec.連番}" },
@@ -879,7 +864,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         i = 0;
         foreach (var rec in t調査地点Records)
         {
-            var color = palette[i % palette.Count];
+            var color = "#FF8888";
             // 優先して geometry 列のジオメトリを使い、なければ経度/緯度で Point を作成する
             Geometry geomSrc = rec.geometry;
             Geometry geom;
@@ -1364,11 +1349,11 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         public bool auto { get; set; }
 
         // 以下、入力/選択項目
-        [MaxLength(50), Required, Display(Name = "調査ルート名")]
+        [MaxLength(50),  Display(Name = "調査ルート名")]
         public string? title { get; set; }
 
         [Display(Name = "搭乗人数")]
-        public int num_people { get; set; }
+        public int? num_people { get; set; }
 
 #pragma warning restore IDE1006 // 命名スタイル
     }
@@ -1399,6 +1384,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         [FromForm] int? tempid,
         [FromForm] int? firstRouteId)
     {
+        Debug.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         var iv = provider.CreateValidator();
 
         // ---------------------------------------------
@@ -1633,19 +1619,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 }
             }
 
-            // ---------------------------------------------------------------------
-            // KML生成
-            Debug.WriteLine("KML Route Create >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-            List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
-            var generator = new FlightRouteKmlGenerator();
-            var bytes = generator.Generate(flightRoutes);
-
-            // 安全に保存（設定ディレクトリ or wwwroot/files を使用、権限エラーは一時ファイルへフォールバック）
-            string kmlFileName = "sample.kml";
-            string savedPath = SaveKmlSafely(bytes, kmlFileName);
-            logger.ZLogInformation($"KML を保存しました: {savedPath}");
-            Debug.WriteLine("KML Route Create <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-
             // エラーがあればエラーメッセージを組み立て
             var error = (iv.Errors.Count > 0)
                 ? "・" + string.Join(Environment.NewLine + "・", iv.Errors.Select(e => e.ErrorMessage))
@@ -1730,6 +1703,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // 初動調査　ルート公開  2026/02/20 Add
         // --- 初動ルート指定または首都直下公開モードの場合
         // 調査依頼 + 調査箇所を作成して挿入する ---
+        int tyosaYoteiId = 0;
         if (firstRouteId is not null && mode == "capital_register")
         {
             // ---------------------------------------------
@@ -1779,7 +1753,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             t予定Rec.初動調査ルートid = firstRouteId;
             t予定Rec.スレッドid = threadId.Value;
             await tran.InsertAndRetrieveIdAsync(t予定Rec);
-            var newYoteiId = t予定Rec.調査予定id;
+            tyosaYoteiId = t予定Rec.調査予定id;
 
             // ---------------------------------------------
             // スレッド　初動調査ルートidを更新
@@ -1805,7 +1779,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             {
                 tルートRecords.Add(new T_調査予定ルート
                 {
-                    調査予定id = newYoteiId,
+                    調査予定id = tyosaYoteiId,
                     連番 = no,
                     調査箇所id = null,
                     ジオメトリ = new Point(startx.Value, starty.Value) { SRID = 4326 },
@@ -1869,7 +1843,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 // 調査予定ルート　レコード作成
                 tルートRecords.Add(new T_調査予定ルート
                 {
-                    調査予定id = newYoteiId,
+                    調査予定id = tyosaYoteiId,
                     連番 = no,
                     調査箇所id = newIraiSpotId,
                     ジオメトリ = geom,
@@ -1885,7 +1859,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             {
                 tルートRecords.Add(new T_調査予定ルート
                 {
-                    調査予定id = newYoteiId,
+                    調査予定id = tyosaYoteiId,
                     連番 = no,
                     調査箇所id = null,
                     ジオメトリ = new Point(endx.Value, endy.Value) { SRID = 4326 },
@@ -1894,7 +1868,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 });
             }
             await tran.InsertRowsAsync(tルートRecords);
-
         } else {
             if (tempid is not null)
             {
@@ -1913,12 +1886,15 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 // 更新元一時保存データを削除
                 await tran.UpdateAsync(() => new T_調査予定 { deleted_at = SqlExpr.Eval<DateTime>("CURRENT_TIMESTAMP") }, r => r.調査予定id == tempid);
                 await tran.DeleteAsync<T_調査予定ルート>(r => r.調査予定id == tempid);
+
+                tyosaYoteiId = (int)tempid;
             }
             await tran.InsertAndRetrieveIdAsync(t予定Rec);
             foreach (var rec in tルートRecords)
             {
                 rec.調査予定id = t予定Rec.調査予定id;
             }
+            tyosaYoteiId = t予定Rec.調査予定id;
             await tran.InsertRowsAsync(tルートRecords);
 
             if (t予定Rec.ステータス == 調査ステータスEnum.調査予定)
@@ -1944,14 +1920,32 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             }
         }
 
+        // ---------------------------------------------------------------------
+        // KML生成
+        Debug.WriteLine("KML Route Create >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
+        var generator = new FlightRouteKmlGenerator();
+        var bytes = generator.Generate(flightRoutes);
+
+        // 安全に保存（設定ディレクトリ or wwwroot/files を使用、権限エラーは一時ファイルへフォールバック）
+        string kmlFileName = tyosaYoteiId.ToString() + ".kml";
+        string savedPath = SaveKmlSafely(bytes, kmlFileName);
+        logger.ZLogInformation($"KML を保存しました: {savedPath}");
+        Debug.WriteLine("KML Route Create <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+
         await tran.CommitAsync();
 
         return new JsonResult(new
         {
-            success = status switch
+//            success = status switch
+//            {
+//                調査ステータスEnum.一時保存 => "一時保存が完了しました。",
+//                _ => "調査予定ルートの公開が完了しました。",
+//            }
+            success = new
             {
-                調査ステータスEnum.一時保存 => "一時保存が完了しました。",
-                _ => "調査予定ルートの公開が完了しました。",
+                id = tyosaYoteiId,
+                isTemp = (status == 調査ステータスEnum.一時保存),
             }
         });
     }
@@ -1959,8 +1953,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     private string SaveKmlSafely(byte[] bytes, string fileName)
     {
         // 設定からパスを取得。未設定なら wwwroot/files を使う
-        //string? configuredDir = _settings.FlightRouteKMLPath;
-        string? configuredDir = "D:\\Openlayers";
+        string? configuredDir = _settings.FlightRouteKMLPath;
+        //string? configuredDir = "D:\\Openlayers";
         string dirToUse = !string.IsNullOrWhiteSpace(configuredDir)
             ? configuredDir!
             : Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files");

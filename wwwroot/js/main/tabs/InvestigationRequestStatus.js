@@ -10,7 +10,6 @@ export function InvestigationRequestStatus(ctx) {
     set調査地点Source,
     geojsonFormatter,
     ajaxExecute,
-    reload防災ヘリ関連情報,
     showAlert,
     showConfirm
   } = ctx;
@@ -150,6 +149,12 @@ export function InvestigationRequestStatus(ctx) {
     const checkbox = trElement.querySelector('input[type="checkbox"]');
     if (checkbox) { feature.set('checkbox', checkbox); }
     return trElement;
+  }
+
+  const reload防災ヘリ関連情報 = () => {
+    return new Promise((resolve, reject) => {
+      return resolve();
+    });
   }
 
   return {

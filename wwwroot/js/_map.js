@@ -390,6 +390,7 @@ const createEditRouteLayer = (map) => {
 };
 // ********************************************************************************************
 // ルート作成　調査地点　レイヤー ピンクのライン
+// 調査依頼状況　ライン
 const createSpotLayer = (map) => {
   const layer調査地点 = new ol.layer.Vector({
     source: new ol.source.Vector(),
@@ -702,7 +703,7 @@ const createCapitalRouteLayer = (map) => {
         if (type == 1) {
           // 調査箇所スタイル
           styles.push(new ol.style.Style({
-            stroke: new ol.style.Stroke({ color: "red", width: 10, lineDash: [1], }),
+            stroke: new ol.style.Stroke({ color: spotColor, width: 10, lineDash: [1], }),
           }));
         } else {
           // 通過用スタイル

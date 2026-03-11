@@ -1,5 +1,6 @@
-export function initKPManager(ctx) {
-  const { map, layers, sources, ui, onConfirm } = ctx;
+export function KPManager(ctx) {
+  const { map, layers, sources, ui} = ctx;
+  let onConfirmCallback = null;
 
   const {
     layerKP河川,
@@ -104,7 +105,7 @@ export function initKPManager(ctx) {
     const features = mapSelectedKPLineSource.getFeatures();
     if (features.length != 1) return;
     const feature = features[0];
-    feature.set('drawType', (isRiver) ? 'River' : 'Doro');
+    feature.set('drawType', (isRiver) ? 'River' : 'Road');
     const kpResult = {
       selRoadRiver: ui.selRoadRiver.options[ui.selRoadRiver.selectedIndex].text,
       startKp: Number(ui.startKp.value),
@@ -112,8 +113,8 @@ export function initKPManager(ctx) {
       feature: feature,
     };
 
-    if (typeof onConfirm === 'function') {
-      onConfirm(kpResult);
+    if (typeof onConfirmCallback === 'function') {
+      onConfirmCallback(kpResult);
     }
     hideModal();
     mapKPSource.clear();
@@ -637,6 +638,9 @@ export function initKPManager(ctx) {
         feature.get('補助番号')];
     }
   }
+  function setOnConfirm(callback) {
+    onConfirmCallback = callback;
+  }
   return {
     show() {
       ui.modalKPPoint.style.display = 'block';
@@ -648,7 +652,8 @@ export function initKPManager(ctx) {
     showModal,
     hideModal,
     handleMapClick,
-    hideAllKPLayers
+    hideAllKPLayers,
+    setOnConfirm
   };
 }
 
