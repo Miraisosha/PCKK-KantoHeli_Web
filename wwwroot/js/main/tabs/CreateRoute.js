@@ -167,8 +167,8 @@ export function CreateRoute({
         optionlElement.dataset.y = y;
         sel.appendChild(optionlElement);
       }
-      addOption(selルート作成起点);
-      addOption(selルート作成終点);
+//      addOption(selルート作成起点);
+//      addOption(selルート作成終点);
     }
     return optionValue;
   };
@@ -449,18 +449,20 @@ export function CreateRoute({
   if (btn調査予定登録実行) {
     btn調査予定登録実行.addEventListener('click', async (e) => {
       const formData = create調査予定FormData(btn調査予定登録実行.value);
-      const isKml = tabElement.querySelector( 'input[name="input.kml"]:checked' ).value === "true";
+      const elemKml = document.querySelector('input[type="checkbox"][name="input.kml"]');
       ajaxExecute(base_url + '?Handler=Plan',
         { method: 'POST', body: formData },
         { title: modal調査予定登録Element.querySelector('.modal-title').innerHTML, form: modal調査予定登録Element }
       ).then(async (response) => {
         console.log(response);
-        console.log(isKml);
-        if (isKml) {
+        console.log(elemKml.checked);
+        if (elemKml.checked) {
+          return false;
         } else {
-          location.href = `?`;
+          return false;
+//          location.href = `?`;
         }
-      }, () => { });
+      });
     });
   }
   const getSpotTypeDisplay = (spottype) => {

@@ -281,7 +281,7 @@
     border-top: 3px dashed blue;
   }
   .legend-line.route {
-    border-top: 3px blue solid;
+    border-top: 5px blue solid;
   }
 
   /* 赤点線（調査予定） */
@@ -314,6 +314,31 @@
   .legend-shindo.shindo7 {
     background-color: #B40068;
   }
+
+ .legend-title{
+    margin-top:10px;
+  }
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0;
+}
+
+.legend-circle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left:10px;
+}
+
+.legend-line-org {
+  width: 30px;
+  height: 4px;
+  display: inline-block;
+  margin-right:10px;
+}
 .map-legend.hidden {
   display: none;
 }

@@ -1514,7 +1514,16 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
         else if (firstRouteId is not null && t初動調査地点Records is not null && t初動調査地点Records.Any())
         {
-            // 何もしない
+            foreach(var rec in t初動調査地点Records)
+            {
+                tルートRecords.Add(new()
+                {
+                    連番 = no,
+                    調査箇所id = rec.初動調査ルートid,
+                    ジオメトリ = rec.geometry,
+                });
+                no++;
+            }
         }
         else if (status is not null)
         {
@@ -1942,7 +1951,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 //                調査ステータスEnum.一時保存 => "一時保存が完了しました。",
 //                _ => "調査予定ルートの公開が完了しました。",
 //            }
-            success = new
+            Result = new
             {
                 id = tyosaYoteiId,
                 isTemp = (status == 調査ステータスEnum.一時保存),
@@ -2391,6 +2400,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 logger.ZLogWarning($"ジオメトリが null の調査予定ルートをスキップします：調査箇所id:{rec.調査箇所id}, 連番:{rec.連番}");
                 continue;
             }
+            Debug.WriteLine(rec.連番.ToString() + "----------------------------------------------");
 
             // --------------------------------
             // 点の場合は単純に座標追加
@@ -2481,6 +2491,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 var geo前 = new GeoCoordinate(coord前.Y, coord前.X);
                 var geo後ろ = new GeoCoordinate(coord後ろ.Y, coord後ろ.X);
 
+                Debug.WriteLine(geo前.ToString() + "/" + geo後ろ.ToString());
+
                 // 直前の座標が分かっていれば距離を算出
                 if (lineCoordinates.LastOrDefault() is Coordinate prev)
                 {
@@ -2490,21 +2502,21 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 }
 
                 // 後続ジオメトリの代表点を取得して距離を算出（次の要素が存在する場合のみ）
-                var nextジオメトリ = (i + 1 < tルートRecords.Count) ? tルートRecords[i + 1].ジオメトリ : null;
-                var next前 = GetEndpoint(nextジオメトリ, true);
-                var next後ろ = GetEndpoint(nextジオメトリ, false);
-                if (next前 is not null)
-                {
-                    var next前Geo = new GeoCoordinate(next前.Y, next前.X);
-                    distance前から追加した場合 += next前Geo.GetDistanceTo(geo後ろ);
-                    distance後ろから追加した場合 += next前Geo.GetDistanceTo(geo前);
-                }
-                else if (next後ろ is not null)
-                {
-                    var next後ろGeo = new GeoCoordinate(next後ろ.Y, next後ろ.X);
-                    distance前から追加した場合 += next後ろGeo.GetDistanceTo(geo後ろ);
-                    distance後ろから追加した場合 += next後ろGeo.GetDistanceTo(geo前);
-                }
+                //var nextジオメトリ = (i + 1 < tルートRecords.Count) ? tルートRecords[i + 1].ジオメトリ : null;
+                //var next前 = GetEndpoint(nextジオメトリ, true);
+                //var next後ろ = GetEndpoint(nextジオメトリ, false);
+                //if (next前 is not null)
+                //{
+                //    var next前Geo = new GeoCoordinate(next前.Y, next前.X);
+                //    distance前から追加した場合 += next前Geo.GetDistanceTo(geo後ろ);
+                //    distance後ろから追加した場合 += next前Geo.GetDistanceTo(geo前);
+                //}
+                //else if (next後ろ is not null)
+                //{
+                //    var next後ろGeo = new GeoCoordinate(next後ろ.Y, next後ろ.X);
+                //    distance前から追加した場合 += next後ろGeo.GetDistanceTo(geo後ろ);
+                //    distance後ろから追加した場合 += next後ろGeo.GetDistanceTo(geo前);
+                //}
 
                 rec.is後ろから経路追加 = distance後ろから追加した場合 < distance前から追加した場合;
                 if (rec.is後ろから経路追加 == true)

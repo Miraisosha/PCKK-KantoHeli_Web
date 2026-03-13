@@ -9,6 +9,10 @@ import { HeliInfo } from './leftMenu/HeliInfo.js';
 import { Intensity } from './leftMenu/Intensity.js';
 import { HeliPort } from './leftMenu/HeliPort.js';
 import { Dropdown } from './leftMenu/Dropdown.js';
+import { Intensity as IntensityLayer } from './Layers/Intensity.js';
+import { HeliPort as HeliPortLayer } from './Layers/HeliPort.js';
+import { EditRoute as EditRouteLayer } from './Layers/EditRoute.js';
+import { CapitalRoute as CapitalRouteLayer } from './Layers/CapitalRoute.js';
 
 const base_url = location.origin + location.pathname;
 const segments = location.pathname.split("/").filter(Boolean);
@@ -39,14 +43,13 @@ const loginUser = {
   isRouteCreate:  document.getElementById('isルート作成可').dataset.value,
 };
 
-
 // ============================================================================
 // LAYER定義
 const layer調査地点 = createSpotLayer(map);
+//const layerLeft調査地点 = createLeftSpotLayer(map);
 const layer調査ルート = createRouteLayer(map);
-const layer市区町村震度 = createCityLayer(map);
-const layerヘリポート = createHeliPortLayer(map);
-const layerLeft調査地点 = createLeftSpotLayer(map);
+const layer市区町村震度 = IntensityLayer().getLayer();
+const layerヘリポート = HeliPortLayer().getLayer(map);
 
 // ---------------------------------------------
 // 調査依頼　距離標選択
@@ -69,14 +72,13 @@ layerKP道路.setSource(mapKPSource道路);
 layerSelectionKP.setSource(mapKPSource);
 layerSelectedKPLine.setSource(mapSelectedKPLineSource);
 
-const layer初動調査ルート = createCapitalRouteLayer(map);
+const layer初動調査ルート = CapitalRouteLayer().getLayer();
 const layer編集中調査地点 = createSpotLayer(map);
 //const layer編集中調査ルート = createRouteLayer(map);
 const map調査地点Source = {};
 const map調査ルートSource = {};
 // 調査ルート作成　（編集中）
-const layer編集調査ルート = createEditRouteLayer(map);
-const layerFlightRouteKML = createFlightRouteKMLLayer(map);
+const layer編集調査ルート = EditRouteLayer().getLayer();
 
 // ---------------------------------------------
 // レイヤーの順序
@@ -91,10 +93,9 @@ map.addLayer(layerKP道路         );
 map.addLayer(layerSelectionKP    );
 map.addLayer(layerSelectedKPLine );
 map.addLayer(layer初動調査ルート);
-map.addLayer(layerLeft調査地点);
+//map.addLayer(layerLeft調査地点);
 map.addLayer(layer編集中調査地点);
 map.addLayer(layer編集調査ルート);
-//map.addLayer(layerFlightRouteKML);
 
 // ============================================================================
 // 共通で使用する関数

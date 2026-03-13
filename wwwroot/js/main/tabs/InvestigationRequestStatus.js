@@ -46,15 +46,21 @@ export function InvestigationRequestStatus(ctx) {
     ).then((json) => {
       const features = geojsonFormatter.readFeatures(json.features);
 
-      console.log("SurveyRequest:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
       features.forEach((f) => {
-        console.log("createDetailRecord:OK");
         const tr = createDetailRecord(f);
         tbody依頼状況.appendChild(tr);
       });
 
       source調査地点.addFeatures(features);
     }, showAlert);
+
+    // 依頼取り消しボタンの活性/非活性
+    const routeId = sel調査依頼.selectedOptions[0].dataset.route_id;
+    if (routeId != "") {
+      btn依頼取消.disabled = true;
+    } else {
+      btn依頼取消.disabled = false;
+    }
   };
 
   sel調査依頼.addEventListener('change', load依頼状況);

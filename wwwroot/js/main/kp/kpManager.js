@@ -161,7 +161,8 @@ export function KPManager(ctx) {
       const 上下区分 = f.get('上下区分');
       const 補助番号 = f.get('補助番号');
 
-      const key = `${地方整備局}_${事務所}_${道路種別}_${路線}_${現旧新区分}_${上下区分}_${補助番号}`;
+      //const key = `${地方整備局}_${事務所}_${道路種別}_${路線}_${現旧新区分}_${上下区分}_${補助番号}`;
+      const key = `${路線}_${現旧新区分}_${上下区分}`;
       const text = `${路線}号線 ${現旧新区分} ${上下区分}`;
 
       if (!mapKP道路.has(key)) {
@@ -424,39 +425,45 @@ export function KPManager(ctx) {
 
     // 河川
     if (parts.length === 3) {
-      return feature.get('水系名') == parts[0]
-        && feature.get('河川名') == parts[1]
-        && feature.get('左右岸') == parts[2];
+      if (isRiver) {
+        return feature.get('水系名') == parts[0]
+          && feature.get('河川名') == parts[1]
+          && feature.get('左右岸') == parts[2];
+      } else {
+        return String(feature.get('路線')) == parts[0]
+          && feature.get('現旧新区分') == parts[1]
+          && feature.get('上下区分') == parts[2]
+      }
     }
 
     // 道路
-    if (parts.length === 7) {
-      if (feature.get('地方整備局') == parts[0]
-        && feature.get('事務所') == parts[1]
-        && feature.get('道路種別') == parts[2]
-        && String(feature.get('路線')) == parts[3]
-        && feature.get('現旧新区分') == parts[4]
-        && feature.get('上下区分') == parts[5]
-        && feature.get('補助番号') == parts[6])
-      {
-//          console.log([
-//            feature.get('地方整備局'),
-//            feature.get('事務所'),
-//            feature.get('道路種別'),
-//            feature.get('路線'),
-//            feature.get('現旧新区分'),
-//            feature.get('上下区分'),
-//            feature.get('補助番号')
-//          ]);
-        }
-      return feature.get('地方整備局') == parts[0]
-        && feature.get('事務所') == parts[1]
-        && feature.get('道路種別') == parts[2]
-        && String(feature.get('路線')) == parts[3]
-        && feature.get('現旧新区分') == parts[4]
-        && feature.get('上下区分') == parts[5]
-        && feature.get('補助番号') == parts[6];
-    }
+//    if (parts.length === 7) {
+//      if (feature.get('地方整備局') == parts[0]
+//        && feature.get('事務所') == parts[1]
+//        && feature.get('道路種別') == parts[2]
+//        && String(feature.get('路線')) == parts[3]
+//        && feature.get('現旧新区分') == parts[4]
+//        && feature.get('上下区分') == parts[5]
+//        && feature.get('補助番号') == parts[6])
+//      {
+////          console.log([
+////            feature.get('地方整備局'),
+////            feature.get('事務所'),
+////            feature.get('道路種別'),
+////            feature.get('路線'),
+////            feature.get('現旧新区分'),
+////            feature.get('上下区分'),
+////            feature.get('補助番号')
+////          ]);
+//        }
+//      return feature.get('地方整備局') == parts[0]
+//        && feature.get('事務所') == parts[1]
+//        && feature.get('道路種別') == parts[2]
+//        && String(feature.get('路線')) == parts[3]
+//        && feature.get('現旧新区分') == parts[4]
+//        && feature.get('上下区分') == parts[5]
+//        && feature.get('補助番号') == parts[6];
+//    }
     return false;
   }
 
@@ -500,7 +507,7 @@ export function KPManager(ctx) {
       if (!isSameGroup(f, parts)) return;
       let kp = f.get(kpProp);
       if (kp == null) return;
-      kp = Number(String(kp).replace(/[^\d.]/g, ''));
+      kp = Number(String(kp).replace(/[^\d.-]/g, ''));
       if (isNaN(kp)) return;
       if (kp >= kpMin && kp <= kpMax) {
         rangeFeatures.push(f);
@@ -571,8 +578,8 @@ export function KPManager(ctx) {
     const coordinates = features
       .slice()
       .sort((a, b) => {
-        const ka = Number(String(a.get(kpProp)).replace(/[^\d.]/g, ''));
-        const kb = Number(String(b.get(kpProp)).replace(/[^\d.]/g, ''));
+        const ka = Number(String(a.get(kpProp)).replace(/[^\d.-]/g, ''));
+        const kb = Number(String(b.get(kpProp)).replace(/[^\d.-]/g, ''));
         return ka - kb;
       })
       .map(f => f.getGeometry().getCoordinates());
@@ -628,14 +635,18 @@ export function KPManager(ctx) {
         feature.get('左右岸')];
     // 道路
     } else {
+//      return [
+//        feature.get('地方整備局'),
+//        feature.get('事務所'),
+//        feature.get('道路種別'),
+//        feature.get('路線'),
+//        feature.get('現旧新区分'),
+//        feature.get('上下区分'),
+//        feature.get('補助番号')];
       return [
-        feature.get('地方整備局'),
-        feature.get('事務所'),
-        feature.get('道路種別'),
         feature.get('路線'),
         feature.get('現旧新区分'),
-        feature.get('上下区分'),
-        feature.get('補助番号')];
+        feature.get('上下区分')];
     }
   }
   function setOnConfirm(callback) {

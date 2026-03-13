@@ -14,10 +14,13 @@ export function Intensity(ctx) {
   function initialize() {
     // 市区町村震度ポリゴン　イベント
     const left市区町村震度Element = document.getElementById('left市区町村震度');
+    const legendCityElement = document.getElementById('legendCity');
+    legendCityElement.style.display = 'none';
     left市区町村震度Element.querySelectorAll(`input[type="checkbox"][name="quake"]`).forEach((chk) => {
       loadCityGzGeoJson(chk.value);
       chk.addEventListener('change', (e) => {
         layerCity.setVisible(e.target.checked);
+        legendCityElement.style.display = e.target.checked ? 'block' : 'none';
       });
     });
   }

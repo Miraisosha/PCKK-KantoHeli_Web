@@ -6,27 +6,89 @@ using Src.Services;
 
 public sealed class FlightRouteKmlGenerator
 {
-    private readonly List<string> _palette = new()
-    {
-        "#e6194b","#3cb44b","#ffe119","#4363d8","#f58231",
-        "#911eb4","#46f0f0","#f032e6","#bcf60c","#fabebe",
-        "#008080","#e6beff","#9a6324","#fffac8","#800000",
-        "#aaffc3","#808000","#ffd8b1","#000075","#808080",
-        "#ff4500","#2e8b57","#daa520","#1e90ff","#ff1493",
-        "#9400d3","#00ced1","#ff69b4","#7cfc00","#ffb6c1",
-        "#20b2aa","#dda0dd","#cd853f","#fafad2","#b22222",
-        "#98fb98","#6b8e23","#ffdead","#191970","#a9a9a9",
-        "#ff6347","#228b22","#b8860b","#4169e1","#ff00ff",
-        "#8a2be2","#00ffff","#adff2f","#ffc0cb"
-    };
-
     public byte[] Generate(List<FlightRoute> routes)
     {
         var sorted = routes.OrderBy(x => x.id).ToList();
 
         XNamespace ns = "http://www.opengis.net/kml/2.2";
-        var document = new XElement(ns + "Document");
 
+        var document = new XElement(ns + "Document",
+
+            //------------------------------------------------
+            // Style定義
+            //------------------------------------------------
+
+            // ヘリポート
+            new XElement(ns + "Style",
+                new XAttribute("id", "IconHeliPort"),
+                new XElement(ns + "IconStyle",
+                    new XElement(ns + "scale", 1),
+                    new XElement(ns + "Icon",
+                        new XElement(ns + "href",
+                            "https://maps.gsi.go.jp/portal/sys/v4/symbols/067.png")),
+                    new XElement(ns + "hotSpot",
+                        new XAttribute("x", "0.5"),
+                        new XAttribute("y", "0.5"),
+                        new XAttribute("xunits", "fraction"),
+                        new XAttribute("yunits", "fraction"))
+                )
+            ),
+
+            // 点検ライン
+            new XElement(ns + "Style",
+                new XAttribute("id", "SurveyLine"),
+                new XElement(ns + "LineStyle",
+                    new XElement(ns + "color", "ff0000ff"),
+                    new XElement(ns + "width", 10)
+                )
+            ),
+
+            // 点検ポイント
+            new XElement(ns + "Style",
+                new XAttribute("id", "SurveyPoint"),
+                new XElement(ns + "IconStyle",
+                    new XElement(ns + "scale", 1),
+                    new XElement(ns + "Icon",
+                        new XElement(ns + "href",
+                            "https://maps.gsi.go.jp/portal/sys/v4/symbols/080.png")),
+                    new XElement(ns + "hotSpot",
+                        new XAttribute("x", "0.5"),
+                        new XAttribute("y", "0.5"),
+                        new XAttribute("xunits", "fraction"),
+                        new XAttribute("yunits", "fraction"))
+                ),
+                new XElement(ns + "LabelStyle",
+                    new XElement(ns + "scale", 1.2),
+                    new XElement(ns + "color", "ff000000") // 黒
+                )
+            ),
+
+
+            // 移動ライン
+            new XElement(ns + "Style",
+                new XAttribute("id", "PassLine"),
+                new XElement(ns + "LineStyle",
+                    new XElement(ns + "color", "ffbb1c1c"),
+                    new XElement(ns + "width", 10)
+                )
+            ),
+
+            // 矢印
+            new XElement(ns + "Style",
+                new XAttribute("id", "ArrowPoly"),
+                new XElement(ns + "LineStyle",
+                    new XElement(ns + "color", "ffbb1c1c"),
+                    new XElement(ns + "width", 3)
+                ),
+                new XElement(ns + "PolyStyle",
+                    new XElement(ns + "color", "ffbb1c1c")
+                )
+            )
+        );
+
+        //------------------------------------------------
+        // Placemark生成
+        //------------------------------------------------
         foreach (var r in sorted)
         {
             switch (r.type)
@@ -34,18 +96,24 @@ public sealed class FlightRouteKmlGenerator
                 case 1:
                     document.Add(CreateStartEnd(ns, r, "始"));
                     break;
+
                 case 2:
                     document.Add(CreateStartEnd(ns, r, "終"));
                     break;
+
                 case 3:
                     document.Add(CreateSurvey(ns, r));
                     break;
+
                 case 4:
                     document.Add(CreatePassLine(ns, r));
                     break;
             }
         }
 
+        //------------------------------------------------
+        // KML生成
+        //------------------------------------------------
         var kml = new XDocument(
             new XDeclaration("1.0", "UTF-8", "yes"),
             new XElement(ns + "kml", document)
@@ -60,36 +128,48 @@ public sealed class FlightRouteKmlGenerator
     /// <param name="r"></param>
     /// <param name="sub"></param>
     /// <returns></returns>
+    //    private XElement CreateStartEnd(XNamespace ns, FlightRoute r, string sub)
+    //    {
+    //        if (r.geometry is not Point pt)
+    //            return new XElement(ns + "Folder");
+    //
+    //        var svg = CreateCircleSvg("#ffffff", "#0000ff", "H", null);
+    //
+    //        // 円(H)
+    //        var circle =
+    //            new XElement(ns + "Placemark",
+    //                CreateSvgStyle(ns, svg, 0.4),
+    //                new XElement(ns + "Point",
+    //                    new XElement(ns + "coordinates", $"{pt.X},{pt.Y},0"))
+    //            );
+    //
+    //        // offset設定
+    //        double offset = sub == "始" ? 40 : -40;
+    //        string anchor = sub == "始" ? "start" : "end";
+    //
+    //        var labelSvg = CreateOutlinedTextSvg(sub, sub == "始");
+    //
+    //        var label =
+    //            new XElement(ns + "Placemark",
+    //                CreateSvgStyle(ns, labelSvg, 0.7),
+    //                new XElement(ns + "Point",
+    //                    new XElement(ns + "coordinates",
+    //                        $"{pt.X},{pt.Y},0"))
+    //            );
+    //
+    //        return new XElement(ns + "Folder", circle, label);
+    //    }
     private XElement CreateStartEnd(XNamespace ns, FlightRoute r, string sub)
     {
         if (r.geometry is not Point pt)
             return new XElement(ns + "Folder");
 
-        var svg = CreateCircleSvg("#ffffff", "#0000ff", "H", null);
-
-        // 円(H)
-        var circle =
-            new XElement(ns + "Placemark",
-                CreateSvgStyle(ns, svg, 0.4),
-                new XElement(ns + "Point",
-                    new XElement(ns + "coordinates", $"{pt.X},{pt.Y},0"))
-            );
-
-        // offset設定
-        double offset = sub == "始" ? 40 : -40;
-        string anchor = sub == "始" ? "start" : "end";
-
-        var labelSvg = CreateOutlinedTextSvg(sub, sub == "始");
-
-        var label =
-            new XElement(ns + "Placemark",
-                CreateSvgStyle(ns, labelSvg, 0.7),
-                new XElement(ns + "Point",
-                    new XElement(ns + "coordinates",
-                        $"{pt.X},{pt.Y},0"))
-            );
-
-        return new XElement(ns + "Folder", circle, label);
+        return new XElement(ns + "Placemark",
+            new XElement(ns + "name", sub),
+            new XElement(ns + "styleUrl", "#IconHeliPort"),
+            new XElement(ns + "Point",
+                new XElement(ns + "coordinates", $"{pt.X},{pt.Y},0"))
+        );
     }
 
     /// <summary>
@@ -109,18 +189,43 @@ public sealed class FlightRouteKmlGenerator
         return new XElement(ns + "Folder");
     }
 
+    //    private XElement CreateSurveyPoint(XNamespace ns, FlightRoute r, Point pt)
+    //    {
+    //        var svg = CreateCircleSvg("#FF0000", "#FF0000", r.no?.ToString() ?? "");
+    //
+    //        return new XElement(ns + "Placemark",
+    //            //CreateDescription(ns, r),
+    //            CreateSvgStyle(ns, svg, 0.5),
+    //            new XElement(ns + "name", r.name ?? $"Route {r.no}"),
+    //            new XElement(ns + "Point",
+    //                new XElement(ns + "coordinates", $"{pt.X},{pt.Y},0"))
+    //        );
+    //    }
     private XElement CreateSurveyPoint(XNamespace ns, FlightRoute r, Point pt)
     {
-        var hex = _palette[Math.Abs(r.no ?? 0) % _palette.Count];
-        //var svg = CreateCircleSvg(hex, "#000000", r.no?.ToString() ?? "");
-        var svg = CreateCircleSvg("#FF0000", "#FF0000", r.no?.ToString() ?? "");
-
-        return new XElement(ns + "Placemark",
-            //CreateDescription(ns, r),
-            CreateSvgStyle(ns, svg, 0.5),
-            new XElement(ns + "name", r.name ?? $"Route {r.no}"),
+        var pointIcon = new XElement(ns + "Placemark",
+            new XElement(ns + "name", r.no?.ToString()),
+            new XElement(ns + "description", r.name),
+            new XElement(ns + "styleUrl", "#SurveyPoint"),
             new XElement(ns + "Point",
-                new XElement(ns + "coordinates", $"{pt.X},{pt.Y},0"))
+                new XElement(ns + "coordinates",
+                    $"{pt.X},{pt.Y},0")));
+        //--------------------------------
+        // 右横番号
+        //--------------------------------
+        var labelSvg = CreateTextSvg(r.no?.ToString() ?? "");
+
+        var label =
+            new XElement(ns + "Placemark",
+                CreateSvgStyle(ns, labelSvg, 1.0),
+                new XElement(ns + "Point",
+                    new XElement(ns + "coordinates",
+                        $"{pt.X},{pt.Y},0"))
+            );
+
+        return new XElement(ns + "Folder",
+            pointIcon,
+            label
         );
     }
 
@@ -133,24 +238,30 @@ public sealed class FlightRouteKmlGenerator
     /// <returns></returns>
     private XElement CreateSurveyLine(XNamespace ns, FlightRoute r, LineString line)
     {
-        //var hex = _palette[Math.Abs(r.no ?? 0) % _palette.Count];
         var hex = "#FF0000";
         var kmlColor = ToKmlColor(hex);
 
-        Debug.WriteLine(r);
         // --- ライン ---
-        var lineElement =
-            new XElement(ns + "Placemark",
-                new XElement(ns + "name", r.name ?? $"Route {r.no}"),
-                //CreateDescription(ns, r),
-                new XElement(ns + "Style",
-                    new XElement(ns + "LineStyle",
-                        new XElement(ns + "color", kmlColor),
-                        new XElement(ns + "width", 10))),
-                new XElement(ns + "LineString",
-                    new XElement(ns + "coordinates",
-                        string.Join(" ",
-                            line.Coordinates.Select(c => $"{c.X},{c.Y},0")))));
+        //var lineElement =
+        //    new XElement(ns + "Placemark",
+        //        new XElement(ns + "name", r.name ?? $"Route {r.no}"),
+        //        //CreateDescription(ns, r),
+        //        new XElement(ns + "Style",
+        //            new XElement(ns + "LineStyle",
+        //                new XElement(ns + "color", kmlColor),
+        //                new XElement(ns + "width", 10))),
+        //        new XElement(ns + "LineString",
+        //            new XElement(ns + "coordinates",
+        //                string.Join(" ",
+        //                    line.Coordinates.Select(c => $"{c.X},{c.Y},0")))));
+        var lineElement = new XElement(ns + "Placemark",
+            new XElement(ns + "name", r.name ?? $"Route {r.no}"),
+            new XElement(ns + "styleUrl", "#SurveyLine"),
+            new XElement(ns + "LineString",
+                new XElement(ns + "coordinates",
+                    string.Join(" ",
+                        line.Coordinates.Select(c =>
+                            $"{c.X},{c.Y},0")))));
 
         if (line.Coordinates.Length < 2)
             return lineElement;
@@ -215,21 +326,28 @@ public sealed class FlightRouteKmlGenerator
         //----------------------------------
         // ライン
         //----------------------------------
-        var lineElement =
-            new XElement(ns + "Placemark",
-                //CreateDescription(ns, r),
-                new XElement(ns + "Style",
-                    new XElement(ns + "LineStyle",
-                        new XElement(ns + "color", lineKmlColor),
-                        new XElement(ns + "width", lineWidth)
-                    )
-                ),
-                new XElement(ns + "LineString",
-                    new XElement(ns + "coordinates",
-                        string.Join(" ",
-                            coords.Select(c => $"{c.X},{c.Y},0")))
-                )
-            );
+        //var lineElement =
+        //    new XElement(ns + "Placemark",
+        //        //CreateDescription(ns, r),
+        //        new XElement(ns + "Style",
+        //            new XElement(ns + "LineStyle",
+        //                new XElement(ns + "color", lineKmlColor),
+        //                new XElement(ns + "width", lineWidth)
+        //            )
+        //        ),
+        //        new XElement(ns + "LineString",
+        //            new XElement(ns + "coordinates",
+        //                string.Join(" ",
+        //                    coords.Select(c => $"{c.X},{c.Y},0")))
+        //        )
+        //    );
+        var lineElement = new XElement(ns + "Placemark",
+            new XElement(ns + "styleUrl", "#PassLine"),
+            new XElement(ns + "LineString",
+                new XElement(ns + "coordinates",
+                    string.Join(" ",
+                        coords.Select(c =>
+                            $"{c.X},{c.Y},0")))));
 
         //----------------------------------
         // 終点と方向
@@ -275,32 +393,48 @@ public sealed class FlightRouteKmlGenerator
         //----------------------------------
         // 矢印Polygon
         //----------------------------------
-        var arrow =
-            new XElement(ns + "Placemark",
-                new XElement(ns + "Style",
-                    new XElement(ns + "LineStyle",
-                        new XElement(ns + "width", 0)   // ←これ重要
-                    ),
-                    new XElement(ns + "PolyStyle",
-                        new XElement(ns + "color", lineKmlColor),
-                        new XElement(ns + "fill", 1),
-                        new XElement(ns + "outline", 0)
-                    )
-                ),
-                new XElement(ns + "Polygon",
-                    new XElement(ns + "outerBoundaryIs",
-                        new XElement(ns + "LinearRing",
-                            new XElement(ns + "coordinates",
-                                $"{tipX},{tipY},0 " +
-                                $"{leftX},{leftY},0 " +
-                                $"{notchX},{notchY},0 " +
-                                $"{rightX},{rightY},0 " +
-                                $"{tipX},{tipY},0"
-                            )
+        //var arrow =
+        //    new XElement(ns + "Placemark",
+        //        new XElement(ns + "Style",
+        //            new XElement(ns + "LineStyle",
+        //                new XElement(ns + "width", 0)   // ←これ重要
+        //            ),
+        //            new XElement(ns + "PolyStyle",
+        //                new XElement(ns + "color", lineKmlColor),
+        //                new XElement(ns + "fill", 1),
+        //                new XElement(ns + "outline", 0)
+        //            )
+        //        ),
+        //        new XElement(ns + "Polygon",
+        //            new XElement(ns + "outerBoundaryIs",
+        //                new XElement(ns + "LinearRing",
+        //                    new XElement(ns + "coordinates",
+        //                        $"{tipX},{tipY},0 " +
+        //                        $"{leftX},{leftY},0 " +
+        //                        $"{notchX},{notchY},0 " +
+        //                        $"{rightX},{rightY},0 " +
+        //                        $"{tipX},{tipY},0"
+        //                    )
+        //                )
+        //            )
+        //        )
+        //    );
+        var arrow = new XElement(ns + "Placemark",
+            new XElement(ns + "styleUrl", "#ArrowPoly"),
+            new XElement(ns + "Polygon",
+                new XElement(ns + "outerBoundaryIs",
+                    new XElement(ns + "LinearRing",
+                        new XElement(ns + "coordinates",
+                            $"{tipX},{tipY},0 " +
+                            $"{leftX},{leftY},0 " +
+                            $"{notchX},{notchY},0 " +
+                            $"{rightX},{rightY},0 " +
+                            $"{tipX},{tipY},0"
                         )
                     )
                 )
-            );
+            )
+        );
 
         return new XElement(ns + "Folder",
             lineElement,
@@ -467,6 +601,32 @@ public sealed class FlightRouteKmlGenerator
         font-family='Arial'
         font-weight='bold'
         text-anchor='{anchor}'
+        fill='black'
+        stroke='white'
+        stroke-width='3'
+        paint-order='stroke'
+        dominant-baseline='central'>
+        {text}
+    </text>
+</svg>";
+
+        return "data:image/svg+xml;base64," +
+               Convert.ToBase64String(Encoding.UTF8.GetBytes(svg));
+    }
+    private string CreateTextSvg(string text)
+    {
+        int width = 140;
+        int height = 80;
+
+        int textX = 90;
+
+        var svg =
+    $@"<svg xmlns='http://www.w3.org/2000/svg' width='{width}' height='{height}'>
+    <text x='{textX}' y='40'
+        font-size='26'
+        font-family='Arial'
+        font-weight='bold'
+        text-anchor='start'
         fill='black'
         stroke='white'
         stroke-width='3'
