@@ -4,6 +4,7 @@ export function Dropdown(ctx) {
   const {
     base_url,
     root_url,
+    locationReload
   } = ctx;
   function initialize() {
   }
@@ -124,7 +125,7 @@ export function Dropdown(ctx) {
   // 閉じるボタンクリック
   document.getElementById("btnSendDoneCancel").addEventListener("click", function () {
     modalSendDone.hide();
-    location.href = `?`;
+    locationReload();
   });
 
 //  // --------------------------------------------------------------------

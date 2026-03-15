@@ -6,6 +6,7 @@
 export function InvestigationRequestStatus(ctx) {
   const {
     base_url,
+    locationReload,
     tab依頼状況,
     set調査地点Source,
     geojsonFormatter,
@@ -32,6 +33,7 @@ export function InvestigationRequestStatus(ctx) {
   // 一覧読込
   // -------------------------
   const load依頼状況 = () => {
+    console.log("load依頼状況 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     source調査地点.clear();
     tbody依頼状況.innerHTML = '';
 
@@ -91,15 +93,7 @@ export function InvestigationRequestStatus(ctx) {
         { method: 'POST', body: formData },
         { title: '調査依頼の取消' }
       ).then(async (response) => {
-        reload防災ヘリ関連情報()
-          .then(() => {
-            load依頼状況();
-            return;
-          })
-          .catch(() => {
-            load依頼状況();
-            return;
-          });
+        locationReload();
       }, () => { });
     });
   }
@@ -155,12 +149,6 @@ export function InvestigationRequestStatus(ctx) {
     const checkbox = trElement.querySelector('input[type="checkbox"]');
     if (checkbox) { feature.set('checkbox', checkbox); }
     return trElement;
-  }
-
-  const reload防災ヘリ関連情報 = () => {
-    return new Promise((resolve, reject) => {
-      return resolve();
-    });
   }
 
   return {

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Xml.Linq;
 using NetTopologySuite.Geometries;
+using Src.Common;
 using Src.Services;
 
 public sealed class FlightRouteKmlGenerator
@@ -128,37 +129,6 @@ public sealed class FlightRouteKmlGenerator
     /// <param name="r"></param>
     /// <param name="sub"></param>
     /// <returns></returns>
-    //    private XElement CreateStartEnd(XNamespace ns, FlightRoute r, string sub)
-    //    {
-    //        if (r.geometry is not Point pt)
-    //            return new XElement(ns + "Folder");
-    //
-    //        var svg = CreateCircleSvg("#ffffff", "#0000ff", "H", null);
-    //
-    //        // 円(H)
-    //        var circle =
-    //            new XElement(ns + "Placemark",
-    //                CreateSvgStyle(ns, svg, 0.4),
-    //                new XElement(ns + "Point",
-    //                    new XElement(ns + "coordinates", $"{pt.X},{pt.Y},0"))
-    //            );
-    //
-    //        // offset設定
-    //        double offset = sub == "始" ? 40 : -40;
-    //        string anchor = sub == "始" ? "start" : "end";
-    //
-    //        var labelSvg = CreateOutlinedTextSvg(sub, sub == "始");
-    //
-    //        var label =
-    //            new XElement(ns + "Placemark",
-    //                CreateSvgStyle(ns, labelSvg, 0.7),
-    //                new XElement(ns + "Point",
-    //                    new XElement(ns + "coordinates",
-    //                        $"{pt.X},{pt.Y},0"))
-    //            );
-    //
-    //        return new XElement(ns + "Folder", circle, label);
-    //    }
     private XElement CreateStartEnd(XNamespace ns, FlightRoute r, string sub)
     {
         if (r.geometry is not Point pt)
@@ -189,23 +159,14 @@ public sealed class FlightRouteKmlGenerator
         return new XElement(ns + "Folder");
     }
 
-    //    private XElement CreateSurveyPoint(XNamespace ns, FlightRoute r, Point pt)
-    //    {
-    //        var svg = CreateCircleSvg("#FF0000", "#FF0000", r.no?.ToString() ?? "");
-    //
-    //        return new XElement(ns + "Placemark",
-    //            //CreateDescription(ns, r),
-    //            CreateSvgStyle(ns, svg, 0.5),
-    //            new XElement(ns + "name", r.name ?? $"Route {r.no}"),
-    //            new XElement(ns + "Point",
-    //                new XElement(ns + "coordinates", $"{pt.X},{pt.Y},0"))
-    //        );
-    //    }
     private XElement CreateSurveyPoint(XNamespace ns, FlightRoute r, Point pt)
     {
+        var name = r.name?.ToString() ?? $"{r.name}";
+        name += "（" + ((r.survey == 調査手法Enum.通過) ? "通過" : "周回") + "）";
+
         var pointIcon = new XElement(ns + "Placemark",
-            new XElement(ns + "name", r.no?.ToString()),
-            new XElement(ns + "description", r.name),
+            new XElement(ns + "name", name),
+//            new XElement(ns + "description", r.name),
             new XElement(ns + "styleUrl", "#SurveyPoint"),
             new XElement(ns + "Point",
                 new XElement(ns + "coordinates",
@@ -224,8 +185,8 @@ public sealed class FlightRouteKmlGenerator
             );
 
         return new XElement(ns + "Folder",
-            pointIcon,
-            label
+            pointIcon
+    //        label
         );
     }
 
@@ -238,22 +199,7 @@ public sealed class FlightRouteKmlGenerator
     /// <returns></returns>
     private XElement CreateSurveyLine(XNamespace ns, FlightRoute r, LineString line)
     {
-        var hex = "#FF0000";
-        var kmlColor = ToKmlColor(hex);
-
         // --- ライン ---
-        //var lineElement =
-        //    new XElement(ns + "Placemark",
-        //        new XElement(ns + "name", r.name ?? $"Route {r.no}"),
-        //        //CreateDescription(ns, r),
-        //        new XElement(ns + "Style",
-        //            new XElement(ns + "LineStyle",
-        //                new XElement(ns + "color", kmlColor),
-        //                new XElement(ns + "width", 10))),
-        //        new XElement(ns + "LineString",
-        //            new XElement(ns + "coordinates",
-        //                string.Join(" ",
-        //                    line.Coordinates.Select(c => $"{c.X},{c.Y},0")))));
         var lineElement = new XElement(ns + "Placemark",
             new XElement(ns + "name", r.name ?? $"Route {r.no}"),
             new XElement(ns + "styleUrl", "#SurveyLine"),
@@ -293,9 +239,9 @@ public sealed class FlightRouteKmlGenerator
                         $"{end.X},{end.Y},0")));
 
         return new XElement(ns + "Folder",
-            lineElement,
-            startLabel,
-            endLabel
+            lineElement
+//            startLabel,
+//            endLabel
         );
     }
     /// <summary>
@@ -306,10 +252,6 @@ public sealed class FlightRouteKmlGenerator
     /// <returns></returns>
     private XElement CreatePassLine(XNamespace ns, FlightRoute r)
     {
-        double lineWidth = 4.5;
-        string lineColor = "#0000FF";
-        string lineKmlColor = ToKmlColor(lineColor);
-
         // 矢印サイズ
         double arrowLength = 0.012;
         double arrowWidth = arrowLength * 0.5;
@@ -326,21 +268,6 @@ public sealed class FlightRouteKmlGenerator
         //----------------------------------
         // ライン
         //----------------------------------
-        //var lineElement =
-        //    new XElement(ns + "Placemark",
-        //        //CreateDescription(ns, r),
-        //        new XElement(ns + "Style",
-        //            new XElement(ns + "LineStyle",
-        //                new XElement(ns + "color", lineKmlColor),
-        //                new XElement(ns + "width", lineWidth)
-        //            )
-        //        ),
-        //        new XElement(ns + "LineString",
-        //            new XElement(ns + "coordinates",
-        //                string.Join(" ",
-        //                    coords.Select(c => $"{c.X},{c.Y},0")))
-        //        )
-        //    );
         var lineElement = new XElement(ns + "Placemark",
             new XElement(ns + "styleUrl", "#PassLine"),
             new XElement(ns + "LineString",
@@ -393,32 +320,6 @@ public sealed class FlightRouteKmlGenerator
         //----------------------------------
         // 矢印Polygon
         //----------------------------------
-        //var arrow =
-        //    new XElement(ns + "Placemark",
-        //        new XElement(ns + "Style",
-        //            new XElement(ns + "LineStyle",
-        //                new XElement(ns + "width", 0)   // ←これ重要
-        //            ),
-        //            new XElement(ns + "PolyStyle",
-        //                new XElement(ns + "color", lineKmlColor),
-        //                new XElement(ns + "fill", 1),
-        //                new XElement(ns + "outline", 0)
-        //            )
-        //        ),
-        //        new XElement(ns + "Polygon",
-        //            new XElement(ns + "outerBoundaryIs",
-        //                new XElement(ns + "LinearRing",
-        //                    new XElement(ns + "coordinates",
-        //                        $"{tipX},{tipY},0 " +
-        //                        $"{leftX},{leftY},0 " +
-        //                        $"{notchX},{notchY},0 " +
-        //                        $"{rightX},{rightY},0 " +
-        //                        $"{tipX},{tipY},0"
-        //                    )
-        //                )
-        //            )
-        //        )
-        //    );
         var arrow = new XElement(ns + "Placemark",
             new XElement(ns + "styleUrl", "#ArrowPoly"),
             new XElement(ns + "Polygon",
@@ -467,125 +368,6 @@ public sealed class FlightRouteKmlGenerator
             )
         );
     }
-
-    /// <summary>
-    /// 点検箇所　点
-    /// </summary>
-    /// <param name="fill"></param>
-    /// <param name="stroke"></param>
-    /// <param name="text"></param>
-    /// <param name="subText"></param>
-    /// <returns></returns>
-    /// <summary>
-    /// 点検箇所　点
-    /// </summary>
-    /// <summary>
-    /// 点検箇所　点
-    /// </summary>
-    private string CreateCircleSvg(
-    string fill,
-    string stroke,
-    string text,
-    string subText = null)
-    {
-        // 円サイズ
-        double r = 14;
-
-        double svgWidth = 140;
-        double svgHeight = 80;
-
-        // SVG中心
-        double cx = svgWidth / 2;
-        double cy = svgHeight / 2;
-
-        var svg =
-    $@"<svg xmlns='http://www.w3.org/2000/svg' width='{svgWidth}' height='{svgHeight}'>
-    <circle cx='{cx}' cy='{cy}' r='{r}'
-        fill='{fill}'
-        stroke='{stroke}'
-        stroke-width='2'/>
-
-    <text x='{cx}' y='{cy}'
-        font-size='{r * 1.3}'
-        font-family='Arial'
-        font-weight='bold'
-        text-anchor='middle'
-        dominant-baseline='central'
-        fill='black'
-        stroke='white'
-        stroke-width='2'
-        paint-order='stroke'>
-        {text}
-    </text>
-
-    {(string.IsNullOrEmpty(subText) ? "" :
-    $@"<text x='{cx + r + 10}' y='{cy + 5}'
-        font-size='{r * 1.05}'
-        font-family='Arial'
-        font-weight='bold'
-        fill='black'>
-        {subText}
-    </text>")}
-
-</svg>";
-
-        return "data:image/svg+xml;base64," +
-               Convert.ToBase64String(Encoding.UTF8.GetBytes(svg));
-    }
-
-    private XElement CreateDescription(XNamespace ns, FlightRoute r)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine($"名称: {r.name}");
-        sb.AppendLine($"ID: {r.id}");
-        sb.AppendLine($"No: {r.no}");
-        sb.AppendLine($"優先度: {r.priority}");
-        sb.AppendLine($"調査方法: {r.survey}");
-        sb.AppendLine($"搭乗人数: {r.persons}");
-
-        return new XElement(ns + "description", sb.ToString());
-    }
-
-    private string ToKmlColor(string hex)
-    {
-        hex = hex.Replace("#", "");
-        return $"ff{hex.Substring(4, 2)}{hex.Substring(2, 2)}{hex.Substring(0, 2)}";
-    }
-    private double CalculateBearing(
-    double lon1, double lat1,
-    double lon2, double lat2)
-    {
-        double rad = Math.PI / 180;
-
-        var φ1 = lat1 * rad;
-        var φ2 = lat2 * rad;
-        var Δλ = (lon2 - lon1) * rad;
-
-        var y = Math.Sin(Δλ) * Math.Cos(φ2);
-        var x = Math.Cos(φ1) * Math.Sin(φ2) -
-                Math.Sin(φ1) * Math.Cos(φ2) * Math.Cos(Δλ);
-
-        var θ = Math.Atan2(y, x);
-        var bearing = (θ * 180 / Math.PI + 360) % 360;
-
-        return bearing;
-    }
-    private string CreateArrowSvg(string color, double rotationDegrees)
-    {
-        double center = 30;
-
-        var svg =
-    $@"<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'>
-    <g transform='rotate({rotationDegrees} {center} {center})'>
-        <polygon points='15,30 45,20 45,27 55,27 55,33 45,33 45,40'
-            fill='{color}' />
-    </g>
-</svg>";
-
-        return "data:image/svg+xml;base64," +
-               Convert.ToBase64String(Encoding.UTF8.GetBytes(svg));
-    }
-
     private string CreateOutlinedTextSvg(string text, bool offsetRight)
     {
         int width = 140;

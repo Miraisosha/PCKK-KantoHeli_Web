@@ -171,7 +171,13 @@
   <div id="mapArea">
     <div id="map" class="position-absolute top-0 bottom-0 start-0 end-0" data-mapinitx="@settings.MapInitX"
          data-mapinity="@settings.MapInitY" data-mapinitz="@settings.MapInitZ">
+      @* 凡例 *@
+      <button id="btnLegend"><i class="bi bi-layers" style="margin-right:8px;"></i>凡例</button>
       <div id="mapLegend" class="map-legend">
+        <div class="legend-header">
+          <span>凡例</span>
+          <button class="legend-close">×</button>
+        </div>
 
         <div class="legend-title">調査依頼箇所</div>
         <div class="legend-section">
@@ -336,7 +342,7 @@
           </button>
         </div>
       </div>
-      <form id="form調査依頼" method="post" asp-page-handler="SurveyRequest"
+      <form id="form調査依頼" method="post" asp-page-handler="SurveyRequest" onclick="return false;"
             style="position:absolute; top:4rem; bottom:0; left:0; right:0; overflow-y:scroll;">
         <input type="hidden" name="mode">
         <input type="hidden" name="tempid">
@@ -580,7 +586,7 @@
         </div>
       </div>
       <div style="position:absolute; top:-6px; bottom:0; left:340px; right:0;">
-        <form id="form調査依頼絞込" class="row align-items-end m-1 g-1">
+        <form id="form調査依頼絞込" class="row align-items-end m-1 g-1" onclick="return false;">
           <div class="col-auto">
             <label class="cond-label"><i class="bi bi-square-fill ms-1 me-1"></i>調査依頼絞り込み</label>
             <div style="width:300px">
@@ -907,7 +913,7 @@
         <div>
           <label class="form-check">
             <span class="form-check-label">KMLファイルを出力</span>
-            <input type="checkbox" name="input.kml" class="form-check-input chkKmlDownload">
+            <input type="checkbox" name="input.kml" class="form-check-input chkKmlDownload" checked>
           </label>
         </div>
       </div>
@@ -915,7 +921,7 @@
         <input type="hidden" name="mode">
         <input type="hidden" name="tempid" value="">
         <input type="hidden" name="drawroute" value="">
-        <button type="button" value="register" class="btn btn-primary">@*(文面はJavaScriptにて設定)*@</button>
+        <button type="button" value="register" class="btn btn-primary" id="btnRouteRegister">@*(文面はJavaScriptにて設定)*@</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
       </div>
     </div>
@@ -924,7 +930,7 @@
 
 
 @*-- ルート作成：一時保存ルート呼び出しモーダル --*@
-<form method="post" asp-page-handler="DeletePlan" id="modal調査予定呼び出し" class="modal" tabindex="-1">
+<form method="post" asp-page-handler="DeletePlan" id="modal調査予定呼び出し" class="modal" tabindex="-1" onclick="return false;">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -976,6 +982,22 @@
         <button type="button" id="btnSendCancel" class="btn btn-secondary" data-bs-dismiss="modal">
           キャンセル
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="modalRouteRegister">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="lblRouteRegisterTitle">タイトル</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="lblRouteRegisterMessage">
+        内容
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
       </div>
     </div>
   </div>

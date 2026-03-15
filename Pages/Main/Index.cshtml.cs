@@ -14,6 +14,7 @@ using Src.Common;
 using Src.Services;
 using Src.Validation.CustomValidators;
 using ZLogger;
+using NetTopologySuite.Operation.Union;
 
 
 namespace Pages.Main;
@@ -404,8 +405,37 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             // まず調査ルートの線を格納
             foreach (var rec in t調査予定Records)
             {
-                var line = rec.手動描画調査ルート ?? Get調査ルートLineString([.. tルートRecords.Where(r => r.調査予定id == rec.調査予定id)]);
-                routes.Add(new Feature(line, new AttributesTable { { "name", rec.調査予定名 }, { "id", rec.調査予定id } }));
+                //var line = rec.手動描画調査ルート ?? Get調査ルートLineString([.. tルートRecords.Where(r => r.調査予定id == rec.調査予定id)]);
+                //routes.Add(new Feature(line, new AttributesTable { { "name", rec.調査予定名 }, { "id", rec.調査予定id } }));
+                List<FlightRoute> flightRoutes = await GetFlightRoutes([.. tルートRecords.Where(r => r.調査予定id == rec.調査予定id)]);
+                routes.AddRange(flightRoutes
+                    .Where(fr => fr.type == 1)
+                    .Select(fr =>
+                    new Feature(fr.geometry, new AttributesTable
+                    {
+                        { "id", fr.id },
+                        { "no", fr.no },
+                        { "name", fr.name },
+                        { "type", fr.type },
+                        { "priority", fr.priority },
+                        { "survey", fr.survey },
+                        { "persons", fr.persons }
+                    })
+                ));
+                routes.AddRange(flightRoutes
+                    .Where(fr => fr.type == 4)
+                    .Select(fr =>
+                    new Feature(fr.geometry, new AttributesTable
+                    {
+                        { "id", fr.id },
+                        { "no", fr.no },
+                        { "name", fr.name },
+                        { "type", fr.type },
+                        { "priority", fr.priority },
+                        { "survey", fr.survey },
+                        { "persons", fr.persons }
+                    })
+                ));
             }
             // 続いて、手動描画でなければ調査地点を格納
             foreach (var rec in t調査予定Records.Where(r => r.手動描画調査ルート is null))
@@ -818,7 +848,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         int i = 0;
         List<Feature> features = [];
-        features.Add(new Feature(rec初動調査ルート.ジオメトリ, null));
+//        features.Add(new Feature(rec初動調査ルート.ジオメトリ, null));
         foreach (var rec in t調査地点Records)
         {
             var color = "#FF8888";
@@ -833,7 +863,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 { "spottype", "線" },
                 { "remarks", $"{rec.備考}" },
                 { "spotColor", color },
-                { "type", "4" },
+                { "type", "0" },
             }));
             i++;
         }
@@ -862,6 +892,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         // 調査箇所　ライン
         i = 0;
+        var surveyLines = new List<Geometry>();
         foreach (var rec in t調査地点Records)
         {
             var color = "#FF8888";
@@ -917,8 +948,65 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 { "spotColor", color },
                 { "type", "1" },
             }));
+            surveyLines.Add(geom);
             i++;
         }
+
+        var tルートRecords = new List<T_調査予定ルート>();
+        int no = 0;
+        // 起点追加
+        var start = t起点終点Records.FirstOrDefault(r => r.起点終点id == rec初動調査ルート.起点id);
+        if (start != null)
+        {
+            tルートRecords.Add(new T_調査予定ルート
+            {
+                連番 = no++,
+                調査箇所id = null,
+                ジオメトリ = new Point(start.経度, start.緯度) { SRID = 4326 }
+            });
+        }
+        foreach (var rec in t調査地点Records)
+        {
+            Geometry geom;
+            if (rec.geometry != null)
+            {
+                geom = rec.geometry;
+                if (geom.SRID == 0) geom.SRID = 4326;
+            }
+            else
+            {
+                geom = new Point(rec.経度, rec.緯度) { SRID = 4326 };
+            }
+            tルートRecords.Add(new T_調査予定ルート
+            {
+                連番 = no++,
+                調査箇所id = null,
+                ジオメトリ = geom
+            });
+        }
+        var end = t起点終点Records.FirstOrDefault(r => r.起点終点id == rec初動調査ルート.終点id);
+        if (end != null)
+        {
+            tルートRecords.Add(new T_調査予定ルート
+            {
+                連番 = no++,
+                調査箇所id = null,
+                ジオメトリ = new Point(start.経度, start.緯度) { SRID = 4326 }
+            });
+        }
+        List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
+        Geometry routeLine = rec初動調査ルート.ジオメトリ;
+        features.AddRange( flightRoutes
+            .Where(fr => fr.type == 4)
+            .Select(fr => new Feature(
+                fr.geometry,
+                new AttributesTable
+                {
+                    { "type", fr.type }
+                }
+            ))
+        );
+
 
         // Jsonで返す
         return new JsonResult(new
@@ -1478,7 +1566,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             iv.AddError("selルート作成起点", "ルート起点を指定してください。");
         }
         // ---------------------------------------------------------------------
-        // 経路追加
+        // 調査個所　追加
         int no = 1;
         if (id.Length > 0)
         {
@@ -1512,6 +1600,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 }
             }
         }
+        // ---------------------------------------------------------------------
+        // 初動調査箇所　追加
         else if (firstRouteId is not null && t初動調査地点Records is not null && t初動調査地点Records.Any())
         {
             foreach(var rec in t初動調査地点Records)
@@ -1529,6 +1619,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         {
             iv.AddError("調査地点を１箇所以上指定してください。");
         }
+        // ---------------------------------------------------------------------
         // 終点が指定されていれば経路に追加
         if (endx is not null && endy is not null)
         {
@@ -1931,7 +2022,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         // ---------------------------------------------------------------------
         // KML生成
-        Debug.WriteLine("KML Route Create >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
         var generator = new FlightRouteKmlGenerator();
         var bytes = generator.Generate(flightRoutes);
@@ -1940,7 +2030,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         string kmlFileName = tyosaYoteiId.ToString() + ".kml";
         string savedPath = SaveKmlSafely(bytes, kmlFileName);
         logger.ZLogInformation($"KML を保存しました: {savedPath}");
-        Debug.WriteLine("KML Route Create <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
         await tran.CommitAsync();
 
@@ -1951,7 +2040,12 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 //                調査ステータスEnum.一時保存 => "一時保存が完了しました。",
 //                _ => "調査予定ルートの公開が完了しました。",
 //            }
-            Result = new
+//            Result = new
+//            {
+//                id = tyosaYoteiId,
+//                isTemp = (status == 調査ステータスEnum.一時保存),
+//            }
+            success = new
             {
                 id = tyosaYoteiId,
                 isTemp = (status == 調査ステータスEnum.一時保存),
@@ -2125,25 +2219,25 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         List<FlightRoute> list = [];
         int frIdx = 1;
 
-        static Coordinate? GetEndpoint(Geometry? g, bool first)
-        {
-            if (g is null) return null;
-            if (g is Point pt) return pt.Coordinate;
-            if (g is LineString ls && ls.Coordinates.Length > 0)
-                return first ? ls.Coordinates[0] : ls.Coordinates[ls.Coordinates.Length - 1];
-            if (g is MultiLineString mls)
-            {
-                for (int i = 0; i < mls.NumGeometries; i++)
-                {
-                    var g0 = mls.GetGeometryN(i);
-                    if (g0 is LineString ls0 && ls0.Coordinates.Length > 0)
-                        return first ? ls0.Coordinates[0] : ls0.Coordinates[ls0.Coordinates.Length - 1];
-                    if (g0 is Point pt0) return pt0.Coordinate;
-                }
-            }
-            // 最後の手段として Geometry.Coordinate を使う（null の場合は無視）
-            return g.Coordinate;
-        }
+        //static Coordinate? GetEndpoint(Geometry? g, bool first)
+        //{
+        //    if (g is null) return null;
+        //    if (g is Point pt) return pt.Coordinate;
+        //    if (g is LineString ls && ls.Coordinates.Length > 0)
+        //        return first ? ls.Coordinates[0] : ls.Coordinates[ls.Coordinates.Length - 1];
+        //    if (g is MultiLineString mls)
+        //    {
+        //        for (int i = 0; i < mls.NumGeometries; i++)
+        //        {
+        //            var g0 = mls.GetGeometryN(i);
+        //            if (g0 is LineString ls0 && ls0.Coordinates.Length > 0)
+        //                return first ? ls0.Coordinates[0] : ls0.Coordinates[ls0.Coordinates.Length - 1];
+        //            if (g0 is Point pt0) return pt0.Coordinate;
+        //        }
+        //    }
+        //    // 最後の手段として Geometry.Coordinate を使う（null の場合は無視）
+        //    return g.Coordinate;
+        //}
 
         for (int i = 0; i < tルートRecords.Count; i++)
         {
@@ -2258,21 +2352,21 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 }
 
                 // 後続ジオメトリの代表点を取得して距離を算出（次の要素が存在する場合のみ）
-                var nextジオメトリ = (i + 1 < tルートRecords.Count) ? tルートRecords[i + 1].ジオメトリ : null;
-                var next前 = GetEndpoint(nextジオメトリ, true);
-                var next後ろ = GetEndpoint(nextジオメトリ, false);
-                if (next前 is not null)
-                {
-                    var next前Geo = new GeoCoordinate(next前.Y, next前.X);
-                    distance前から追加した場合 += next前Geo.GetDistanceTo(geo後ろ);
-                    distance後ろから追加した場合 += next前Geo.GetDistanceTo(geo前);
-                }
-                else if (next後ろ is not null)
-                {
-                    var next後ろGeo = new GeoCoordinate(next後ろ.Y, next後ろ.X);
-                    distance前から追加した場合 += next後ろGeo.GetDistanceTo(geo後ろ);
-                    distance後ろから追加した場合 += next後ろGeo.GetDistanceTo(geo前);
-                }
+                //var nextジオメトリ = (i + 1 < tルートRecords.Count) ? tルートRecords[i + 1].ジオメトリ : null;
+                //var next前 = GetEndpoint(nextジオメトリ, true);
+                //var next後ろ = GetEndpoint(nextジオメトリ, false);
+                //if (next前 is not null)
+                //{
+                //    var next前Geo = new GeoCoordinate(next前.Y, next前.X);
+                //    distance前から追加した場合 += next前Geo.GetDistanceTo(geo後ろ);
+                //    distance後ろから追加した場合 += next前Geo.GetDistanceTo(geo前);
+                //}
+                //else if (next後ろ is not null)
+                //{
+                //    var next後ろGeo = new GeoCoordinate(next後ろ.Y, next後ろ.X);
+                //    distance前から追加した場合 += next後ろGeo.GetDistanceTo(geo後ろ);
+                //    distance後ろから追加した場合 += next後ろGeo.GetDistanceTo(geo前);
+                //}
 
                 rec.is後ろから経路追加 = distance後ろから追加した場合 < distance前から追加した場合;
                 if (rec.is後ろから経路追加 == true)
@@ -2371,25 +2465,25 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // まず経路の線を引きつつ、LineStringの経路追加時に前/後ろどちらから経路追加するか決定する
         List<Coordinate> lineCoordinates = new();
 
-        static Coordinate? GetEndpoint(Geometry? g, bool first)
-        {
-            if (g is null) return null;
-            if (g is Point pt) return pt.Coordinate;
-            if (g is LineString ls && ls.Coordinates.Length > 0)
-                return first ? ls.Coordinates[0] : ls.Coordinates[ls.Coordinates.Length - 1];
-            if (g is MultiLineString mls)
-            {
-                for (int i = 0; i < mls.NumGeometries; i++)
-                {
-                    var g0 = mls.GetGeometryN(i);
-                    if (g0 is LineString ls0 && ls0.Coordinates.Length > 0)
-                        return first ? ls0.Coordinates[0] : ls0.Coordinates[ls0.Coordinates.Length - 1];
-                    if (g0 is Point pt0) return pt0.Coordinate;
-                }
-            }
-            // 最後の手段として Geometry.Coordinate を使う（null の場合は無視）
-            return g.Coordinate;
-        }
+        //static Coordinate? GetEndpoint(Geometry? g, bool first)
+        //{
+        //    if (g is null) return null;
+        //    if (g is Point pt) return pt.Coordinate;
+        //    if (g is LineString ls && ls.Coordinates.Length > 0)
+        //        return first ? ls.Coordinates[0] : ls.Coordinates[ls.Coordinates.Length - 1];
+        //    if (g is MultiLineString mls)
+        //    {
+        //        for (int i = 0; i < mls.NumGeometries; i++)
+        //        {
+        //            var g0 = mls.GetGeometryN(i);
+        //            if (g0 is LineString ls0 && ls0.Coordinates.Length > 0)
+        //                return first ? ls0.Coordinates[0] : ls0.Coordinates[ls0.Coordinates.Length - 1];
+        //            if (g0 is Point pt0) return pt0.Coordinate;
+        //        }
+        //    }
+        //    // 最後の手段として Geometry.Coordinate を使う（null の場合は無視）
+        //    return g.Coordinate;
+        //}
 
         for (int i = 0; i < tルートRecords.Count; i++)
         {
@@ -2564,14 +2658,14 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         {
             if (rec.ジオメトリ is Point point)
             {
-                yield return new Feature(point, new AttributesTable { { "text", $"{rec.連番}" } });
+                yield return new Feature(point, new AttributesTable { { "text", $"{rec.連番}" }, { "type", 1 } });
             }
             else if (rec.ジオメトリ is LineString line && line.Coordinates.Length >= 2)
             {
                 var point1 = new Point(line.Coordinates.First());
                 var point2 = new Point(line.Coordinates.Last());
-                yield return new Feature(point1, new AttributesTable { { "text", $"{rec.連番}" } });
-                yield return new Feature(point2, new AttributesTable { { "text", $"{rec.連番}" } });
+                yield return new Feature(point1, new AttributesTable { { "text", $"{rec.連番}" },{ "type", 1 } });
+                yield return new Feature(point2, new AttributesTable { { "text", $"{rec.連番}" },{ "type", 1 } });
             }
         }
         // 始点と終点を最後にプロットし前面に表示されるようにする
@@ -2585,11 +2679,11 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             // 始点と終点が同一座標の場合
             if (start is not null)
             {
-                yield return new Feature(start.ジオメトリ, new AttributesTable { { "text", "始" } });
+                yield return new Feature(start.ジオメトリ, new AttributesTable { { "text", "始" }, { "type", 2 } });
             }
             if (end is not null)
             {
-                yield return new Feature(end.ジオメトリ, new AttributesTable { { "text", "終" } });
+                yield return new Feature(end.ジオメトリ, new AttributesTable { { "text", "終" }, { "type", 3 } });
             }
         }
     }

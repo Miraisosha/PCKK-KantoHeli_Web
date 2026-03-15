@@ -2,6 +2,7 @@
 export function Capital(ctx) {
   const {
     base_url,
+    locationReload,
     tabElement,
     layerRoute,
     set調査地点Source,
@@ -147,7 +148,7 @@ export function Capital(ctx) {
         ajaxExecute(base_url + '?Handler=Plan',
           { method: 'POST', body: formData }, { }
         ).then(async (response) => {
-          location.reload();
+          locationReload();
         }, () => { });
       }
     });

@@ -43,6 +43,7 @@ public class DataService(ILogger<DataService> logger, DbConnection con, Provider
                 {"status", $"{rec.調査状況}" },
                 {"updated", $"{rec.updated_at:yyyy.M.d HH:mm}" },
                 {"color", color},
+                {"type", 1},
             }));
         }
 

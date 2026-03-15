@@ -19,16 +19,6 @@ export function CapitalRoute () {
     const no = feature.get('no');
     const styles = [];
     if (feature.getGeometry().getType() == 'Point') {
-      // 地点色が指定されているなら円で塗りつぶす
-      if (spotColor) {
-        //styles.push(new ol.style.Style({
-        //  image: new ol.style.Circle({
-        //    radius: 14,
-        //    fill: new ol.style.Fill({ color: "red" }),
-        //    stroke: new ol.style.Stroke({ color: color, width: 1 }),
-        //  }),
-        //}));
-      }
       // テキストが指定されていたらそのテキストを表示
       if (text) {
         if (type == 4) {
@@ -88,24 +78,6 @@ export function CapitalRoute () {
       const geometry = feature.getGeometry();
       const coordinates = geometry.getCoordinates();
 
-      // ---- ライン本体 ----
-      if (type == 1) {
-        // 白縁
-        styles.push(new ol.style.Style({
-          stroke: new ol.style.Stroke({
-            color: '#FFFFFF',
-            width: 15
-          }),
-        }));
-      } else {
-        // 本体
-        styles.push(new ol.style.Style({
-          stroke: new ol.style.Stroke({
-            color: '#0000FF',
-            width: 5,
-          }),
-        }));
-      }
       // ===== 始点・終点テキスト表示 =====
       if (no && coordinates.length > 1) {
 
@@ -143,10 +115,59 @@ export function CapitalRoute () {
       if (type == 1) {
         // 調査箇所スタイル
         styles.push(new ol.style.Style({
+          stroke: new ol.style.Stroke({
+            color: '#FFFFFF',
+            width: 15
+          }),
+        }));
+        styles.push(new ol.style.Style({
           stroke: new ol.style.Stroke({ color: spotColor, width: 10, lineDash: [1], }),
         }));
       } else {
         // 通過用スタイル
+        const end = coordinates[coordinates.length - 1];
+        const prev = coordinates[coordinates.length - 2];
+
+        const dx = end[0] - prev[0];
+        const dy = end[1] - prev[1];
+        const rotation = Math.atan2(dy, dx);
+
+        const size = 20 * resolution;
+
+        const p1 = [
+          end[0] - size * Math.cos(rotation),
+          end[1] - size * Math.sin(rotation)
+        ];
+
+        const left = [
+          p1[0] + size * 0.5 * Math.cos(rotation + Math.PI / 2),
+          p1[1] + size * 0.5 * Math.sin(rotation + Math.PI / 2)
+        ];
+
+        const right = [
+          p1[0] + size * 0.5 * Math.cos(rotation - Math.PI / 2),
+          p1[1] + size * 0.5 * Math.sin(rotation - Math.PI / 2)
+        ];
+
+        const triangle = new ol.geom.Polygon([[
+          end,
+          left,
+          right,
+          end
+        ]]);
+
+        console.log("Yazi!" + type);
+        console.log(feature.getGeometry().getType());
+        styles.push(new ol.style.Style({
+          geometry: triangle,
+          fill: new ol.style.Fill({
+            color: '#0000FF'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#000000',
+            width: 2
+          })
+        }));
         styles.push(new ol.style.Style({
           stroke: new ol.style.Stroke({ color: '#0000FF', width: 5, lineDash: [1], }),
         }));

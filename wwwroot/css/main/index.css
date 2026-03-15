@@ -248,16 +248,14 @@
 .map-legend {
   position: absolute;
   right: 12px;
-  bottom: 22px;
-  background: #e6e6e6;
+  /* ボタンの上に表示 */
+  bottom: 60px;
+  background: rgba(255,255,255,0.75);
   border: 2px solid #444;
   padding: 10px 14px;
-  font-size: 14px;
-  color: #000;
-  z-index: 1000;
-  min-width: 260px;
-  background: rgba(255,255,255,0.75);
   border-radius: 8px;
+  font-size: 14px;
+  z-index: 1000;
 }
 
 /* 各行 */
@@ -341,4 +339,43 @@
 }
 .map-legend.hidden {
   display: none;
+}
+/* 凡例ヘッダー */
+.legend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 6px;
+  user-select: none;
+}
+
+/* ×ボタン */
+.legend-close {
+  border: none;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* 本体 */
+.legend-body {
+  font-size: 14px;
+}
+/* 凡例ボタン */
+#btnLegend {
+  position: absolute;
+  right: 12px;
+  bottom: 22px;
+  z-index: 1001;
+  background: rgba(255,255,255,0.7);
+  border: 2px solid #444;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  width:100px;
+}
+#btnLegend {
+  border-radius: 5px;
 }

@@ -2,6 +2,7 @@
 
 export function CreateRoute({
   base_url,
+  locationReload,
   tabElement,
   map,
   mapDraw,
@@ -20,6 +21,7 @@ export function CreateRoute({
 
   // DOM 参照
   const modal調査予定登録Element = document.getElementById('modal調査予定登録');
+  const modalInstance = bootstrap.Modal.getOrCreateInstance(modal調査予定登録Element);
   const source調査地点 = new ol.source.Vector();
   const selルート作成起点 = (tabElement) ? tabElement.querySelector('select[name="selルート作成起点"]') : null;
   const selルート作成終点 = (tabElement) ? tabElement.querySelector('select[name="selルート作成終点"]') : null;
@@ -118,9 +120,9 @@ export function CreateRoute({
       // ルート表示実施（距離算出処理実行、自動ルート作成は解除しない）
       //autoCalculateDistance(false);
     }, (error) => {
-      if (tempid) {
-        location.reload(); // エラー（その一時保存データが編集できない）なら画面再読み込み
-      }
+      //if (tempid) {
+      //  location.reload(); // エラー（その一時保存データが編集できない）なら画面再読み込み
+      //}
     });
   };
   function show() {
@@ -224,29 +226,6 @@ export function CreateRoute({
   });
 
   // ---------------------------------------------------------------------------------
-  // create調査予定FormData
-  const create調査予定FormData = (mode) => {
-    modal調査予定登録Element.querySelector('input[name="mode"]').value = mode;
-    const opt起点 = selルート作成起点.options[selルート作成起点.selectedIndex];
-    const opt終点 = selルート作成終点.options[selルート作成終点.selectedIndex];
-    const opt人数 = sel搭乗人数.options[sel搭乗人数.selectedIndex];
-    const auto = tabElement.querySelector( 'input[name="radioルート作成モード"]:checked' ).value === "true";
-
-    const formData = new FormData(modal調査予定登録Element);
-    formData.append('input.startid', opt起点.dataset.id || '');
-    formData.append('input.endid', opt終点.dataset.id || '');
-    formData.append('input.auto', auto ? 1 : 0);
-    formData.append('auto', auto ? 1 : 0);
-    formData.append('startx', opt起点.dataset.x || '');
-    formData.append('starty', opt起点.dataset.y || '');
-    formData.append('endx', opt終点.dataset.x || '');
-    formData.append('endy', opt終点.dataset.y || '');
-    formData.append('input.num_people', opt人数.value || '');
-    for (let id of (getSelectedFeatureIds() || [])) { formData.append('id', id); }
-    return formData;
-  };
-
-  // ---------------------------------------------------------------------------------
   // 距離算出処理
   const autoCalculateDistance = (calc = null) => {
     console.log("autoCalculateDistance:!!");
@@ -255,9 +234,7 @@ export function CreateRoute({
       document.getElementById('radioルート手動作成').checked = true;
     }
     const title = calc ? 'ルート自動作成' : 'ルート作成';
-    const formData = create調査予定FormData(calc ? 'calc' : '');
-    console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    const formData = createRoutePlanFormData(calc ? 'calc' : '');
     ajaxExecute(base_url + '?Handler=Plan',
       { method: 'POST', body: formData },
       { title: title, form: tabElement, progress: calc ? '最短ルート自動作成中' : null },
@@ -283,7 +260,8 @@ export function CreateRoute({
       setSelectedFeatureIds(json.id || []);
       source調査地点.changed();
       tbody.querySelectorAll(`input[type="checkbox"][name="id"]:checked`).forEach((cb) => {
-        const index = (getSelectedFeatureIds() || []).indexOf(cb.value);
+        const id = Number(cb.value);
+        const index = (getSelectedFeatureIds() || []).indexOf(id);
         if (index == -1) {
           cb.checked = false;
           cb.disabled = true;
@@ -384,19 +362,19 @@ export function CreateRoute({
       { method: 'POST', body: formData },
       { title: '一時保存ルート呼出・削除' }
     ).then((response) => {
-      location.href = `?tab=tabルート作成`;
+      locationReload();
     }, () => { });
   });
 
   // ---------------------------------------------------------------------------------
   // 調査予定登録関連イベント
-  const btn調査予定登録実行 = modal調査予定登録Element.querySelector('button[value="register"]');
+  const btn調査予定登録実行 = document.getElementById('btnRouteRegister')
   const elem飛行時間超過 = document.getElementById('modalRouteCreateOverflow');
   const modal飛行時間超過 = new bootstrap.Modal(elem飛行時間超過);
   let btnValue = {};
   document.querySelectorAll('button[name="btn調査予定登録"]').forEach((button) => {
     button.addEventListener('click', (e) => {
-      const formData = create調査予定FormData('check');
+      const formData = createRoutePlanFormData('check');
       ajaxExecute(modal調査予定登録Element.action,
         { method: 'POST', body: formData },
         { title: button.dataset.modaltitle, form: tabElement }
@@ -417,8 +395,7 @@ export function CreateRoute({
         modal調査予定登録Element.querySelector('.modal-title').innerHTML = button.dataset.modaltitle;
         modal調査予定登録Element.querySelector('.modal-body>div:first-child').innerHTML = button.dataset.modalcaption;
         btn調査予定登録実行.innerHTML = button.dataset.modalbutton;
-        const modal = bootstrap.Modal.getOrCreateInstance(modal調査予定登録Element);
-        modal.show();
+        modalInstance.show();
         btn調査予定登録実行.value = button.value;
       }, () => { });
     });
@@ -441,30 +418,79 @@ export function CreateRoute({
     modal調査予定登録Element.querySelector('.modal-title').innerHTML = btnValue.title;
     modal調査予定登録Element.querySelector('.modal-body>div:first-child').innerHTML = btnValue.caption;
     btn調査予定登録実行.innerHTML = btnValue.button;
-    const modal = bootstrap.Modal.getOrCreateInstance(modal調査予定登録Element);
-    modal.show();
+    modalInstance.show();
     btn調査予定登録実行.value = 'register';
   });
 
   if (btn調査予定登録実行) {
-    btn調査予定登録実行.addEventListener('click', async (e) => {
-      const formData = create調査予定FormData(btn調査予定登録実行.value);
-      const elemKml = document.querySelector('input[type="checkbox"][name="input.kml"]');
-      ajaxExecute(base_url + '?Handler=Plan',
-        { method: 'POST', body: formData },
-        { title: modal調査予定登録Element.querySelector('.modal-title').innerHTML, form: modal調査予定登録Element }
-      ).then(async (response) => {
-        console.log(response);
-        console.log(elemKml.checked);
-        if (elemKml.checked) {
-          return false;
-        } else {
-          return false;
-//          location.href = `?`;
+    btn調査予定登録実行.addEventListener('click', (e) => {
+      //e.preventDefault();
+      //e.stopPropagation();
+      const formData = createRoutePlanFormData(btn調査予定登録実行.value);
+      const elemKml = document.querySelector('input[name="input.kml"]');
+      // -----------------------------
+      // 登録処理
+      const response = fetch(base_url + '?Handler=Plan', {
+        method: 'POST',
+        body: formData
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error('登録処理に失敗しました');
         }
+        return response.json();
+      }).then(res => {
+        if (!res.success) {
+          throw new Error('サーバーエラー');
+        }
+        const routeId = res.success.id;
+        // -----------------------------
+        // KMLダウンロード
+        if (elemKml.checked) {
+          const url = root_url + '/files/FlightRoute/' + routeId + '.kml';
+          const a = document.createElement('a');
+          a.href = url;
+          a.target = '_blank';
+          a.click();
+        }
+        // -----------------------------
+        // 完了ダイアログ
+        const modalElement = document.getElementById("modalRouteRegister");
+        const modal = new bootstrap.Modal(modalElement);
+        document.getElementById('lblRouteRegisterTitle').innerHTML = 
+          modal調査予定登録Element.querySelector('.modal-title').innerHTML;
+        document.getElementById('lblRouteRegisterMessage').innerHTML = 
+          res.success.isTemp ? '一時保存が完了しました。' : '調査予定ルートの公開が完了しました。';
+        modal.show();
+        // -----------------------------
+        // モーダル閉じる
+        modalInstance.hide();
       });
     });
   }
+  // ---------------------------------------------------------------------------------
+  // createRoutePlanFormData
+  const createRoutePlanFormData = (mode) => {
+    modal調査予定登録Element.querySelector('input[name="mode"]').value = mode;
+    const opt起点 = selルート作成起点.options[selルート作成起点.selectedIndex];
+    const opt終点 = selルート作成終点.options[selルート作成終点.selectedIndex];
+    const opt人数 = sel搭乗人数.options[sel搭乗人数.selectedIndex];
+    const auto = tabElement.querySelector( 'input[name="radioルート作成モード"]:checked' ).value === "true";
+
+    const formData = new FormData(modal調査予定登録Element);
+    formData.append('input.startid', opt起点.dataset.id || '');
+    formData.append('input.endid', opt終点.dataset.id || '');
+    formData.append('input.auto', auto ? 1 : 0);
+    formData.append('auto', auto ? 1 : 0);
+    formData.append('startx', opt起点.dataset.x || '');
+    formData.append('starty', opt起点.dataset.y || '');
+    formData.append('endx', opt終点.dataset.x || '');
+    formData.append('endy', opt終点.dataset.y || '');
+    formData.append('input.num_people', opt人数.value || '');
+    for (let id of (getSelectedFeatureIds() || [])) { formData.append('id', id); }
+    return formData;
+  };
+
+  // ---------------------------------------------------------------------------------
   const getSpotTypeDisplay = (spottype) => {
     let text = spottype;
     text = text.replace('河川KP', 'KPデータ（河川）');
