@@ -1676,7 +1676,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             }
             if (geom is Point p)
             {
-                var r = t調査箇所Records.FirstOrDefault(r => r.調査箇所id == rec.調査予定id && r.deleted_at == null);
+                var r = t調査箇所Records.FirstOrDefault(r => r.調査箇所id == rec.調査箇所id && r.deleted_at == null);
                 if (r is not null)
                 {
                     if(r.調査手法 == 調査手法Enum.周回)
