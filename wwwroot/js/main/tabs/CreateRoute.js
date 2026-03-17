@@ -239,6 +239,7 @@ export function CreateRoute({
       { method: 'POST', body: formData },
       { title: title, form: tabElement, progress: calc ? '最短ルート自動作成中' : null },
     ).then((json) => {
+      console.log(json);
       // 得られた調査ルートを表示反映
       layer.getSource().clear();
       if (json.経路) {

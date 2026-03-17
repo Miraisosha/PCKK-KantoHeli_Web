@@ -1,5 +1,5 @@
 export function KPManager(ctx) {
-  const { map, layers, sources, ui} = ctx;
+  const { map, layers, sources, ui, styles, events } = ctx;
   let onConfirmCallback = null;
 
   const {
@@ -21,7 +21,16 @@ export function KPManager(ctx) {
     selRoadRiver,
     startKp,
     endKp
-  } = ui
+  } = ui;
+  const {
+    styleKP,
+    styleKPLine
+  } = styles;
+  const {
+    onMouseOverKPRiver,
+    onMouseOverKPRoad,
+    onMouseOutKP,
+  } = events;
 
   let isRiver = true;
   let kpProp = null
@@ -56,16 +65,16 @@ export function KPManager(ctx) {
     hideAllKPLayers();
     sources.mapKPSource.clear();
     layerKP河川.setStyle(function (f) {
-      return styleKPRiver(f);
+      return styles.styleKP(f);
     });
     layerKPLine河川.setStyle(function (f) {
-      return styleKPLineRiver(f);
+      return styles.styleKPLine(f);
     });
     layerKP道路.setStyle(function (f) {
-      return styleKPRiver(f);
+      return styles.styleKP(f);
     });
     layerKPLine道路.setStyle(function (f) {
-      return styleKPLineRiver(f);
+      return styles.styleKPLine(f);
     });
   }
 
@@ -186,21 +195,21 @@ export function KPManager(ctx) {
   // 河川・道路プルダウン　イベント
   selRoadRiver.addEventListener('change', e => {
     mapKPSource.clear();
-    const values = e.target.value.split('_');
-    if (values.length == 3) {
+    const parts = e.target.value.split('_');
+    if (isRiver) {
       layerKP河川.setStyle(function (f) {
-        return (isSameGroup(f, values)) ? styleKPRiver(f) : null;
+        return (isSameGroup(f, parts)) ? styles.styleKP(f) : null;
       });
       layerKPLine河川.setStyle(function (f) {
-        return (isSameGroup(f, values)) ? styleKPLineRiver(f) : null;
+        return (isSameGroup(f, parts)) ? styles.styleKPLine(f) : null;
       });
       zoomKPLine(layerKP河川);
-    } else if (values.length == 7) {
+    } else {
       layerKP道路.setStyle(function (f) {
-        return (isSameGroup(f, values)) ? styleKPRiver(f) : null;
+        return (isSameGroup(f, parts)) ? styles.styleKP(f) : null;
       });
       layerKPLine道路.setStyle(function (f) {
-        return (isSameGroup(f, values)) ? styleKPLineRiver(f) : null;
+        return (isSameGroup(f, parts)) ? styles.styleKPLine(f) : null;
       });
       zoomKPLine(layerKP道路);
     }
@@ -295,11 +304,11 @@ export function KPManager(ctx) {
 
       if (mapKPSource.getFeatures().length === 0) {
         if (hoverLayer === layerKP河川) {
-          layerKP河川.setStyle(styleKPRiver);
-          layerKPLine河川.setStyle(styleKPLineRiver);
+          layerKP河川.setStyle(styles.styleKP);
+          layerKPLine河川.setStyle(styles.styleKPLine);
         } else if (hoverLayer === layerKP道路) {
-          layerKP道路.setStyle(styleKPRoad);
-          layerKPLine道路.setStyle(styleKPLineRoad);
+          layerKP道路.setStyle(styles.styleKP);
+          layerKPLine道路.setStyle(styles.styleKPLine);
         }
       }
       return;
@@ -309,19 +318,19 @@ export function KPManager(ctx) {
       setSelectedKPPoint(feature, 'startKp');
       if (feature._hoverLayer === layerKP河川) {
         layerKP河川.setStyle(function (f) {
-          return isSameGroup(f, getParts(feature)) ? styleKPRiver(f) : null;
+          return isSameGroup(f, getParts(feature)) ? styles.styleKP(f) : null;
         });
         layerKPLine河川.setStyle(function (f) {
-          return isSameGroup(f, getParts(feature)) ? styleKPLineRiver(f) : null;
+          return isSameGroup(f, getParts(feature)) ? styles.styleKPLine(f) : null;
         });
         // 距離標登録ダイアログ　入力補助
         setKPModalSelection(getParts(feature).join('_'), feature.get('距離標'));
       } else if (feature._hoverLayer === layerKP道路) {
         layerKP道路.setStyle(function (f) {
-          return isSameGroup(f, getParts(feature)) ? styleKPRiver(f) : null;
+          return isSameGroup(f, getParts(feature)) ? styles.styleKP(f) : null;
         });
         layerKPLine道路.setStyle(function (f) {
-          return isSameGroup(f, getParts(feature)) ? styleKPLineRiver(f) : null;
+          return isSameGroup(f, getParts(feature)) ? styles.styleKPLine(f) : null;
         });
         // 距離標登録ダイアログ　入力補助
         setKPModalSelection(getParts(feature).join('_'), feature.get('地点標名称'));
@@ -351,16 +360,16 @@ export function KPManager(ctx) {
 
     // マウスアウト
     if (overFeature && overFeature !== feature) {
-      onMouseOut(overFeature);
+      events.onMouseOutKP(overFeature);
       overFeature = null;
     }
 
     // マウスオーバー
     if (feature && feature !== overFeature) {
       if (feature._hoverLayer === layerKP河川) {
-        onMouseOverKPRiver(feature);
+        events.onMouseOverKPRiver(feature);
       } else if (feature._hoverLayer === layerKP道路) {
-        onMouseOverKPRoad(feature);
+        events.onMouseOverKPRoad(feature);
       }
       overFeature = feature;
     }
@@ -416,55 +425,6 @@ export function KPManager(ctx) {
       setSelectedKPPoint(nearest, elem.target.id);
     }
     return nearest;
-  }
-
-  // ================================================================
-  // 検索条件
-  function isSameGroup(feature, parts) {
-    if (!feature || !parts) return false;
-
-    // 河川
-    if (parts.length === 3) {
-      if (isRiver) {
-        return feature.get('水系名') == parts[0]
-          && feature.get('河川名') == parts[1]
-          && feature.get('左右岸') == parts[2];
-      } else {
-        return String(feature.get('路線')) == parts[0]
-          && feature.get('現旧新区分') == parts[1]
-          && feature.get('上下区分') == parts[2]
-      }
-    }
-
-    // 道路
-//    if (parts.length === 7) {
-//      if (feature.get('地方整備局') == parts[0]
-//        && feature.get('事務所') == parts[1]
-//        && feature.get('道路種別') == parts[2]
-//        && String(feature.get('路線')) == parts[3]
-//        && feature.get('現旧新区分') == parts[4]
-//        && feature.get('上下区分') == parts[5]
-//        && feature.get('補助番号') == parts[6])
-//      {
-////          console.log([
-////            feature.get('地方整備局'),
-////            feature.get('事務所'),
-////            feature.get('道路種別'),
-////            feature.get('路線'),
-////            feature.get('現旧新区分'),
-////            feature.get('上下区分'),
-////            feature.get('補助番号')
-////          ]);
-//        }
-//      return feature.get('地方整備局') == parts[0]
-//        && feature.get('事務所') == parts[1]
-//        && feature.get('道路種別') == parts[2]
-//        && String(feature.get('路線')) == parts[3]
-//        && feature.get('現旧新区分') == parts[4]
-//        && feature.get('上下区分') == parts[5]
-//        && feature.get('補助番号') == parts[6];
-//    }
-    return false;
   }
 
   // ================================================================
@@ -571,7 +531,6 @@ export function KPManager(ctx) {
     });
   })();
 
-
   // ================================================================
   // 選択完了　ライン表示
   const showSelectedLine = (features) => {
@@ -625,6 +584,26 @@ export function KPManager(ctx) {
     mapKPSource.clear();
   }
   // ================================================================
+  // 検索条件
+  function isSameGroup(feature, parts) {
+    if (!feature || !parts) return false;
+
+    // 河川
+    if (parts.length === 3) {
+      if (isRiver) {
+        return feature.get('水系名') == parts[0]
+          && feature.get('河川名') == parts[1]
+          && feature.get('左右岸') == parts[2];
+      } else {
+        return String(feature.get('路線')) == parts[0]
+          && feature.get('現旧新区分') == parts[1]
+          && feature.get('上下区分') == parts[2]
+      }
+    }
+    return true;
+  }
+
+  // ================================================================
   // featureから絞り込み条件を取得
   function getParts(feature) {
     // 河川
@@ -635,14 +614,6 @@ export function KPManager(ctx) {
         feature.get('左右岸')];
     // 道路
     } else {
-//      return [
-//        feature.get('地方整備局'),
-//        feature.get('事務所'),
-//        feature.get('道路種別'),
-//        feature.get('路線'),
-//        feature.get('現旧新区分'),
-//        feature.get('上下区分'),
-//        feature.get('補助番号')];
       return [
         feature.get('路線'),
         feature.get('現旧新区分'),

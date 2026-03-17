@@ -199,9 +199,11 @@ public sealed class FlightRouteKmlGenerator
     /// <returns></returns>
     private XElement CreateSurveyLine(XNamespace ns, FlightRoute r, LineString line)
     {
+        var name = r.name?.ToString() ?? $"{r.name}";
+        name += "（" + ((r.survey == 調査手法Enum.通過) ? "通過" : "周回") + "）";
         // --- ライン ---
         var lineElement = new XElement(ns + "Placemark",
-            new XElement(ns + "name", r.name ?? $"Route {r.no}"),
+            new XElement(ns + "name", name),
             new XElement(ns + "styleUrl", "#SurveyLine"),
             new XElement(ns + "LineString",
                 new XElement(ns + "coordinates",

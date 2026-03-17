@@ -6,7 +6,7 @@ export function EditRoute() {
       visible:false,
       style: function (feature, resolution) {
         const color = feature.get('color') || '#0000FF';
-        const strokeColor = isBrightColor(color) ? '#000000' : '#FFFFFF';
+        const strokeColor = '#FFFFFF';
         const spotColor = feature.get('spotColor');
         const text = feature.get('text');
         const styles = [];

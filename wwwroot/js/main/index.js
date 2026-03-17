@@ -14,6 +14,7 @@ import { HeliPort as HeliPortLayer } from './Layers/HeliPort.js';
 import { EditRoute as EditRouteLayer } from './Layers/EditRoute.js';
 import { CapitalRoute as CapitalRouteLayer } from './Layers/CapitalRoute.js';
 import { SurveyRoute as SurveyRouteLayer } from './Layers/SurveyRoute.js';
+import { SurveyKp } from './Layers/SurveyKp.js';
 
 const base_url = location.origin + location.pathname;
 const segments = location.pathname.split("/").filter(Boolean);
@@ -21,6 +22,7 @@ const threadId = segments[segments.length - 1];
 const appName = segments.length > 2 ? `/${segments[0]}` : '';
 const root_url = location.origin + appName;
 
+const surveyKp = SurveyKp({ root_url });
 
 // 地図表示（以下の順にレイヤを作成・追加する
 const map = window.app.map;
@@ -54,17 +56,17 @@ const layerヘリポート = HeliPortLayer().getLayer(map);
 
 // ---------------------------------------------
 // 調査依頼　距離標選択
-const layerKPLine河川         = createKPLineRiver(map);           // 距離標　河川 Line
-const layerKPLine道路         = createKPLineRoad(map);            // 距離標　道路 Line
-const layerKP河川             = createKPRiver(map);               // 距離標　河川 Point
-const layerKP道路             = createKPRoad(map);                // 距離標　道路 Point
-const layerSelectionKP        = createSelectionKPLayer(map);      // 選択中 Point
-const layerSelectedKPLine     = createSelectedKPLineLayer(map);   // 選択完了 Line
+const layerKPLine河川         = surveyKp.createKPLineRiver();           // 距離標　河川 Line
+const layerKPLine道路         = surveyKp.createKPLineRoad();            // 距離標　道路 Line
+const layerKP河川             = surveyKp.createKPRiver();               // 距離標　河川 Point
+const layerKP道路             = surveyKp.createKPRoad();                // 距離標　道路 Point
+const layerSelectionKP        = surveyKp.createSelectionKPLayer();      // 選択中 Point
+const layerSelectedKPLine     = surveyKp.createSelectedKPLineLayer();   // 選択完了 Line
 
 const mapKPSource             = new ol.source.Vector();
 const mapSelectedKPLineSource =  new ol.source.Vector();
-const mapKPSource河川         = setKPSource('River');
-const mapKPSource道路         = setKPSource('Road');
+const mapKPSource河川         = surveyKp.setKPSource('River');
+const mapKPSource道路         = surveyKp.setKPSource('Road');
 
 layerKP河川.set('drawType', 'River');
 layerKP道路.set('drawType', 'Road');
@@ -122,6 +124,15 @@ const kpManager = KPManager({
     selRoadRiver: document.getElementById('selRoadRiver'),
     startKp: document.getElementById('startKp'),
     endKp: document.getElementById('endKp')
+  },
+  styles: {
+    styleKP: surveyKp.styleKP,
+    styleKPLine: surveyKp.styleKPLine,
+  },
+  events: {
+    onMouseOverKPRiver: surveyKp.onMouseOverKPRiver,
+    onMouseOverKPRoad: surveyKp.onMouseOverKPRoad,
+    onMouseOutKP: surveyKp.onMouseOutKP,
   },
 });
 
@@ -317,7 +328,7 @@ document.querySelectorAll('#bottomArea table>tbody').forEach((tbody) => {
 const tooltipElement = document.createElement('div');
 tooltipElement.className = 'ol-tooltip';
 tooltipElement.style.position = 'absolute';
-tooltipElement.style.backgroundColor = '#FFFCA6';
+tooltipElement.style.backgroundColor = '#FFFEDD';
 tooltipElement.style.padding = '4px 8px';
 tooltipElement.style.border = '1px solid #FFF837';
 tooltipElement.style.borderRadius = '4px';
@@ -341,8 +352,13 @@ map.on('pointermove', function (evt) {
 
   if (feature) {
     const name = feature.get('name');
+    const survey = feature.get('survey');
     if (name) {
-      tooltipElement.innerHTML = name;
+      if (survey) {
+        tooltipElement.innerHTML = name + "（" + survey + "）";
+      } else {
+        tooltipElement.innerHTML = name;
+      }
       tooltipOverlay.setPosition(evt.coordinate);
       tooltipElement.style.display = 'block';
     }

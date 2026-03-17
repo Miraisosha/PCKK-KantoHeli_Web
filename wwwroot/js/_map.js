@@ -106,258 +106,58 @@ window.app.map = createMap(
   document.getElementById('sel背景地図選択')
 );
 
-/**
- * 汎用：指定された色コードが明るい色か否かを返します。
- * @param {string} colorText 色コードの文字列「#FF8800」など
- * @returns 明るい色ならtrue
- */
-const isBrightColor = (colorText) => {
-  // 先頭の # を除去しRGB値に分解
-  const hex = colorText.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  // 輝度を計算（一般的な加重平均式）
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  // 閾値128を基準に明るさを判定
-  return (brightness > 128);
-}
+///**
+// * 汎用：指定された色コードが明るい色か否かを返します。
+// * @param {string} colorText 色コードの文字列「#FF8800」など
+// * @returns 明るい色ならtrue
+// */
+//const isBrightColor = (colorText) => {
+//  // 先頭の # を除去しRGB値に分解
+//  const hex = colorText.replace('#', '');
+//  const r = parseInt(hex.substring(0, 2), 16);
+//  const g = parseInt(hex.substring(2, 4), 16);
+//  const b = parseInt(hex.substring(4, 6), 16);
+//  // 輝度を計算（一般的な加重平均式）
+//  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+//  // 閾値128を基準に明るさを判定
+//  return (brightness > 128);
+//}
 
-/**
- * 調査地点レイヤを作成します
- * @param {ol.Map} map mapオブジェクト
- * @param {?(feature: ol.Feature)=>boolean} isSelectedFunc 引数で指定されたfeatureを選択状態で表示するかを判定する関数
- * @remarks レイヤのfeatureに「color」プロパティで表示色を指定する。指定なしの場合は黒色表示とする。画面下部編集レイヤでは赤色固定とすること
- * @remarks レイヤのfeatureに「checkbox」プロパティで紐づくcheckboxを指定した場合、チェック状態がONであれば選択状態として表示する。チェック状態変更を行った／検知したらsource.changed()を呼び出すこと。
- */
-// rgb / color 値のパース（配列、"r,g,b"、"#rrggbb" を許容）
-// color プロパティ（"#RRGGBB"）があれば優先して使うように変更
-function parseRgbValue(val) {
-  if (!val && val !== 0) return null;
-  // 配列 [r,g,b]
-  if (Array.isArray(val) && val.length >= 3) {
-    const nums = val.slice(0, 3).map(n => Number(n));
-    if (nums.every(n => !Number.isNaN(n))) return nums;
-    return null;
-  }
-  // 文字列
-  if (typeof val === 'string') {
-    const s = val.trim();
-    // "#RRGGBB" または "RRGGBB"
-    const hexMatch = s.match(/^#?([0-9a-fA-F]{6})$/);
-    if (hexMatch) {
-      const hex = hexMatch[1];
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
-      return [r, g, b];
-    }
-    // "r,g,b" や "r g b"
-    const parts = s.split(/[, \t]+/).map(p => Number(p));
-    if (parts.length >= 3 && parts.slice(0, 3).every(n => !Number.isNaN(n))) {
-      return parts.slice(0, 3);
-    }
-  }
-  // 数値は不正（期待しないが保険）
-  return null;
-}
-// ********************************************************************************************
-// ********************************************************************************************
-// 調査地点追加　距離標　登録
-// ********************************************************************************************
-// ********************************************************************************************
-const kp_font = '14px sans-serif';
-const kp_font_offset = -18;
-/**
- * 河川　距離標レイヤ作成
- * 
- * @param {any} map
- * @returns
- */
-const createKPRiver = (map) => {
-  const layer = new ol.layer.Vector({
-    style: styleKPRiver,
-    visible: false
-  });
-  return layer;
-};
-function setKPSource(drawType) {
-  let url = null;
-  if (drawType == 'River') {
-    url = root_url + '/files/kp_river_point.json'
-  } else if (drawType == 'Road') {
-    url = root_url + '/files/kp_road_point.json'
-  } else {
-    return null;
-  }
-  return new ol.source.Vector({
-    url: url,
-    format: new ol.format.GeoJSON({
-      dataProjection: 'EPSG:4326',
-      featureProjection: 'EPSG:3857'
-    })
-  })
-}
-function styleKPRiver(feature) {
-  const styles = [];
-  styles.push(
-    new ol.style.Style({
-      image: new ol.style.Circle({
-        radius: 5,
-        fill: new ol.style.Fill({ color: 'blue' }),
-        stroke: new ol.style.Stroke({ color: '#fff', width: 1 })
-      })
-    })
-  );
-  styles.push(
-    new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: 'blue',
-        width: 2
-      })
-    })
-  );
-  return styles;
-}
-function onMouseOverKPRiver(feature) {
-  feature.setStyle(new ol.style.Style({
-    image: new ol.style.Circle({
-      radius: 7,
-      fill: new ol.style.Fill({ color: 'orange' }),
-      stroke: new ol.style.Stroke({ color: '#fff', width: 2 })
-    }),
-    text: new ol.style.Text({
-      text: feature.get('左右岸') + " " + Number(feature.get('距離標')) + "KP",
-      font: kp_font,
-      fill: new ol.style.Fill({ color: '#000' }),
-      stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
-      offsetY: kp_font_offset,
-    })
-  }));
-}
-const createKPLineRiver = (map) => {
-  const layer = new ol.layer.Vector({
-    source: new ol.source.Vector({
-      url: root_url + '/files/kp_river_line.json',
-      format: new ol.format.GeoJSON({
-        dataProjection: 'EPSG:4326',     // GeoJSON の座標系
-        featureProjection: 'EPSG:3857'   // 地図表示用
-      })
-    }),
-    style: styleKPLineRiver,
-    visible:false 
-  });
-  return layer;
-}
-function styleKPLineRiver(feature) {
-  return new ol.style.Style({
-    stroke: new ol.style.Stroke({
-      color: '#81AFFF',
-      width: 2
-    })
-  });
-}
-
-/**
- * 道路　距離標レイヤ作成
- * 
- * @param {any} map
- * @returns
- */
-const createKPRoad = (map) => {
-  const layer = new ol.layer.Vector({
-    style: styleKPRoad,
-    visible:false,
-  });
-  return layer;
-};
-function styleKPRoad(feature) {
-  return new ol.style.Style({
-    image: new ol.style.Circle({
-      radius: 5,
-      fill: new ol.style.Fill({ color: 'blue' }),
-      stroke: new ol.style.Stroke({ color: '#fff', width: 1 })
-    }),
-//    text: new ol.style.Text({
-//      text: feature.get('路線') + "号線 " + feature.get('地点標名称') + "KP",
-//      font: '8px sans-serif',
-//      fill: new ol.style.Fill({ color: '#000' }),
-//      stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
-//      offsetY: 12
-//    })
-  });
-}
-function onMouseOverKPRoad(feature) {
-  feature.setStyle(new ol.style.Style({
-    image: new ol.style.Circle({
-      radius: 7,
-      fill: new ol.style.Fill({ color: 'orange' }),
-      stroke: new ol.style.Stroke({ color: '#fff', width: 2 })
-    }),
-    text: new ol.style.Text({
-      text: feature.get('路線') + "号線 " + feature.get('地点標名称') + "KP",
-      font: kp_font,
-      fill: new ol.style.Fill({ color: '#000' }),
-      stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
-      offsetY: kp_font_offset,
-    })
-  }));
-
-}
-function onMouseOut(feature) {
-  feature.setStyle(undefined);
-}
-
-/**
- * 距離標選択状態
- * 
- * @param {any} map
- * @returns
- */
-const createSelectionKPLayer = (map) => {
-  const selectLayer = new ol.layer.Vector({
-    style: new ol.style.Style({
-      image: new ol.style.Circle({
-        radius: 10,
-        stroke: new ol.style.Stroke({
-          color: 'red',
-          width: 3
-        }),
-        fill: new ol.style.Fill({
-          color: 'rgba(255,0,0,0.2)'
-        })
-      })
-    })
-  });
-  return selectLayer;
-}
-/**
- * 距離標選択完了時のライン
- * @param {any} map
- */
-const createSelectedKPLineLayer = (map) => {
-  const layer = new ol.layer.Vector({
-    style: new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: '#0396FE',
-        width: 4
-      })
-    })
-  });
-  return layer;
-}
-
-const createKPLineRoad = (map) => {
-  const layer = new ol.layer.Vector({
-    source: new ol.source.Vector({
-      url: root_url + '/files/kp_road_line.json',
-      format: new ol.format.GeoJSON({
-        dataProjection: 'EPSG:4326',     // GeoJSON の座標系
-        featureProjection: 'EPSG:3857'   // 地図表示用
-      })
-    }),
-    style: styleKPLineRiver,
-    visible: false
-  });
-  return layer;
-}
+///**
+// * 調査地点レイヤを作成します
+// * @param {ol.Map} map mapオブジェクト
+// * @param {?(feature: ol.Feature)=>boolean} isSelectedFunc 引数で指定されたfeatureを選択状態で表示するかを判定する関数
+// * @remarks レイヤのfeatureに「color」プロパティで表示色を指定する。指定なしの場合は黒色表示とする。画面下部編集レイヤでは赤色固定とすること
+// * @remarks レイヤのfeatureに「checkbox」プロパティで紐づくcheckboxを指定した場合、チェック状態がONであれば選択状態として表示する。チェック状態変更を行った／検知したらsource.changed()を呼び出すこと。
+// */
+//// rgb / color 値のパース（配列、"r,g,b"、"#rrggbb" を許容）
+//// color プロパティ（"#RRGGBB"）があれば優先して使うように変更
+//function parseRgbValue(val) {
+//  if (!val && val !== 0) return null;
+//  // 配列 [r,g,b]
+//  if (Array.isArray(val) && val.length >= 3) {
+//    const nums = val.slice(0, 3).map(n => Number(n));
+//    if (nums.every(n => !Number.isNaN(n))) return nums;
+//    return null;
+//  }
+//  // 文字列
+//  if (typeof val === 'string') {
+//    const s = val.trim();
+//    // "#RRGGBB" または "RRGGBB"
+//    const hexMatch = s.match(/^#?([0-9a-fA-F]{6})$/);
+//    if (hexMatch) {
+//      const hex = hexMatch[1];
+//      const r = parseInt(hex.substr(0, 2), 16);
+//      const g = parseInt(hex.substr(2, 2), 16);
+//      const b = parseInt(hex.substr(4, 2), 16);
+//      return [r, g, b];
+//    }
+//    // "r,g,b" や "r g b"
+//    const parts = s.split(/[, \t]+/).map(p => Number(p));
+//    if (parts.length >= 3 && parts.slice(0, 3).every(n => !Number.isNaN(n))) {
+//      return parts.slice(0, 3);
+//    }
+//  }
+//  // 数値は不正（期待しないが保険）
+//  return null;
+//}

@@ -1648,7 +1648,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // 調査ルートのfeatureを生成(ただし手動描画ルートがあるならそれを優先)
         LineString? routeLineString = line手動描画ルート ?? Get調査ルートLineString(tルートRecords);
 
-
         // ---------------------------------------------------------------------
         // 距離/飛行情報
         var distance = Calc距離(routeLineString) / 1000;
@@ -1684,10 +1683,9 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                         点調査時間 += 2;
                     }
                 }
-
             }
         }
-        var 飛行時間 = 移動時間 + 線調査時間 + 点調査時間 + (調査箇所数 * 2);
+        var 飛行時間 = 移動時間 + 線調査時間 + 点調査時間 + (調査箇所数 * 2) + ((no - 1) * 1);
         logger.LogInformation("飛行時間：" + 飛行時間 + "\t移動時間：" + 移動時間 + "\t調査時間（線）：" + 線調査時間 + "\t調査時間（点）：" + 点調査時間 + "\t調査箇所数" + 調査箇所数);
 
         double 飛行可能時間 = input.num_people switch
@@ -1735,7 +1733,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                         features,
                     },
                     飛行距離 = distance is not null ? $"{distance:#0.0}Km" : null,
-                    調査箇所 = id.Length > 0 ? $"{id.Length}箇所" : null,
+                    調査箇所 = $"{no - 1}箇所",
                     //飛行時間 = val飛行時間_分 is not null ? $"{Math.Floor(val飛行時間_分.Value / 60):0}時間{val飛行時間_分 % 60:0}分" : null,
                     調査時間 = $"{Math.Floor(飛行時間 / 60):0}時間{飛行時間 % 60:0}分",
                     飛行時間分 = 飛行時間,

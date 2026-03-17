@@ -12,7 +12,7 @@ export function HeliPort() {
 
     const layer = new ol.layer.Vector({
       source: new ol.source.Vector({
-        url: root_url + "/files/heliports.json",
+        url: root_url + "/files/heliports.geojson",
         format: new ol.format.GeoJSON(),
       }),
       style: style,
