@@ -382,8 +382,8 @@ export function KPManager(ctx) {
   // 数値入力制限（km）
   // 一番近い距離標を選択
   [startKp, endKp].forEach(input => {
-    input.addEventListener('input', () => {
-      input.value = input.value.replace(/[^0-9.]/g, '');
+    input.addEventListener('blur', () => {
+      input.value = input.value.replace(/[^0-9.\-]/g, '');
     });
     input.addEventListener('change', selectNearestKP);
   });
@@ -393,12 +393,10 @@ export function KPManager(ctx) {
     if (!key) return;
     const parts = key.split('_');
     let source = null;
-    if (parts.length === 3) {
+    if (isRiver) {
       source = mapKPSource河川;
-    } else if (parts.length === 7) {
-      source = mapKPSource道路;
     } else {
-      return;
+      source = mapKPSource道路;
     }
 
     if (! /^-?(?:\d+|\d*\.\d+|\d+\.)$/.test(elem.target.value)) {
@@ -411,10 +409,10 @@ export function KPManager(ctx) {
     let minDiff = Infinity;
     source.getFeatures().forEach(f => {
       if (!isSameGroup(f, parts)) return;
-      let kp = f.get(kpProp);
-      if (kp == null) return;
-      kp = Number(String(kp).replace(/[^\d.]/g, ''));
+
+      let kp = parseKP(f.get(kpProp));
       if (isNaN(kp)) return;
+
       const diff = Math.abs(kp - targetKp);
       if (diff < minDiff) {
         minDiff = diff;
@@ -425,6 +423,10 @@ export function KPManager(ctx) {
       setSelectedKPPoint(nearest, elem.target.id);
     }
     return nearest;
+  }
+  function parseKP(val) {
+    const match = String(val).match(/-?\d+(\.\d+)?/);
+    return match ? Number(match[0]) : NaN;
   }
 
   // ================================================================
@@ -537,9 +539,9 @@ export function KPManager(ctx) {
     const coordinates = features
       .slice()
       .sort((a, b) => {
-        const ka = Number(String(a.get(kpProp)).replace(/[^\d.-]/g, ''));
-        const kb = Number(String(b.get(kpProp)).replace(/[^\d.-]/g, ''));
-        return ka - kb;
+        const ida = Number(String(a.get("ID")).replace(/[^\d.-]/g, ''));
+        const idb = Number(String(b.get("ID")).replace(/[^\d.-]/g, ''));
+        return ida - idb;
       })
       .map(f => f.getGeometry().getCoordinates());
 

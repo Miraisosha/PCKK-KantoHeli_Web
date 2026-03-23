@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 /** Webルートパス（末尾「/」つき） @type {string} */
 const BASE_URL = document.currentScript.src.substring(0, document.currentScript.src.indexOf('/js/site.js') + 1);

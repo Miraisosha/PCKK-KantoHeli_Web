@@ -425,13 +425,11 @@ export function CreateRoute({
 
   if (btn調査予定登録実行) {
     btn調査予定登録実行.addEventListener('click', (e) => {
-      //e.preventDefault();
-      //e.stopPropagation();
       const formData = createRoutePlanFormData(btn調査予定登録実行.value);
       const elemKml = document.querySelector('input[name="input.kml"]');
       // -----------------------------
       // 登録処理
-      const response = fetch(base_url + '?Handler=Plan', {
+      fetch(base_url + '?Handler=Plan', {
         method: 'POST',
         body: formData
       }).then(response => {
@@ -441,7 +439,9 @@ export function CreateRoute({
         return response.json();
       }).then(res => {
         if (!res.success) {
-          throw new Error('サーバーエラー');
+          var title = modal調査予定登録Element.querySelector('.modal-title').innerHTML;
+          showAlert(title, res.error || '登録処理に失敗しました');
+          return;
         }
         const routeId = res.success.id;
         // -----------------------------
@@ -468,6 +468,9 @@ export function CreateRoute({
       });
     });
   }
+  document.getElementById('btnRouteRegisterClose').addEventListener('click', async (e) => {
+    //locationReload();
+  });
   // ---------------------------------------------------------------------------------
   // createRoutePlanFormData
   const createRoutePlanFormData = (mode) => {

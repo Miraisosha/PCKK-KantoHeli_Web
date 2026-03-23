@@ -5,6 +5,7 @@
 // 
 export function InvestigationRequestStatus(ctx) {
   const {
+    map,
     base_url,
     locationReload,
     tab依頼状況,
@@ -54,6 +55,14 @@ export function InvestigationRequestStatus(ctx) {
       });
 
       source調査地点.addFeatures(features);
+      if (features.length > 0) {
+        const extent = source調査地点.getExtent();
+        map.getView().fit(extent, {
+          padding: [50, 50, 50, 50], // 余白
+          duration: 500,             // アニメーション（ms）
+          maxZoom: 17                // ズームしすぎ防止（任意）
+        });
+      }
     }, showAlert);
 
     // 依頼取り消しボタンの活性/非活性

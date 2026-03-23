@@ -295,22 +295,27 @@
   margin-left:20px;
 }
   .legend-shindo.shindo4 {
-    background-color: #FAE696;
+    background-color: rgba(250, 230, 150, 0.6);
   }
+
   .legend-shindo.shindo5min {
-    background-color: #FAE600;
+    background-color: rgba(250, 230, 0, 0.6);
   }
+
   .legend-shindo.shindo5max {
-    background-color: #FF9900;
+    background-color: rgba(255, 153, 0, 0.6);
   }
+
   .legend-shindo.shindo6min {
-    background-color: #FF2800;
+    background-color: rgba(255, 40, 0, 0.6);
   }
+
   .legend-shindo.shindo6max {
-    background-color: #A50021;
+    background-color: rgba(165, 0, 33, 0.6);
   }
+
   .legend-shindo.shindo7 {
-    background-color: #B40068;
+    background-color: rgba(180, 0, 104, 0.6);
   }
 
  .legend-title{

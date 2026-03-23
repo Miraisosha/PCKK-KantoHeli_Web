@@ -54,17 +54,8 @@ export function Dropdown(ctx) {
   }
   document.getElementById("btnKMLOK").addEventListener("click", function () {
     const id = this.dataset.id;
-
-    const url = `${root_url}/files/FlightRoute/${id}.kml`;
-    fetch(url)
-      .then(res => res.blob())
-      .then(blob => {
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `${id}.kml`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-      });
+    const url = `${base_url}?handler=KmlDownload&id=${id}`;
+    window.location.href = url;
     modalKP.hide();
   });
   document.getElementById("btnKMLCancel").addEventListener("click", function () {

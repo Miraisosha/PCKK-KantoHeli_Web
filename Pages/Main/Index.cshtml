@@ -762,6 +762,7 @@
         <input id="startKp"
                type="number"
                class="form-control form-control-sm kp-input flex-2"
+               data-id=""
                step="1">
 
         <span class="ms-1">kp</span>
@@ -771,6 +772,7 @@
         <input id="endKp"
                type="number"
                class="form-control form-control-sm kp-input flex-2"
+               data-id=""
                step="1">
 
         <span class="ms-1">kp</span>
@@ -961,6 +963,7 @@
     </div>
   </div>
 </form>
+@*-- ルート作成：飛行時間オーバー　ダイアログ --*@
 <div class="modal fade" id="modalRouteCreateOverflow" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -986,6 +989,7 @@
     </div>
   </div>
 </div>
+@*-- ルート作成：一時保存・調査予定ルート公開　完了ダイアログ --*@
 <div class="modal fade" id="modalRouteRegister">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -997,7 +1001,7 @@
         内容
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+        <button class="btn btn-secondary" id="btnRouteRegisterClose">閉じる</button>
       </div>
     </div>
   </div>

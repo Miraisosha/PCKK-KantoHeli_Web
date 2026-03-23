@@ -743,19 +743,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         }
         recommendRouteId = threadRec.初動調査ルートid;
 
-        // 地震id が無ければスコアは取得できないので空を返す
-        if (threadRec.地震id is null) {
-            return new JsonResult(new {
-                success = new {
-                    routes,
-                    recommendRouteId
-                }
-            });
-        }
-
-        // t_スコア を地震idで取得し、初動調査ルートidで group by してスコア合計を作る
-        var scores = await con.SelectAsync<T_スコア>(r => r.地震id == threadRec.地震id.Value);
-
         // 初動調査ルートを基準に取得（特定初動調査区分で絞るのが妥当）
         List<T_初動調査ルート> routeRecs;
         if (threadRec.特定初動調査区分id is not null) {
@@ -766,6 +753,25 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             // 区分が無い場合は空リスト（必要なら全件取得に変更可）
             routeRecs = new List<T_初動調査ルート>();
         }
+
+        // 地震id が無ければスコアは取得できないので空を返す
+        if (threadRec.地震id is null) {
+            var routeList = routeRecs
+                .Select(rr => new {
+                    value = rr.初動調査ルートid,
+                    name = rr.初動調査ルート名,
+                })
+                .ToList();
+            return new JsonResult(new {
+                success = new {
+                    routes = routeList,
+                    recommendRouteId
+                }
+            });
+        }
+
+        // t_スコア を地震idで取得し、初動調査ルートidで group by してスコア合計を作る
+        var scores = await con.SelectAsync<T_スコア>(r => r.地震id == threadRec.地震id.Value);
 
         // 同一初動調査ルートid が複数行ある場合に備え、group by してスコアの合計を代表値とする
         var scoreDict = scores
@@ -1472,7 +1478,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         [FromForm] int? tempid,
         [FromForm] int? firstRouteId)
     {
-        Debug.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         var iv = provider.CreateValidator();
 
         // ---------------------------------------------
@@ -1685,7 +1690,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 }
             }
         }
-        var 飛行時間 = 移動時間 + 線調査時間 + 点調査時間 + (調査箇所数 * 2) + ((no - 1) * 1);
+        var 飛行時間 = 移動時間 + 線調査時間 + 点調査時間 + ((no - 1) * 1);
         logger.LogInformation("飛行時間：" + 飛行時間 + "\t移動時間：" + 移動時間 + "\t調査時間（線）：" + 線調査時間 + "\t調査時間（点）：" + 点調査時間 + "\t調査箇所数" + 調査箇所数);
 
         double 飛行可能時間 = input.num_people switch
@@ -1733,9 +1738,12 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                         features,
                     },
                     飛行距離 = distance is not null ? $"{distance:#0.0}Km" : null,
+                    飛行距離_調査 = $"{lineDistance:#0.0}Km",
+                    飛行距離_移動 = $"{linePass:#0.0}Km",
                     調査箇所 = $"{no - 1}箇所",
-                    //飛行時間 = val飛行時間_分 is not null ? $"{Math.Floor(val飛行時間_分.Value / 60):0}時間{val飛行時間_分 % 60:0}分" : null,
                     調査時間 = $"{Math.Floor(飛行時間 / 60):0}時間{飛行時間 % 60:0}分",
+                    移動時間 = $"{Math.Floor(移動時間 / 60):0}時間{移動時間 % 60:0}分",
+                    線調査時間 = $"{Math.Floor(線調査時間 / 60):0}時間{線調査時間 % 60:0}分",
                     飛行時間分 = 飛行時間,
                     飛行可能時間 = $"{Math.Floor(飛行可能時間 / 60):0}時間{飛行可能時間 % 60:0}分",
                     飛行可能時間分 = 飛行可能時間,
@@ -1780,7 +1788,11 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         {
             // スレッド内に同名の調査予定が存在しないかチェック（ステータスが依頼中以上のものに対して）
             var dupe = await con.SelectFirstOrDefaultAsync<T_調査予定>(
-                r => r.スレッドid == threadId.Value && r.調査予定名 == t予定Rec.調査予定名 && t予定Rec.ステータス >= 調査ステータスEnum.依頼中 && r.deleted_at == null);
+                r => r.スレッドid == threadId.Value &&
+                r.調査予定名 == t予定Rec.調査予定名 &&
+                t予定Rec.ステータス >= 調査ステータスEnum.依頼中 &&
+                r.deleted_at == null &&
+                (r.調査予定id != tempid || tempid == null));
             if (dupe is not null)
             {
                 iv.AddError("input.title", "同じ調査ルート名が既に存在します。調査ルート名を変更してください。");
@@ -2207,6 +2219,84 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         await tran.CommitAsync();
 
         return new JsonResult(new { success = "削除しました。" });
+    }
+
+    public async Task<IActionResult> OnGetKmlDownloadAsync(int id)
+    {
+        int 調査予定id = id;
+        // 設定からパスを取得。未設定なら wwwroot/files を使う
+        string? configuredDir = _settings.FlightRouteKMLPath;
+        //string? configuredDir = "D:\\Openlayers";
+        string dirToUse = !string.IsNullOrWhiteSpace(configuredDir)
+            ? configuredDir!
+            : Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files");
+        var filePath = Path.Combine(dirToUse, $"{調査予定id}.kml");
+
+        // -----------------------------
+        // KML生成
+        if (!System.IO.File.Exists(filePath))
+        {
+            try
+            {
+                await GenerateKmlAsync(調査予定id);
+            }
+            catch (Exception ex)
+            {
+                return NotFound($"KML生成失敗: {ex.Message}");
+            }
+        }
+
+        // -----------------------------
+        // 名前取得
+        // -----------------------------
+        var rec = await con.SelectFirstOrDefaultAsync<T_調査予定>(
+            x => x.調査予定id == 調査予定id
+        );
+        var fileName = rec?.調査予定名 ?? $"route_{調査予定id}";
+
+        foreach (var c in Path.GetInvalidFileNameChars())
+        {
+            fileName = fileName.Replace(c, '_');
+        }
+
+        fileName += ".kml";
+
+        // -----------------------------
+        // ダウンロード
+        // -----------------------------
+        var bytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+        return File(bytes, "application/vnd.google-earth.kml+xml", fileName);
+    }
+    private async Task<string> GenerateKmlAsync(int 調査予定id)
+    {
+        // -----------------------------
+        // DBからルート取得
+        // -----------------------------
+        var tルートRecords = await con.SelectAsync<T_調査予定ルート>(
+            r => r.調査予定id == 調査予定id,
+            otherClauses: "ORDER BY 連番"
+        );
+
+        if (!tルートRecords.Any())
+        {
+            throw new Exception("ルートが存在しません");
+        }
+
+        // -----------------------------
+        // KML生成
+        // -----------------------------
+        List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
+        var generator = new FlightRouteKmlGenerator();
+        var bytes = generator.Generate(flightRoutes);
+
+        // -----------------------------
+        // 保存
+        // -----------------------------
+        string fileName = $"{調査予定id}.kml";
+        string path = SaveKmlSafely(bytes, fileName);
+
+        return path;
     }
 
     #endregion ------------------------------------------------------------------------------------

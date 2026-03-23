@@ -1,6 +1,7 @@
 
 export function Capital(ctx) {
   const {
+    map,
     base_url,
     locationReload,
     tabElement,
@@ -64,8 +65,9 @@ export function Capital(ctx) {
         btn公開.disabled = false;
         btn公開.removeAttribute('aria-disabled');
         btn公開.textContent = '調査予定ルートとして公開';
-        sel初動調査ルート.innerHTML = routes.map((r) =>
-          `<option value="${r.value}" ${(r.isLowest) ? "selected" : "" }>${r.name}：評価スコア${r.score}${(r.isLowest) ? "（推奨）" : "" }</option>`
+        sel初動調査ルート.innerHTML = routes.map((r) => r.score ?
+          `<option value="${r.value}" ${(r.isLowest) ? "selected" : ""}>${r.name}：評価スコア${r.score}${(r.isLowest) ? "（推奨）" : ""}</option>` :
+          `<option value="${r.value}">${r.name}</option>`
         ).join('');
       }
       show()
@@ -122,6 +124,14 @@ export function Capital(ctx) {
           } else {
             console.warn('createDetailRow が未定義または tbody がありません。');
           }
+        }
+        if (features.length > 0) {
+          const extent = sourceRoute.getExtent();
+          map.getView().fit(extent, {
+            padding: [50, 50, 50, 50],
+            duration: 500,
+            maxZoom: 17
+          });
         }
       });
       selectedRoute.firstRouteId = 初動調査ルートid;

@@ -194,6 +194,7 @@ const dropdown = Dropdown({
 dropdown.initialize();
 
 const requestStatus = InvestigationRequestStatus({
+  map,
   base_url,
   locationReload,
   tab依頼状況,
@@ -204,10 +205,10 @@ const requestStatus = InvestigationRequestStatus({
   showConfirm
 });
 requestStatus.initialize();
-requestStatus.reload();
 // ---------------------------------------------
 // 首都直下初動
 const capital = Capital({
+  map,
   base_url,
   locationReload,
   tabElement: tab特定初動調査,
@@ -389,11 +390,12 @@ function tabChange(tab) {
     case "tab依頼状況" :
       layer初動調査ルート.setVisible(false);
       layer編集調査ルート.setVisible(false);
+      requestStatus.reload();
       break;
     case "tab特定初動調査" :
-      capital.show();
       layer初動調査ルート.setVisible(true);
       layer編集調査ルート.setVisible(false);
+      capital.show();
       break;
     case "tabルート作成" :
       layer初動調査ルート.setVisible(false);
@@ -450,12 +452,6 @@ function showLegend() {
   const rect = btnLegend.getBoundingClientRect();
   legend.classList.remove("hidden");
 
-//  console.log(rect);
-//  console.log(legend.offsetWidth, legend.offsetHeight);
-//  legend.style.left = (rect.left - legend.offsetWidth -300 ) + "px";
-//  legend.style.top = (rect.top - legend.offsetHeight - 200) + "px";
-//  console.log(legend.style);
-
   btnLegend.style.display = "none";
 }
 function hideLegend() {
@@ -468,27 +464,12 @@ btnLegend.addEventListener("click", () => { showLegend(); });
 // 凡例閉じる
 closeBtn.addEventListener("click", () => { hideLegend(); });
 
+// ---------------------------------------------
+// 差し戻しボタン　表示・非表示制御
+document.querySelectorAll('.btn差戻').forEach(btn => {
+  btn.style.display = loginUser.isRouteCreate ? 'block' : 'none';
+});
 
-//// ---- ドラッグ ----
-//let dragging = false;
-//let offsetX = 0;
-//let offsetY = 0;
-//header.addEventListener("mousedown", (e) => {
-//  dragging = true;
-//  const rect = legend.getBoundingClientRect();
-//  offsetX = e.clientX - rect.left;
-//  offsetY = e.clientY - rect.top;
-//  legend.style.right = "auto";
-//  legend.style.bottom = "auto";
-//});
-//document.addEventListener("mousemove", (e) => {
-//  if (!dragging) return;
-//  legend.style.left = (e.clientX - offsetX) + "px";
-//  legend.style.top = (e.clientY - offsetY) + "px";
-//});
-//document.addEventListener("mouseup", () => {
-//  dragging = false;
-//});
 function locationReload() {
   location.href = location.origin + location.pathname + '?tab=' + dispArea.dataset.bottomtab;
 }
