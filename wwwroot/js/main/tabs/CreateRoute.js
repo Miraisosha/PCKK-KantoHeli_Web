@@ -447,7 +447,8 @@ export function CreateRoute({
         // -----------------------------
         // KMLダウンロード
         if (elemKml.checked) {
-          const url = root_url + '/files/FlightRoute/' + routeId + '.kml';
+          //const url = root_url + '/files/FlightRoute/' + routeId + '.kml';
+          const url = `${base_url}?handler=KmlDownload&id=${routeId}`;
           const a = document.createElement('a');
           a.href = url;
           a.target = '_blank';
@@ -469,7 +470,7 @@ export function CreateRoute({
     });
   }
   document.getElementById('btnRouteRegisterClose').addEventListener('click', async (e) => {
-    //locationReload();
+    locationReload();
   });
   // ---------------------------------------------------------------------------------
   // createRoutePlanFormData

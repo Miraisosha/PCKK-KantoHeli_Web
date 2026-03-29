@@ -2079,8 +2079,13 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                 dirToUse += Path.DirectorySeparatorChar;
             Directory.CreateDirectory(dirToUse);
             Debug.WriteLine(dirToUse);
-
             var fullPath = Path.Combine(dirToUse, fileName);
+
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
+
             System.IO.File.WriteAllBytes(fullPath, bytes);
             return fullPath;
         }
