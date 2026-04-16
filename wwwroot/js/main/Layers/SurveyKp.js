@@ -125,7 +125,7 @@ export function SurveyKp(ctx) {
         stroke: new ol.style.Stroke({ color: '#fff', width: 2 })
       }),
       text: new ol.style.Text({
-        text: feature.get('左右岸') + " " + Number(feature.get('距離標')) + "KP",
+        text: feature.get('河川名') + " " + feature.get('左右岸') + " " + Number(feature.get('距離標')) + "KP",
         font: kp_font,
         fill: new ol.style.Fill({ color: '#000' }),
         stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
@@ -143,7 +143,7 @@ export function SurveyKp(ctx) {
         stroke: new ol.style.Stroke({ color: '#fff', width: 2 })
       }),
       text: new ol.style.Text({
-        text: feature.get('路線') + "号線 " + feature.get('地点標名称') + "KP",
+        text: feature.get('路線') + "号線 " + feature.get('現旧新区分') + " " + feature.get('地点標名称') + "KP",
         font: kp_font,
         fill: new ol.style.Fill({ color: '#000' }),
         stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),

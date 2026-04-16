@@ -5,7 +5,7 @@ export function HeliPort() {
       text: new ol.style.Text({
         font: 'bold 18px bootstrap-icons',
         text: '\uF7FB',
-        fill: new ol.style.Fill({ color: '#00F' }),
+        fill: new ol.style.Fill({ color: '#000' }),
         stroke: new ol.style.Stroke({ color: '#FFF', width: 2 }),
       })
     });

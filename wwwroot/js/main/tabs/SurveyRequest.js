@@ -173,6 +173,7 @@ export function SurveyRequest(
   // tbody のチェックボックス状態変化で一括ボタン更新
   tbody調査依頼.addEventListener('change', (e) => {
     // 元々 global handler が selectedFeatureIds を管理しているのでここは UI 側の有効/無効だけ更新する
+    console.log("Checkbox:OK!");
     updateBulkButtonsState();
   });
   // 初回状態
@@ -254,6 +255,7 @@ export function SurveyRequest(
     // チェックボックスをfeatureのプロパティとして設定
     const checkbox = trElement.querySelector('input[type="checkbox"]');
     feature.set('checkbox', checkbox);
+
     // 優先度変更時に表示更新＆hidden項目へ値反映
     const priorityButtons = trElement.querySelectorAll('button[name="priority"]');
     priorityButtons.forEach((button) => {
@@ -331,7 +333,12 @@ export function SurveyRequest(
         // 追加行のみを選択状態とし、フォーカスする
         tbody調査依頼.appendChild(trElement);
         trElement.scrollIntoView();
-        tbody調査依頼.querySelectorAll('input[type="checkbox"][name="id"]').forEach((cb) => cb.checked = (cb.value == e.feature.getId()));
+        tbody調査依頼.querySelectorAll('input[type="checkbox"][name="id"]').forEach(
+          (cb) => {
+            cb.checked = (cb.value == e.feature.getId());
+            console.log("Checkbox:OK!" + cb.value + "/" + e.feature.getId());
+          }
+        );
         trElement.querySelector('input[name="input.name"]').focus();
         // 地図上の選択状態も同期をとって変更
         source調査地点.addFeature(e.feature); // レイヤ再描画
