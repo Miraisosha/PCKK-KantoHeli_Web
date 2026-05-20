@@ -152,15 +152,41 @@ export function Capital(ctx) {
   const btn公開 = tabElement.querySelector('button[name="btn初動調査登録"]');
   if (btn公開) {
     btn公開.addEventListener('click', async(e) => {
-      const msg = "調査予定ルートとして公開します。\nよろしいですか？";
-      if(await showConfirm('首都直下初動ルート公開',msg)) {
-        const formData = create調査予定FormData('capital_register');
-        ajaxExecute(base_url + '?Handler=Plan',
-          { method: 'POST', body: formData }, { }
-        ).then(async (response) => {
-          locationReload();
-        }, () => { });
-      }
+      const modalElement = document.getElementById('modalCapitalRegister');
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+    });
+    document.getElementById('btnCapitalRegister').addEventListener('click', function () {
+      const isKmlDownload = document.querySelector('.chkKmlDownload').checked;
+      const formData = create調査予定FormData('capital_register');
+      fetch(base_url + '?Handler=Plan', {
+        method: 'POST',
+        body: formData
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error('登録処理に失敗しました');
+        }
+        return response.json();
+      }).then(res => {
+        if (!res.success) {
+          const modalElement = document.getElementById('modalCapitalRegister');
+          const modal = bootstrap.Modal.getInstance(modalElement);
+          modal.hide();
+          showAlert('首都直下初動ルート公開', res.error || '公開登録処理に失敗しました');
+          return;
+        }
+        const routeId = res.success.id;
+        // -----------------------------
+        // KMLダウンロード
+        if (isKmlDownload) {
+          const url = `${base_url}?handler=KmlDownload&id=${routeId}`;
+          const a = document.createElement('a');
+          a.href = url;
+          a.target = '_blank';
+          a.click();
+        }
+        locationReload();
+      });
     });
   }
 
