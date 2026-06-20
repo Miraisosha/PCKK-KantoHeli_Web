@@ -7,6 +7,23 @@ using Src.Services;
 
 public sealed class FlightRouteKmlGenerator
 {
+    private const string PassLineArrowIconFolderPath = "icons/";
+    private const string PassLineArrowStylePrefix = "PassLineArrow";
+    private static readonly int[] PassLineArrowDirections =
+        [0, 22, 45, 68, 90, 112, 135, 158, 180, 202, 225, 248, 270, 292, 315, 338];
+    private readonly Func<int, string> passLineArrowIconHrefFactory;
+
+    public FlightRouteKmlGenerator(string? passLineArrowIconFolderUrl = null)
+    {
+        var normalizedIconFolderUrl = NormalizeIconFolderUrl(passLineArrowIconFolderUrl);
+        passLineArrowIconHrefFactory = directionDegrees => $"{normalizedIconFolderUrl}pass_arrow_{directionDegrees:000}.png";
+    }
+
+    public FlightRouteKmlGenerator(Func<int, string> passLineArrowIconHrefFactory)
+    {
+        this.passLineArrowIconHrefFactory = passLineArrowIconHrefFactory;
+    }
+
     public byte[] Generate(List<FlightRoute> routes)
     {
         var sorted = routes.OrderBy(x => x.id).ToList();
@@ -72,20 +89,13 @@ public sealed class FlightRouteKmlGenerator
                     new XElement(ns + "color", "ffbb1c1c"),
                     new XElement(ns + "width", 10)
                 )
-            ),
-
-            // 矢印
-            new XElement(ns + "Style",
-                new XAttribute("id", "ArrowPoly"),
-                new XElement(ns + "LineStyle",
-                    new XElement(ns + "color", "ffbb1c1c"),
-                    new XElement(ns + "width", 3)
-                ),
-                new XElement(ns + "PolyStyle",
-                    new XElement(ns + "color", "ffbb1c1c")
-                )
             )
         );
+
+        foreach (var arrowStyle in CreatePassLineArrowStyles(ns, sorted))
+        {
+            document.Add(arrowStyle);
+        }
 
         //------------------------------------------------
         // Placemark生成
@@ -254,11 +264,6 @@ public sealed class FlightRouteKmlGenerator
     /// <returns></returns>
     private XElement CreatePassLine(XNamespace ns, FlightRoute r)
     {
-        // 矢印サイズ
-        double arrowLength = 0.012;
-        double arrowWidth = arrowLength * 0.5;
-        double notchDepth = arrowLength * 0.35;
-
         if (r.geometry is not LineString line)
             return new XElement(ns + "Folder");
 
@@ -291,52 +296,14 @@ public sealed class FlightRouteKmlGenerator
         if (len == 0)
             return lineElement;
 
-        dx /= len;
-        dy /= len;
-
-        // 垂直ベクトル
-        double px = -dy;
-        double py = dx;
-
         //----------------------------------
-        // 矢印先端 = ライン終点
+        // 矢印アイコン
         //----------------------------------
-        double tipX = end.X;
-        double tipY = end.Y;
-
-        // 矢印の基準点（後ろ）
-        double baseX = tipX - dx * arrowLength;
-        double baseY = tipY - dy * arrowLength;
-
-        // 左右
-        double leftX = baseX + px * arrowWidth;
-        double leftY = baseY + py * arrowWidth;
-
-        double rightX = baseX - px * arrowWidth;
-        double rightY = baseY - py * arrowWidth;
-
-        // ノッチ
-        double notchX = baseX + dx * notchDepth;
-        double notchY = baseY + dy * notchDepth;
-
-        //----------------------------------
-        // 矢印Polygon
-        //----------------------------------
+        var directionDegrees = GetPassLineArrowDirectionDegrees(CalcHeading(prev, end));
         var arrow = new XElement(ns + "Placemark",
-            new XElement(ns + "styleUrl", "#ArrowPoly"),
-            new XElement(ns + "Polygon",
-                new XElement(ns + "outerBoundaryIs",
-                    new XElement(ns + "LinearRing",
-                        new XElement(ns + "coordinates",
-                            $"{tipX},{tipY},0 " +
-                            $"{leftX},{leftY},0 " +
-                            $"{notchX},{notchY},0 " +
-                            $"{rightX},{rightY},0 " +
-                            $"{tipX},{tipY},0"
-                        )
-                    )
-                )
-            )
+            new XElement(ns + "styleUrl", $"#{GetPassLineArrowStyleId(directionDegrees)}"),
+            new XElement(ns + "Point",
+                new XElement(ns + "coordinates", $"{end.X},{end.Y},0"))
         );
 
         return new XElement(ns + "Folder",
@@ -345,22 +312,51 @@ public sealed class FlightRouteKmlGenerator
         );
     }
 
+    private IEnumerable<XElement> CreatePassLineArrowStyles(XNamespace ns, IEnumerable<FlightRoute> routes)
+    {
+        var headings = routes
+            .Where(r => r.type == 4)
+            .Select(r => r.geometry as LineString)
+            .Where(line => line?.Coordinates.Length >= 2)
+            .Select(line => GetPassLineArrowDirectionDegrees(CalcHeading(line!.Coordinates[^2], line.Coordinates[^1])))
+            .Distinct()
+            .OrderBy(directionDegrees => directionDegrees);
+
+        foreach (var directionDegrees in headings)
+        {
+            yield return CreateIconStyle(ns, GetPassLineArrowStyleId(directionDegrees), GetPassLineArrowIconUrl(directionDegrees), 1.0, 0, 0.5, 0.5);
+        }
+    }
+
     private XElement CreateSvgStyle(
     XNamespace ns,
     string svg,
     double scale,
-    double heading = 0)
+    double heading = 0,
+    double hotSpotX = 0.5,
+    double hotSpotY = 0.5)
+        => CreateIconStyle(ns, null, svg, scale, heading, hotSpotX, hotSpotY);
+
+    private XElement CreateIconStyle(
+    XNamespace ns,
+    string? id,
+    string iconUrl,
+    double scale,
+    double heading = 0,
+    double hotSpotX = 0.5,
+    double hotSpotY = 0.5)
     {
         return new XElement(ns + "Style",
+            id is null ? null : new XAttribute("id", id),
             new XElement(ns + "IconStyle",
                 new XElement(ns + "scale", scale),
                 new XElement(ns + "heading", heading),
                 new XElement(ns + "Icon",
-                    new XElement(ns + "href", svg)
+                    new XElement(ns + "href", iconUrl)
                 ),
                 new XElement(ns + "hotSpot",
-                    new XAttribute("x", "0.5"),
-                    new XAttribute("y", "0.5"),
+                    new XAttribute("x", hotSpotX),
+                    new XAttribute("y", hotSpotY),
                     new XAttribute("xunits", "fraction"),
                     new XAttribute("yunits", "fraction")
                 )
@@ -370,6 +366,34 @@ public sealed class FlightRouteKmlGenerator
             )
         );
     }
+    private static string GetPassLineArrowStyleId(int directionDegrees) => $"{PassLineArrowStylePrefix}{directionDegrees:000}";
+    private string GetPassLineArrowIconUrl(int directionDegrees) => passLineArrowIconHrefFactory(directionDegrees);
+    private static string NormalizeIconFolderUrl(string? iconFolderUrl)
+    {
+        if (string.IsNullOrWhiteSpace(iconFolderUrl))
+            return PassLineArrowIconFolderPath;
+
+        return iconFolderUrl.TrimEnd('/') + "/";
+    }
+    private static int GetPassLineArrowDirectionDegrees(double heading)
+    {
+        var normalized = ((heading % 360.0) + 360.0) % 360.0;
+        var directionIndex = (int)Math.Round(normalized / 22.5, MidpointRounding.AwayFromZero) % PassLineArrowDirections.Length;
+        return PassLineArrowDirections[directionIndex];
+    }
+    private static double CalcHeading(Coordinate from, Coordinate to)
+    {
+        double lat1 = ToRadians(from.Y);
+        double lat2 = ToRadians(to.Y);
+        double dLon = ToRadians(to.X - from.X);
+
+        double y = Math.Sin(dLon) * Math.Cos(lat2);
+        double x = Math.Cos(lat1) * Math.Sin(lat2)
+                 - Math.Sin(lat1) * Math.Cos(lat2) * Math.Cos(dLon);
+
+        return (Math.Atan2(y, x) * 180.0 / Math.PI + 360.0) % 360.0;
+    }
+    private static double ToRadians(double degrees) => degrees * Math.PI / 180.0;
     private string CreateOutlinedTextSvg(string text, bool offsetRight)
     {
         int width = 140;

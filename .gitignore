@@ -2,4 +2,6 @@
 /bin
 /.vs
 /wwwroot/files/earthquake
-/wwwroot/files/FlightRoute
+/wwwroot/files/FlightRoute/*
+!/wwwroot/files/FlightRoute/icons/
+!/wwwroot/files/FlightRoute/icons/*.png

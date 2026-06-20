@@ -28,6 +28,8 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     private readonly AppSettings _settings = provider.GetSettings();
     #endregion ----------------------------------------------------------------
 
+    private const double InitialRoutePassLineSkipThresholdMeters = 5.0;
+
 
     // タブ名(タブ選択ボタンのvalue=タブ内容表示領域divのid)
     public const string TabName調査依頼 = "tab調査依頼";
@@ -754,6 +756,23 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             routeRecs = new List<T_初動調査ルート>();
         }
 
+        // 首都直下初動が効果入れているか
+        bool isRequested = false;
+        bool isPlanned = false;
+        bool isScheduled = false;
+        if (threadRec.初動調査ルートid is not null)
+        {
+            var rId = threadRec.初動調査ルートid.Value;
+            var iraiRec = await con.SelectFirstOrDefaultAsync<T_調査依頼>(
+                r => r.スレッドid == thread.Value && r.初動調査ルートid != null && r.ステータス >= 調査ステータスEnum.調査予定 && r.deleted_at == null);
+            var yoteiRec = await con.SelectFirstOrDefaultAsync<T_調査予定>(
+                r => r.スレッドid == thread.Value && r.初動調査ルートid  != null && r.deleted_at == null);
+
+            isRequested = iraiRec is not null;
+            isPlanned = yoteiRec is not null;
+            isScheduled = isRequested && isPlanned;
+        }
+
         // 地震id が無ければスコアは取得できないので空を返す
         if (threadRec.地震id is null) {
             var routeList = routeRecs
@@ -762,10 +781,24 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
                     name = rr.初動調査ルート名,
                 })
                 .ToList();
+            int? scVal = null;
+            foreach(var r in routeList)
+            {
+                routes.Add(new
+                {
+                    value = r.value,
+                    name = r.name,
+                    score = scVal,
+                    isLowest = false
+                });
+            }
             return new JsonResult(new {
                 success = new {
-                    routes = routeList,
-                    recommendRouteId
+                    routes,
+                    recommendRouteId,
+                    isRequested,    // t_調査依頼に該当あり（t_スレッド の 初動調査ルートid を基準）
+                    isPlanned,      // t_調査予定に該当あり（t_スレッド の 初動調査ルートid を基準）
+                    isScheduled     // 両方存在する場合は調査予定済みとして扱う
                 }
             });
         }
@@ -786,23 +819,6 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             .ToList();
 
         int? minScore = scoresForRoutes.Any() ? (int?)scoresForRoutes.Min() : null;
-
-        // 首都直下初動が効果入れているか
-        bool isRequested = false;
-        bool isPlanned = false;
-        bool isScheduled = false;
-        if (threadRec.初動調査ルートid is not null)
-        {
-            var rId = threadRec.初動調査ルートid.Value;
-            var iraiRec = await con.SelectFirstOrDefaultAsync<T_調査依頼>(
-                r => r.スレッドid == thread.Value && r.初動調査ルートid != null && r.ステータス >= 調査ステータスEnum.調査予定 && r.deleted_at == null);
-            var yoteiRec = await con.SelectFirstOrDefaultAsync<T_調査予定>(
-                r => r.スレッドid == thread.Value && r.初動調査ルートid  != null && r.deleted_at == null);
-
-            isRequested = iraiRec is not null;
-            isPlanned = yoteiRec is not null;
-            isScheduled = isRequested && isPlanned;
-        }
 
         // routeRecs を基準に出力配列を作成。スコアがなければ null、最小スコアならフラグ true を設定
         foreach (var rr in routeRecs) {
@@ -873,7 +889,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             }));
             i++;
         }
-        if (t起点終点Records.FirstOrDefault(r => r.起点終点id == rec初動調査ルート.起点id) is T_起点終点 rec終点)
+        if (t起点終点Records.FirstOrDefault(r => r.起点終点id == rec初動調査ルート.終点id) is T_起点終点 rec終点)
         {
             features.Add(new Feature(new Point(rec終点.経度, rec終点.緯度), new AttributesTable {
                 { "text", "終" },
@@ -997,10 +1013,10 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             {
                 連番 = no++,
                 調査箇所id = null,
-                ジオメトリ = new Point(start.経度, start.緯度) { SRID = 4326 }
+                ジオメトリ = new Point(end.経度, end.緯度) { SRID = 4326 }
             });
         }
-        List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
+        List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords, InitialRoutePassLineSkipThresholdMeters);
         Geometry routeLine = rec初動調査ルート.ジオメトリ;
         features.AddRange( flightRoutes
             .Where(fr => fr.type == 4)
@@ -2033,7 +2049,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // ---------------------------------------------------------------------
         // KML生成
         List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
-        var generator = new FlightRouteKmlGenerator();
+        var generator = CreateFlightRouteKmlGenerator();
         var bytes = generator.Generate(flightRoutes);
 
         // 安全に保存（設定ディレクトリ or wwwroot/files を使用、権限エラーは一時ファイルへフォールバック）
@@ -2103,6 +2119,23 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             System.IO.File.WriteAllBytes(temp, bytes);
             return temp;
         }
+    }
+
+    private FlightRouteKmlGenerator CreateFlightRouteKmlGenerator()
+        => new(GetFlightRouteIconHref);
+
+    private string GetFlightRouteIconHref(int directionDegrees)
+    {
+        var iconPath = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "wwwroot",
+            "files",
+            "FlightRoute",
+            "icons",
+            $"pass_arrow_{directionDegrees:000}.png");
+
+        var iconBytes = System.IO.File.ReadAllBytes(iconPath);
+        return $"data:image/png;base64,{Convert.ToBase64String(iconBytes)}";
     }
 
     /// <summary>
@@ -2229,26 +2262,17 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
     public async Task<IActionResult> OnGetKmlDownloadAsync(int id)
     {
         int 調査予定id = id;
-        // 設定からパスを取得。未設定なら wwwroot/files を使う
-        string? configuredDir = _settings.FlightRouteKMLPath;
-        //string? configuredDir = "D:\\Openlayers";
-        string dirToUse = !string.IsNullOrWhiteSpace(configuredDir)
-            ? configuredDir!
-            : Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files");
-        var filePath = Path.Combine(dirToUse, $"{調査予定id}.kml");
+        string filePath;
 
         // -----------------------------
         // KML生成
-        if (!System.IO.File.Exists(filePath))
+        try
         {
-            try
-            {
-                await GenerateKmlAsync(調査予定id);
-            }
-            catch (Exception ex)
-            {
-                return NotFound($"KML生成失敗: {ex.Message}");
-            }
+            filePath = await GenerateKmlAsync(調査予定id);
+        }
+        catch (Exception ex)
+        {
+            return NotFound($"KML生成失敗: {ex.Message}");
         }
 
         // -----------------------------
@@ -2292,7 +2316,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
         // KML生成
         // -----------------------------
         List<FlightRoute> flightRoutes = await GetFlightRoutes(tルートRecords);
-        var generator = new FlightRouteKmlGenerator();
+        var generator = CreateFlightRouteKmlGenerator();
         var bytes = generator.Generate(flightRoutes);
 
         // -----------------------------
@@ -2306,7 +2330,7 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
     #endregion ------------------------------------------------------------------------------------
 
-    private async Task<List<FlightRoute>> GetFlightRoutes(IReadOnlyList<T_調査予定ルート> tルートRecords)
+    private async Task<List<FlightRoute>> GetFlightRoutes(IReadOnlyList<T_調査予定ルート> tルートRecords, double? passLineSkipThresholdMeters = null)
     {
         List<Coordinate> lineCoordinates = new();
         List<FlightRoute> list = [];
@@ -2496,23 +2520,27 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
             // 通過ライン　追加
             if (pointA is not null && pointB is not null)
             {
-                var coords = new[]
+                var passLineDistance = pointA.GetDistanceTo(pointB);
+                if (passLineSkipThresholdMeters is null || passLineDistance > passLineSkipThresholdMeters.Value)
                 {
-                    new Coordinate(pointA.Longitude, pointA.Latitude), // Coordinate(X=lon, Y=lat)
-                    new Coordinate(pointB.Longitude, pointB.Latitude),
-                };
-                Geometry lineGeom = new LineString(coords) { SRID = 4326 };
-                list.Add(new FlightRoute
-                {
-                    id          = frIdx++,
-                    no          = null,
-                    priority    = null,
-                    survey      = null,
-                    persons     = null,
-                    name        = String.Empty,
-                    type        = 4,
-                    geometry    = lineGeom,
-                });
+                    var coords = new[]
+                    {
+                        new Coordinate(pointA.Longitude, pointA.Latitude), // Coordinate(X=lon, Y=lat)
+                        new Coordinate(pointB.Longitude, pointB.Latitude),
+                    };
+                    Geometry lineGeom = new LineString(coords) { SRID = 4326 };
+                    list.Add(new FlightRoute
+                    {
+                        id          = frIdx++,
+                        no          = null,
+                        priority    = null,
+                        survey      = null,
+                        persons     = null,
+                        name        = String.Empty,
+                        type        = 4,
+                        geometry    = lineGeom,
+                    });
+                }
             }
 
 
