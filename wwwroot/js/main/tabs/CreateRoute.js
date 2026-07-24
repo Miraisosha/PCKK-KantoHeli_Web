@@ -426,7 +426,7 @@ export function CreateRoute({
   if (btn調査予定登録実行) {
     btn調査予定登録実行.addEventListener('click', (e) => {
       const formData = createRoutePlanFormData(btn調査予定登録実行.value);
-      const elemKml = document.querySelector('input[name="input.kml"]');
+      const elemKml = document.querySelector('input[name="input1.kml"]');
       // -----------------------------
       // 登録処理
       fetch(base_url + '?Handler=Plan', {

@@ -1711,18 +1711,16 @@ public class IndexModel(ILogger<IndexModel> logger, DbConnection con, LoginServi
 
         double 飛行可能時間 = input.num_people switch
         {
-            1 => 165,
-            2 => 150,
-            3 => 135,
-            4 => 120,
+            1 => 150,
+            2 => 135,
+            3 => 125,
+            4 => 110,
             5 => 105,
             6 => 90,
-            7 => 75,
-            8 => 60,
-            9 => 45,
-            10 => 30,
-            11 => 15,
-            _ => 180,
+            7 => 80,
+            8 => 65,
+            9 => 50,
+            _ => 155,
         };
         // 調査ルート表示 or 最短経路探索であれば successのjsonを返して終了
         if (status is null || mode == "calc")
