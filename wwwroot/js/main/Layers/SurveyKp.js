@@ -153,9 +153,9 @@ export function SurveyKp(ctx) {
   }
   // ------------------------------------------
   // マウスアウト
-function onMouseOutKP(feature) {
-  feature.setStyle(undefined);
-}
+  function onMouseOutKP(feature) {
+    feature.setStyle(undefined);
+  }
   function styleKPLine(feature) {
     return new ol.style.Style({
       stroke: new ol.style.Stroke({

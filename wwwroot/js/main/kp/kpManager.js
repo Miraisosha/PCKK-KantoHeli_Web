@@ -20,7 +20,9 @@ export function KPManager(ctx) {
     modalKPPoint,
     selRoadRiver,
     startKp,
-    endKp
+    endKp,
+    startId,
+    endId
   } = ui;
   const {
     styleKP,
@@ -171,8 +173,10 @@ export function KPManager(ctx) {
       const 補助番号 = f.get('補助番号');
 
       //const key = `${地方整備局}_${事務所}_${道路種別}_${路線}_${現旧新区分}_${上下区分}_${補助番号}`;
-      const key = `${路線}_${現旧新区分}_${上下区分}`;
-      const text = `${路線}号線 ${現旧新区分} ${上下区分}`;
+      //const key = `${路線}_${現旧新区分}_${上下区分}`;
+      //const text = `${路線}号線 ${現旧新区分} ${上下区分}`;
+      const key = `${路線}`;
+      const text = `${路線}号線`;
 
       if (!mapKP道路.has(key)) {
         mapKP道路.set(key, text);
@@ -238,7 +242,7 @@ export function KPManager(ctx) {
         endKp.value = '';
       } else {
         startKp.value = '';
-        endKp.value = Number(f.get(kpProp));
+        endKp.value = Number(f.get(kpProp));  // ------------ Modify
       }
       hideSelectedLine();
 
@@ -259,8 +263,8 @@ export function KPManager(ctx) {
         startKp.value   = Number(f1.get(kpProp));
         endKp.value     = Number(f2.get(kpProp));
       } else {
-        startKp.value   = Number(f2.get(kpProp));
-        endKp.value     = Number(f1.get(kpProp));
+        startKp.value   = Number(f2.get(kpProp));// ------------ Modify
+        endKp.value     = Number(f1.get(kpProp));// ------------ Modify
       }
 
       // 選択された範囲をラインで描画
@@ -410,7 +414,7 @@ export function KPManager(ctx) {
     source.getFeatures().forEach(f => {
       if (!isSameGroup(f, parts)) return;
 
-      let kp = parseKP(f.get(kpProp));
+      let kp = parseKP(f.get(kpProp));// ------------ Modify
       if (isNaN(kp)) return;
 
       const diff = Math.abs(kp - targetKp);
@@ -452,8 +456,8 @@ export function KPManager(ctx) {
     if (features.length != 2) return;
     const f_s = features[0].get("srcFeature");
     const f_e = features[1].get("srcFeature");
-    const kp_s = Number(f_s.get(kpProp));
-    const kp_e = Number(f_e.get(kpProp));
+    const kp_s = isRiver ? Number(f_s.get(kpProp)) : Number(f_s.get("route"));
+    const kp_e = isRiver ? Number(f_e.get(kpProp)) : Number(f_e.get("route"));
     const kpMin = Math.min(kp_s, kp_e);
     const kpMax = Math.max(kp_s, kp_e);
     let source;
@@ -467,7 +471,7 @@ export function KPManager(ctx) {
     const rangeFeatures = [];
     source.getFeatures().forEach(f => {
       if (!isSameGroup(f, parts)) return;
-      let kp = f.get(kpProp);
+      let kp = isRiver ? f.get(kpProp) : f.get("route");
       if (kp == null) return;
       kp = Number(String(kp).replace(/[^\d.-]/g, ''));
       if (isNaN(kp)) return;
@@ -539,8 +543,8 @@ export function KPManager(ctx) {
     const coordinates = features
       .slice()
       .sort((a, b) => {
-        const ida = Number(String(a.get("ID")).replace(/[^\d.-]/g, ''));
-        const idb = Number(String(b.get("ID")).replace(/[^\d.-]/g, ''));
+        const ida = Number(String(a.get(isRiver ? kpProp : "route")).replace(/[^\d.-]/g, ''));
+        const idb = Number(String(b.get(isRiver ? kpProp : "route")).replace(/[^\d.-]/g, ''));
         return ida - idb;
       })
       .map(f => f.getGeometry().getCoordinates());
@@ -591,16 +595,12 @@ export function KPManager(ctx) {
     if (!feature || !parts) return false;
 
     // 河川
-    if (parts.length === 3) {
-      if (isRiver) {
-        return feature.get('水系名') == parts[0]
-          && feature.get('河川名') == parts[1]
-          && feature.get('左右岸') == parts[2];
-      } else {
-        return String(feature.get('路線')) == parts[0]
-          && feature.get('現旧新区分') == parts[1]
-          && feature.get('上下区分') == parts[2]
-      }
+    if (isRiver) {
+      return feature.get('水系名') == parts[0]
+        && feature.get('河川名') == parts[1]
+        && feature.get('左右岸') == parts[2];
+    } else {
+      return String(feature.get('路線')) == parts[0];
     }
     return true;
   }
@@ -616,10 +616,11 @@ export function KPManager(ctx) {
         feature.get('左右岸')];
     // 道路
     } else {
-      return [
-        feature.get('路線'),
-        feature.get('現旧新区分'),
-        feature.get('上下区分')];
+      //return [
+      //  feature.get('路線'),
+      //  feature.get('現旧新区分'),
+      //  feature.get('上下区分')];
+      return [feature.get('路線')];
     }
   }
   function setOnConfirm(callback) {
